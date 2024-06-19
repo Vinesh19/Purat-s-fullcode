@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.login {
+    background: url("./assets/images/png/bg-1.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.mobile-ui {
+    background: url("./assets/images/png/mobile-bg.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
