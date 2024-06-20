@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { templateData } from "../../services/api";
+import { templateData, fetchTemplateMessage } from "../../services/api"; // Import the API function to fetch the message
 import Mobile from "../../components/Mobile";
 
-const API = templateData;
-
-const NewBroadcast = () => {
-    const [templates, setTemplates] = useState([]);
-    const [selectedTemplate, setSelectedTemplate] = useState("");
+const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
+    const [templates, setTemplates] = useState({});
+    const [selectedTemplateId, setSelectedTemplateId] = useState(""); // Track selected template ID
     const [message, setMessage] = useState("");
     const [attributes, setAttributes] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
@@ -16,38 +14,41 @@ const NewBroadcast = () => {
     const [currentCsvPage, setCurrentCsvPage] = useState(0);
     const [mediaContent, setMediaContent] = useState(null);
 
-    // const closeModal = () => {
-    //     setIsModalOpen(false);
-    //     setCurrentPage(1); // Reset to first page when closing the modal
-    //     setCsvRowCount(0); // Reset CSV row count when closing the modal
-    //     setUploadProgress(0); // Reset upload progress when closing the modal
-    //     setCurrentCsvPage(0); // Reset CSV pagination
-    //     setCsvData([]); // Reset CSV data
-    //     setMediaContent(null); // Reset media content
-    //     setAttributes({}); // Reset attributes
-    // };
-
-    // Use the local template data directly
     useEffect(() => {
-        setTemplates(API);
+        const fetchTemplates = async () => {
+            try {
+                const response = await templateData();
+                setTemplates(response?.data?.template || {});
+            } catch (error) {
+                console.error("Failed to fetch templates", error);
+            }
+        };
+
+        fetchTemplates();
     }, []);
 
-    const handleTemplateChange = (e) => {
+    const handleTemplateChange = async (e) => {
         const selectedId = e.target.value;
-        const selectedTemplate = templates.find(
-            (template) => template.id === parseInt(selectedId)
-        );
-        if (selectedTemplate) {
-            setSelectedTemplate(selectedTemplate.name);
-            setMessage(selectedTemplate.message);
+        setSelectedTemplateId(selectedId);
+        try {
+            const response = await fetchTemplateMessage(selectedId);
+            const selectedTemplateMessage =
+                response?.data?.template?.template_body;
+            setMessage(selectedTemplateMessage);
+
             // Extract dynamic attributes from the message
-            const matches = selectedTemplate.message.match(/{{\s*[\w]+\s*}}/g);
+            const matches =
+                selectedTemplateMessage.match(/{{\s*[\w]+\s*}}/g) || [];
             const attrObj = {};
             matches.forEach((match, index) => {
                 const key = match.replace(/[{}]/g, "").trim();
                 attrObj[`attribute${index + 1}`] = key;
             });
             setAttributes(attrObj);
+        } catch (error) {
+            console.error("Failed to fetch template message", error);
+            setMessage("");
+            setAttributes({});
         }
     };
 
@@ -116,9 +117,26 @@ const NewBroadcast = () => {
         }
     };
 
+    const resetStates = () => {
+        setTemplates({});
+        setSelectedTemplateId("");
+        setMessage("");
+        setAttributes({});
+        setCurrentPage(1);
+        setCsvData([]);
+        setCsvRowCount(0);
+        setUploadProgress(0);
+        setCurrentCsvPage(0);
+        setMediaContent(null);
+    };
+
+    useEffect(() => {
+        resetForm.current = resetStates;
+    }, [resetForm]);
+
     return (
         <div className="flex h-[95vh]">
-            <div className="left-content basis-[70%] overflow-y-auto pr-4">
+            <div className="left-content grow xl:basis-[70%] overflow-y-auto pr-4">
                 {currentPage === 1 && (
                     <div>
                         <h2 className="text-lg font-bold border-b-2 pb-4">
@@ -138,7 +156,7 @@ const NewBroadcast = () => {
                                 Broadcast Number
                                 <input
                                     type="text"
-                                    placeholder="Broadcast Number"
+                                    placeholder={broadcastNumber}
                                     className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal cursor-not-allowed"
                                     disabled
                                 />
@@ -151,16 +169,13 @@ const NewBroadcast = () => {
                             </label>
                             <select
                                 className="w-[49%] border rounded-md px-2 py-1 mt-1 outline-none text-gray-400"
-                                value={selectedTemplate}
+                                value={selectedTemplateId}
                                 onChange={handleTemplateChange}
                             >
-                                <option>Select Template</option>
-                                {templates.map((template) => (
-                                    <option
-                                        key={template.id}
-                                        value={template.id}
-                                    >
-                                        {template.name}
+                                <option value="">Select Template</option>
+                                {Object.entries(templates).map(([id, name]) => (
+                                    <option key={id} value={id}>
+                                        {name}
                                     </option>
                                 ))}
                             </select>
@@ -433,17 +448,23 @@ const NewBroadcast = () => {
                             </div>
                         </div>
 
-                        <button
-                            className="bg-gray-600 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-gray-500 mt-4"
-                            onClick={handlePreviousPage}
-                        >
-                            Back
-                        </button>
+                        <div className="flex justify-between">
+                            <button
+                                className="bg-gray-600 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-gray-500 mt-4"
+                                onClick={handlePreviousPage}
+                            >
+                                Back
+                            </button>
+
+                            <button className="bg-green-500 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-green-700 mt-4">
+                                Submit and run
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
 
-            <div className="basis-[30%] flex flex-col items-center">
+            <div className="hidden xl:basis-[30%] xl:flex flex-col items-center">
                 <h2 className="font-medium text-center text-2xl">Preview</h2>
 
                 <div>

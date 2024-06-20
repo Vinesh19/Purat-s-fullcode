@@ -3,7 +3,8 @@ import SignUpForm from "../components/SignUpForm";
 import Login from "../components/Login";
 import ForgotPassword from "../components/Forgot";
 
-const Index = () => {
+const Index = ({ setUser }) => {
+    // Accept setUser as a prop
     const [currentForm, setCurrentForm] = useState("login");
 
     const renderForm = () => {
@@ -11,11 +12,15 @@ const Index = () => {
             case "signup":
                 return <SignUpForm onChangeForm={setCurrentForm} />;
             case "login":
-                return <Login onChangeForm={setCurrentForm} />;
+                return (
+                    <Login onChangeForm={setCurrentForm} setUser={setUser} />
+                ); // Pass setUser to Login
             case "forgot":
                 return <ForgotPassword onChangeForm={setCurrentForm} />;
             default:
-                return <Login onChangeForm={setCurrentForm} />;
+                return (
+                    <Login onChangeForm={setCurrentForm} setUser={setUser} />
+                ); // Pass setUser to Login
         }
     };
 

@@ -62,13 +62,22 @@ const SignUpForm = ({ onChangeForm }) => {
             onChangeForm("login");
         } catch (error) {
             console.error("Error signing up", error.response?.data);
-            setErrorMessage(error.response?.data?.message);
+            if (error.response?.data?.message) {
+                const errorMessages = Object.values(error.response.data.message)
+                    .flat()
+                    .join("\n");
+                alert(errorMessages); // Show alert with all error messages
+            } else {
+                setErrorMessage(
+                    "An error occurred during sign up. Please try again."
+                );
+            }
         }
     };
 
     return (
         <form
-            className="flex flex-col rounded-2xl bg-[#000000ae] text-[#dbd4d4] px-7 py-6 shadow-2xl text-sm xs:text-base"
+            className="flex flex-col gap-2 rounded-2xl bg-[#000000ae] text-[#dbd4d4] px-7 py-6 shadow-2xl text-sm xs:text-base"
             onSubmit={handleSubmit}
         >
             <h2 className="text-xl font-medium text-center md:text-2xl">
@@ -102,7 +111,7 @@ const SignUpForm = ({ onChangeForm }) => {
                 </label>
             </div>
 
-            <label className="flex flex-col mt-4">
+            <label className="flex flex-col xs:mt-4">
                 <input
                     type="email"
                     name="email"
@@ -113,7 +122,7 @@ const SignUpForm = ({ onChangeForm }) => {
                 />
             </label>
 
-            <label className="flex flex-col mt-4">
+            <label className="flex flex-col xs:mt-4">
                 <input
                     type="text"
                     name="username"
@@ -124,7 +133,7 @@ const SignUpForm = ({ onChangeForm }) => {
                 />
             </label>
 
-            <label className="flex flex-col mt-4">
+            <label className="flex flex-col xs:mt-4">
                 <input
                     type="text"
                     name="mobile_no"
@@ -137,7 +146,7 @@ const SignUpForm = ({ onChangeForm }) => {
 
             <div className="flex flex-col gap-2 xs:gap-4 xs:flex-row">
                 <div className="relative">
-                    <label className="flex flex-col mt-4">
+                    <label className="flex flex-col xs:mt-4">
                         <input
                             type={showPassword ? "text" : "password"}
                             name="password"
@@ -158,7 +167,7 @@ const SignUpForm = ({ onChangeForm }) => {
                 </div>
 
                 <div className="relative">
-                    <label className="flex flex-col mt-4">
+                    <label className="flex flex-col xs:mt-4">
                         <input
                             type={confirmPassword ? "text" : "password"}
                             name="password_confirmation"

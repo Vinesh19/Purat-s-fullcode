@@ -56,7 +56,7 @@ return new class extends Migration
             $table->string('lastname', 45); //nulable removed by me
             $table->string('password', 255); //was nullable in old table
             $table->string('email')->nullable()->unique(); //unique added by me
-            $table->string('mobile_no')->nullable()->unique(); //unique added by me
+            $table->string('mobile_no')->unique(); //unique added by me
             $table->string('msgtype')->nullable();
             $table->string('senderid')->nullable()->comment('Customer gstin');
             $table->string('dummy_credits')->nullable();

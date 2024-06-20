@@ -16,12 +16,12 @@ return new class extends Migration
             $table->string('username');
             $table->unsignedBigInteger('template_id');
             $table->text('message')->nullable();
-            $table->string('broadcast_name');
+            $table->string('broadcast_name')->nullable(); //nullable added by me
             $table->string('broadcast_number')->nullable();
-            $table->date('schedule_date');
-            $table->time('schedule_time');
-            $table->text('contacts');
-            $table->date('created_at');
+            $table->date('schedule_date')->nullable(); //nullable added by me
+            $table->time('schedule_time')->nullable(); //nullable added by me
+            $table->text('contacts')->nullable(); //nullable added by me
+            $table->date('created_at')->nullable(); //nullable added by me
             $table->integer('status')->default(0);
             $table->string('success_full_per', 45)->default('0');
             $table->text('media1')->nullable();

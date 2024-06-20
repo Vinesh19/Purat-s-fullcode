@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // useNavigate for Routing
 import { login, requestMobileOtp } from "../services/api";
 
-const Login = ({ onChangeForm }) => {
+const Login = ({ onChangeForm, setUser }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [isEmailDisabled, setIsEmailDisabled] = useState(false);
@@ -56,8 +56,15 @@ const Login = ({ onChangeForm }) => {
                     const response = await login({ mobile: mobileNumber, otp });
                     console.log("Login successful", response.data);
 
-                    // Store the token in localStorage
+                    // Store the token and user data in localStorage
                     localStorage.setItem("token", response.data.token);
+                    localStorage.setItem(
+                        "user",
+                        JSON.stringify(response.data.user)
+                    );
+
+                    // Update the user state
+                    setUser(response.data.user);
 
                     // Redirect to the Dashboard
                     navigate("/dashboard");
@@ -74,8 +81,15 @@ const Login = ({ onChangeForm }) => {
                 });
                 console.log("Login successful", response.data);
 
-                // Store the token in localStorage
+                // Store the token and user data in localStorage
                 localStorage.setItem("token", response.data.token);
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify(response.data.user)
+                );
+
+                // Update the user state
+                setUser(response.data.user);
 
                 // Redirect to the Dashboard
                 navigate("/dashboard");
@@ -153,7 +167,7 @@ const Login = ({ onChangeForm }) => {
                     <label className="mt-4 flex flex-col sm:text-lg font-medium">
                         Email / Username :
                         <input
-                            type="email"
+                            type="text"
                             value={email}
                             onChange={handleEmailChange}
                             placeholder="example@email.com"

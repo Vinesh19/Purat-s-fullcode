@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('_campaign_details_trials', function (Blueprint $table) {
+            $table->id();
+            $table->string('username', 200)->nullable(); //nullable added by me
+            $table->string('senderid', 200)->nullable();
+            $table->string('request_id', 200)->nullable(); //nullable added by me
+            $table->string('Reseller', 200)->nullable(); //nullable added by me
+            $table->string('dat', 200)->nullable(); //nullable added by me
+            $table->string('estimated_time', 200)->nullable(); //nullable added by me
+            $table->string('date', 100)->nullable(); //nullable added by me
+            $table->string('status', 200)->nullable(); //nullable added by me
+            $table->string('numbers', 200)->nullable(); //nullable added by me
+            $table->string('queue_no', 200)->nullable(); //nullable added by me
+            $table->timestamps(); // Adds created_at and updated_at columns
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('_campaign_details_trials');
+    }
+};

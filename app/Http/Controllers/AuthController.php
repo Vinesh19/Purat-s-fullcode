@@ -31,7 +31,7 @@ class AuthController extends Controller
             'username' => 'required|string|unique:ci_admin,username|max:45',
             'password' => 'required|string|min:8|max:255',
             'password_confirmation' => 'required|string|min:8|max:255', // Add confirmation field
-            'mobile_no' => 'string|unique:ci_admin,mobile_no',
+            'mobile_no' => 'required|string|unique:ci_admin,mobile_no',
         ]);
 
         // Return validation errors if any
@@ -48,7 +48,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'username' => $request->username,
             'password' => Hash::make($request->password),
-            'mobile_no' => $request->number,
+            'mobile_no' => $request->mobile_no,
         ]);
 
         $token = $user->createToken("auth_token")->accessToken;
@@ -136,7 +136,7 @@ class AuthController extends Controller
         }
 
         // Logging out the user from the application
-        Auth::logout();
+        // Auth::logout();
         return response()->json(['message' => 'User logged out successfully'], 200);
     }
 
@@ -216,86 +216,86 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function broadcast($token)
-    {
-        $accessToken = DB::table('oauth_access_tokens')
-            ->where('id', $token)
-            ->first();
+    // public function broadcast($token)
+    // {
+    //     $accessToken = DB::table('oauth_access_tokens')
+    //         ->where('id', $token)
+    //         ->first();
 
-        // Check if token exists
-        if (!$accessToken) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Token not found',
-            ], 404);
-        }
+    //     // Check if token exists
+    //     if (!$accessToken) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Token not found',
+    //         ], 404);
+    //     }
 
-        // Token found, retrieve the associated user
-        $user = User::find($accessToken->user_id);
-        // $user = User::with('broadcast_output')->find($accessToken->user_id);
-        // $user = User::with('broadcast_output')
-        //     ->where('id', $accessToken->user_id)
-        //     ->first();
-        // $user = User::with(['broadcast_output' => function ($query) {
-        //     $query->select('id', 'attribute', 'date', 'time', 'svc_file', 'media');
-        // }])
-        //     ->find($accessToken->user_id);
+    //     // Token found, retrieve the associated user
+    //     $user = User::find($accessToken->user_id);
+    //     // $user = User::with('broadcast_output')->find($accessToken->user_id);
+    //     // $user = User::with('broadcast_output')
+    //     //     ->where('id', $accessToken->user_id)
+    //     //     ->first();
+    //     // $user = User::with(['broadcast_output' => function ($query) {
+    //     //     $query->select('id', 'attribute', 'date', 'time', 'svc_file', 'media');
+    //     // }])
+    //     //     ->find($accessToken->user_id);
 
 
 
-        // Check if user exists
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not found',
-            ], 404);
-        }
+    //     // Check if user exists
+    //     if (!$user) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'User not found',
+    //         ], 404);
+    //     }
 
-        // User found, return success response with user data
-        return response()->json([
-            'success' => true,
-            'message' => 'User found',
-            'data' => $user
-        ], 200);
-    }
+    //     // User found, return success response with user data
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'User found',
+    //         'data' => $user
+    //     ], 200);
+    // }
 
-    public function broadcast_input(Request $request)
-    {
-        // Validate incoming request
-        $validator = Validator::make($request->all(), [
-            'attribute' => 'nullable|string',
-            'date' => 'nullable|date',
-            'time' => 'nullable|date_format:H:i',
-            'csv_file' => 'nullable|string',
-            'media' => 'nullable|mimes:avif,jpg,png,jpeg|max:3000'
-        ]);
+    // public function broadcast_input(Request $request)
+    // {
+    //     // Validate incoming request
+    //     $validator = Validator::make($request->all(), [
+    //         'attribute' => 'nullable|string',
+    //         'date' => 'nullable|date',
+    //         'time' => 'nullable|date_format:H:i',
+    //         'csv_file' => 'nullable|string',
+    //         'media' => 'nullable|mimes:avif,jpg,png,jpeg|max:3000'
+    //     ]);
 
-        // Return validation errors if any
-        if ($validator->fails()) {
-            return response()->json(['status' => 0, 'message' => $validator->errors()], 400);
-        }
+    //     // Return validation errors if any
+    //     if ($validator->fails()) {
+    //         return response()->json(['status' => 0, 'message' => $validator->errors()], 400);
+    //     }
 
-        $file = $request->file('media');
-        $path = $file->store('images', 'public');
+    //     $file = $request->file('media');
+    //     $path = $file->store('images', 'public');
 
-        // Create new broadcast input
-        $user = Broadcast_input::create([
-            'attribute' => $request->attribute,
-            'date' => $request->date,
-            'time' => $request->time,
-            'csv_file' => $request->csv_file,
-            'media' => $path,
-        ]);
+    //     // Create new broadcast input
+    //     $user = Broadcast_input::create([
+    //         'attribute' => $request->attribute,
+    //         'date' => $request->date,
+    //         'time' => $request->time,
+    //         'csv_file' => $request->csv_file,
+    //         'media' => $path,
+    //     ]);
 
-        if ($user) {
-            // Return success response
-            return response()->json([
-                'status' => 1,
-                'message' => 'Broadcast input submitted successfully',
-                // 'data' => $broadcastInput
-            ], 201);
-        }
-    }
+    //     if ($user) {
+    //         // Return success response
+    //         return response()->json([
+    //             'status' => 1,
+    //             'message' => 'Broadcast input submitted successfully',
+    //             // 'data' => $broadcastInput
+    //         ], 201);
+    //     }
+    // }
 }
 
 

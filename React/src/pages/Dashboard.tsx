@@ -1,155 +1,372 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import NewBroadcast from "../containers/New-Broadcast";
 import Modal from "../components/Modal";
 
-const Dashboard = () => {
+const Dashboard = ({ user }) => {
+    console.log(user);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [hamburgerMenuOpen, setHamburgerMenuOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isPopUpOpen, setIsPopUpOpen] = useState(false);
-    const [isAsideBarOpen, setIsAsideBarOpen] = useState(false);
+    const [activeMenuItem, setActiveMenuItem] = useState("");
 
+    const resetForm = useRef(null);
     const navigate = useNavigate();
+
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
+
+    const toggleHamburgerMenu = () => {
+        setHamburgerMenuOpen(!hamburgerMenuOpen);
+    };
 
     const handleModal = () => {
         setIsModalOpen(!isModalOpen);
     };
 
-    const handleUserClick = () => setIsPopUpOpen(!isPopUpOpen);
-    const handleAsideBarClick = () => setIsAsideBarOpen(!isAsideBarOpen);
-
     const closeModal = () => {
+        if (resetForm.current) resetForm.current(); // Reset form states
         setIsModalOpen(false);
     };
 
     const handleLogout = () => {
-        // Perform any logout operations like clearing tokens or user data here
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         navigate("/"); // Redirect to the index page
     };
 
+    const handleMenuItemClick = (menuItem) => {
+        setActiveMenuItem(menuItem);
+    };
+
     return (
-        <main>
-            <nav className="flex justify-center gap-10 border-b-2 py-4 lg:items-center lg:justify-around">
-                <div
-                    className="absolute left-10 block cursor-pointer lg:hidden"
-                    onClick={handleAsideBarClick}
-                >
-                    <img
-                        src="/hamburger-icon.jpg"
-                        width={28}
-                        height={28}
-                        alt="hamburger"
-                    />
-                </div>
+        <div>
+            {/* Main Content */}
+            <div className=" h-screen overflow-hidden">
+                <div className="flex justify-between shadow-md">
+                    <div className="flex items-center">
+                        <div
+                            className="lg:hidden"
+                            onClick={toggleHamburgerMenu}
+                        >
+                            <i className="fas fa-bars"></i>
+                        </div>
 
-                <div className="flex gap-7">
-                    <h2 className="text-5xl font-semibold text-[#d61344] lg:text-3xl">
-                        PuRat
-                    </h2>
-                    <p className=" hidden h-9 w-[1.5px] bg-slate-300 lg:block"></p>
-                </div>
+                        <a href="#" className="btn btn-ghost text-4xl">
+                            PuRat
+                        </a>
+                    </div>
 
-                <div className="hidden lg:block">
-                    <ul className="flex gap-24 text-gray-500">
-                        <li className="flex items-center justify-center gap-2">
-                            <img
-                                src="/education.svg"
-                                width={20}
-                                height={20}
-                                alt="logo"
-                            />
-                            <span>Team Inbox</span>
-                        </li>
-                        <li className="flex items-center justify-center gap-2">
+                    <div className="hidden lg:flex items-center">
+                        <ul className="menu menu-horizontal flex space-x-4">
+                            <li>
+                                <a
+                                    href="#"
+                                    onClick={() =>
+                                        handleMenuItemClick("TeamInbox")
+                                    }
+                                    className={
+                                        activeMenuItem === "TeamInbox"
+                                            ? "active"
+                                            : ""
+                                    }
+                                >
+                                    <i className="fas fa-inbox"></i> TeamInbox
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    onClick={() =>
+                                        handleMenuItemClick("Broadcast")
+                                    }
+                                    className={
+                                        activeMenuItem === "Broadcast"
+                                            ? "active"
+                                            : ""
+                                    }
+                                >
+                                    <i className="fas fa-broadcast-tower"></i>{" "}
+                                    Broadcast
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    onClick={() =>
+                                        handleMenuItemClick("Chatbots")
+                                    }
+                                    className={
+                                        activeMenuItem === "Chatbots"
+                                            ? "active"
+                                            : ""
+                                    }
+                                >
+                                    <i className="fas fa-robot"></i> Chatbots
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    onClick={() =>
+                                        handleMenuItemClick("Contacts")
+                                    }
+                                    className={
+                                        activeMenuItem === "Contacts"
+                                            ? "active"
+                                            : ""
+                                    }
+                                >
+                                    <i className="fas fa-address-book"></i>{" "}
+                                    Contacts
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    onClick={() =>
+                                        handleMenuItemClick("Automations")
+                                    }
+                                    className={
+                                        activeMenuItem === "Automations"
+                                            ? "active"
+                                            : ""
+                                    }
+                                >
+                                    <i className="fas fa-cogs"></i> Automations
+                                </a>
+                            </li>
+                            <li className="dropdown dropdown-hover">
+                                <button
+                                    tabIndex="0"
+                                    className="btn btn-ghost text-1xl"
+                                >
+                                    More
+                                </button>
+                                <ul className="dropdown-content menu shadow-lg bg-white rounded-lg p-2 w-52">
+                                    <li>
+                                        <a href="#">
+                                            <i className="fas fa-chart-bar"></i>{" "}
+                                            Analytics
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <i className="fas fa-code"></i> API
+                                            docs
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <i className="fas fa-users"></i>{" "}
+                                            User Management
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <i className="fas fa-plug"></i>{" "}
+                                            Integration
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <i className="fas fa-exchange-alt"></i>{" "}
+                                            Web Hooks
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <i className="fas fa-shopping-cart"></i>{" "}
+                                            Commerce
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className="flex items-center">
+                        <div className="dropdown dropdown-end notification-icon">
                             <button
-                                className="bg-blue-600 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-blue-500"
-                                onClick={handleModal}
+                                tabIndex="0"
+                                className="btn btn-ghost btn-circle text-1xl p-2"
                             >
-                                New Broadcast
-                            </button>
-                        </li>
-                        <li className="flex items-center justify-center gap-2">
-                            <img
-                                src="/education.svg"
-                                width={20}
-                                height={20}
-                                alt="logo"
-                            />
-                            <span>Chatbots</span>
-                        </li>
-                        <li>
-                            <span>...More</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div className="hidden lg:block">
-                    <div className="flex gap-3">
-                        <div>
-                            <button
-                                className="bg-red-600 hover:bg-red-500 text-white font-medium rounded px-5 py-2 cursor-pointer"
-                                onClick={handleLogout}
-                            >
-                                Logout
+                                <i className="fas fa-bell"></i>
                             </button>
                         </div>
-                        <p className="h-9 w-[2px] bg-slate-300"></p>
+
                         <div
-                            onClick={handleUserClick}
-                            className="cursor-pointer"
+                            id="userIcon"
+                            className="user-icon"
+                            onClick={toggleSidebar}
                         >
-                            <img
-                                src="/user.png"
-                                width={30}
-                                height={30}
-                                alt="user"
-                            />
+                            <button
+                                tabIndex="0"
+                                className="btn btn-ghost btn-circle avatar text-1xl p-2"
+                            >
+                                <i className="fas fa-user"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
-            </nav>
 
-            <aside
-                className={`lg:block ${isAsideBarOpen ? "block" : "hidden"}`}
-            >
-                <div className="h-[90vh] w-60 border-r-2 px-4 py-5">
-                    <ul className="flex flex-col gap-4">
-                        <li className="flex items-center gap-2">
-                            <img
-                                src="/education.svg"
-                                width={24}
-                                height={24}
-                                alt="logo"
-                            />
-                            <span>Broadcast history</span>
+                {/* Hamburger Menu for Mobile */}
+                <div
+                    id="hamburgerMenu"
+                    className={`hamburger-menu ${
+                        hamburgerMenuOpen ? "block" : "hidden"
+                    } w-max h-screen shadow-2xl`}
+                >
+                    <ul className=" lg:hidden menu menu-vertical p-4">
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-inbox"></i> TeamInbox
+                            </a>
                         </li>
-                        <li className="flex items-center gap-2">
-                            <img
-                                src="/education.svg"
-                                width={24}
-                                height={24}
-                                alt="logo"
-                            />
-                            <span>Scheduled Broadcast</span>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-broadcast-tower"></i>{" "}
+                                Broadcast
+                            </a>
                         </li>
-                        <li className="flex items-center gap-2">
-                            <img
-                                src="/education.svg"
-                                width={24}
-                                height={24}
-                                alt="logo"
-                            />
-                            <span>Template Message</span>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-robot"></i> Chatbots
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-address-book"></i> Contacts
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-cogs"></i> Automations
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-chart-bar"></i> Analytics
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-code"></i> API docs
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-users"></i> User Management
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-plug"></i> Integration
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-exchange-alt"></i> Web
+                                Hooks
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i className="fas fa-shopping-cart"></i>{" "}
+                                Commerce
+                            </a>
                         </li>
                     </ul>
                 </div>
-            </aside>
+            </div>
+
+            {/* Sidebar */}
+            <div
+                className={`sidebar ${
+                    sidebarOpen ? "block" : "hidden"
+                } absolute right-0 top-10 bg-slate-50 rounded-xl z-10`}
+            >
+                <button onClick={toggleSidebar}>
+                    <img
+                        src="src/assets/images/svg/CrossIcon.svg"
+                        width={16}
+                        height={16}
+                        alt="cross icon"
+                        className="absolute top-5 right-5 cursor-pointer"
+                    />
+                </button>
+
+                <div className="flex flex-col gap-5 justify-center items-center p-2">
+                    <div className="rounded p-2 flex flex-col gap-4 sm:flex-row items-center justify-between bg-gray-100">
+                        <div className="flex items-center gap-4">
+                            <img
+                                src="src/assets/images/svg/profile.svg"
+                                width={24}
+                                height={24}
+                                alt="User Icon"
+                            />
+
+                            <div>
+                                <h2 className="text-lg sm:text-xl">
+                                    {user?.username}
+                                </h2>
+
+                                <p className="text-sm text-gray-600">
+                                    {user?.email}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            className="btn bg-red-500 text-white"
+                            onClick={handleLogout}
+                        >
+                            Sign out
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <button className="btn">Settings</button>
+
+                        <button className="btn">Copy click-to-chat link</button>
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row text-sm text-gray-600">
+                        <span>
+                            <i className="fas fa-info-circle"></i> Change Info
+                        </span>
+                        <span>
+                            <i className="fas fa-bell"></i> Manage Notifications
+                        </span>
+                    </div>
+
+                    <button className="btn block">Manage Accounts</button>
+                </div>
+            </div>
+
+            <div className="absolute right-5 top-20">
+                {activeMenuItem === "Broadcast" && (
+                    <div>
+                        <button
+                            className="btn bg-blue-500 text-white"
+                            onClick={handleModal}
+                        >
+                            New Broadcast
+                        </button>
+                    </div>
+                )}
+            </div>
 
             {isModalOpen && (
                 <Modal isModalOpen={isModalOpen} closeModal={closeModal}>
-                    <NewBroadcast closeModal={closeModal} />
+                    <NewBroadcast
+                        closeModal={closeModal}
+                        resetForm={resetForm}
+                        broadcastNumber={user.mobile_no}
+                    />
                 </Modal>
             )}
-        </main>
+        </div>
     );
 };
 
