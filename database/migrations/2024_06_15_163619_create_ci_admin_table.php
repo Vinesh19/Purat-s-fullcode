@@ -91,6 +91,8 @@ return new class extends Migration
             // $table->unique('username_3');
             $table->index('username');
             $table->index('Reseller');
+
+            $table->string('otp')->nullable();
         });
     }
     /**

@@ -17,5 +17,11 @@ class CampaignDetail extends Model
         'date',
         'request_id',
         'queue_no',
+        'request_id',
+        'Reseller',
+        'estimated_time',
+        'status',
+        'numbers',
+        'queue_no'
     ];
 }

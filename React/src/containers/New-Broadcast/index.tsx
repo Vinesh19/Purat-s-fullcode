@@ -1,18 +1,21 @@
 import { useState, useEffect } from "react";
-import { templateData, fetchTemplateMessage } from "../../services/api"; // Import the API function to fetch the message
+import { templateData, fetchTemplateMessage } from "../../services/api";
 import Mobile from "../../components/Mobile";
 
 const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
     const [templates, setTemplates] = useState({});
-    const [selectedTemplateId, setSelectedTemplateId] = useState(""); // Track selected template ID
+    const [selectedTemplate, setSelectedTemplate] = useState("");
     const [message, setMessage] = useState("");
     const [attributes, setAttributes] = useState({});
+    const [callToAction, setCallToAction] = useState({});
+    const [quickReply, setQuickReply] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const [csvData, setCsvData] = useState([]);
     const [csvRowCount, setCsvRowCount] = useState(0);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [currentCsvPage, setCurrentCsvPage] = useState(0);
     const [mediaContent, setMediaContent] = useState(null);
+    const [contacts, setContacts] = useState("");
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -29,16 +32,29 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
 
     const handleTemplateChange = async (e) => {
         const selectedId = e.target.value;
-        setSelectedTemplateId(selectedId);
         try {
             const response = await fetchTemplateMessage(selectedId);
-            const selectedTemplateMessage =
-                response?.data?.template?.template_body;
-            setMessage(selectedTemplateMessage);
+            const selectedTemplate = response?.data?.template;
+
+            setSelectedTemplate(selectedTemplate?.template_name);
+            setMessage(selectedTemplate?.template_body || "");
+            setCallToAction({
+                callPhoneNumber: selectedTemplate?.call_phone_btn_phone_number,
+                callPhoneText: selectedTemplate?.call_phone_btn_text,
+                visitWebsiteText: selectedTemplate?.visit_website_btn_text,
+                visitWebsiteUrl: selectedTemplate?.visit_website_url_text,
+            });
+
+            setQuickReply({
+                quickReply1: selectedTemplate?.quick_reply_btn_text1,
+                quickReply2: selectedTemplate?.quick_reply_btn_text2,
+                quickReply3: selectedTemplate?.quick_reply_btn_text3,
+            });
 
             // Extract dynamic attributes from the message
             const matches =
-                selectedTemplateMessage.match(/{{\s*[\w]+\s*}}/g) || [];
+                selectedTemplate?.template_body?.match(/{{\s*[\w]+\s*}}/g) ||
+                [];
             const attrObj = {};
             matches.forEach((match, index) => {
                 const key = match.replace(/[{}]/g, "").trim();
@@ -81,6 +97,10 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                 setCsvRowCount(rowCount);
                 setCsvData(rows);
                 setUploadProgress(100); // Set progress to 100% after load
+
+                // Extract phone numbers from the CSV file and set the contacts state
+                const phoneNumbers = rows.slice(1).map((row) => row[0]); // Assuming phone numbers are in the first column
+                setContacts(phoneNumbers.join("\n"));
             };
             reader.readAsText(file);
         } else {
@@ -119,15 +139,18 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
 
     const resetStates = () => {
         setTemplates({});
-        setSelectedTemplateId("");
+        setSelectedTemplate("");
         setMessage("");
         setAttributes({});
+        setCallToAction({});
+        setQuickReply({});
         setCurrentPage(1);
         setCsvData([]);
         setCsvRowCount(0);
         setUploadProgress(0);
         setCurrentCsvPage(0);
         setMediaContent(null);
+        setContacts("");
     };
 
     useEffect(() => {
@@ -169,7 +192,7 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                             </label>
                             <select
                                 className="w-[49%] border rounded-md px-2 py-1 mt-1 outline-none text-gray-400"
-                                value={selectedTemplateId}
+                                value={selectedTemplate}
                                 onChange={handleTemplateChange}
                             >
                                 <option value="">Select Template</option>
@@ -190,6 +213,66 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                                 ></textarea>
                             </label>
                         </div>
+
+                        {callToAction.callPhoneText && (
+                            <div>
+                                <h3 className="mt-4 font-medium">
+                                    Call to Action
+                                </h3>
+                                <div className="flex flex-col mt-2">
+                                    <button className="btn bg-blue-500 text-white mb-2">
+                                        {callToAction.callPhoneText}
+                                    </button>
+                                    <input
+                                        type="text"
+                                        className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
+                                        value={callToAction.callPhoneNumber}
+                                        readOnly
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {callToAction.visitWebsiteText && (
+                            <div>
+                                <div className="flex flex-col mt-2">
+                                    <button className="btn bg-blue-500 text-white mb-2">
+                                        {callToAction.visitWebsiteText}
+                                    </button>
+                                    <input
+                                        type="text"
+                                        className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
+                                        value={callToAction.visitWebsiteUrl}
+                                        readOnly
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {quickReply.quickReply1 && (
+                            <div>
+                                <h3 className="mt-4 font-medium">
+                                    Quick Reply
+                                </h3>
+                                <div className="flex flex-col mt-2">
+                                    {quickReply.quickReply1 && (
+                                        <button className="btn bg-green-500 text-white mb-2">
+                                            {quickReply.quickReply1}
+                                        </button>
+                                    )}
+                                    {quickReply.quickReply2 && (
+                                        <button className="btn bg-green-500 text-white mb-2">
+                                            {quickReply.quickReply2}
+                                        </button>
+                                    )}
+                                    {quickReply.quickReply3 && (
+                                        <button className="btn bg-green-500 text-white mb-2">
+                                            {quickReply.quickReply3}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="mt-4">
                             <h2 className="font-semibold text-lg">
@@ -254,12 +337,12 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                     <div>
                         <div className="flex gap-4">
                             <label className="flex flex-col mt-4 font-medium">
-                                Message
+                                Contacts
                                 <textarea
                                     className="rounded-md px-2 py-2 mt-1 border outline-none font-normal"
                                     rows="4"
-                                    cols="20"
-                                    value={message}
+                                    cols="24"
+                                    value={contacts}
                                     readOnly
                                 ></textarea>
                             </label>

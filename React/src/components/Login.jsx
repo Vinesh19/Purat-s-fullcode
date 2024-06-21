@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // useNavigate for Routing
-import { login, requestMobileOtp } from "../services/api";
+import { login, requestMobileOtp, verifyMobileOtp } from "../services/api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Login = ({ onChangeForm, setUser }) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -40,21 +42,26 @@ const Login = ({ onChangeForm, setUser }) => {
         if (isMobileLogin) {
             if (!otpRequested) {
                 // Request OTP
+                console.log(mobileNumber);
                 try {
                     await requestMobileOtp(mobileNumber);
                     setOtpRequested(true);
                     setErrorMessage("OTP sent to your mobile number.");
                     setIsEmailDisabled(true);
+                    toast.success("OTP sent to your mobile number.");
                 } catch (error) {
                     setErrorMessage(
+                        error.response?.data?.message || "Failed to send OTP"
+                    );
+                    toast.error(
                         error.response?.data?.message || "Failed to send OTP"
                     );
                 }
             } else {
                 // Verify OTP and login
                 try {
-                    const response = await login({ mobile: mobileNumber, otp });
-                    console.log("Login successful", response.data);
+                    const response = await verifyMobileOtp(mobileNumber, otp);
+                    console.log("Login successful", response?.data);
 
                     // Store the token and user data in localStorage
                     localStorage.setItem("token", response.data.token);
@@ -71,6 +78,9 @@ const Login = ({ onChangeForm, setUser }) => {
                 } catch (error) {
                     console.error("Error logging in", error);
                     setErrorMessage(error.response?.data?.message);
+                    toast.error(
+                        error.response?.data?.message || "Failed to verify OTP"
+                    );
                 }
             }
         } else {
@@ -96,6 +106,7 @@ const Login = ({ onChangeForm, setUser }) => {
             } catch (error) {
                 console.error("Error logging in", error);
                 setErrorMessage(error.response?.data?.message);
+                toast.error(error.response?.data?.message || "Failed to login");
             }
         }
     };
@@ -105,6 +116,7 @@ const Login = ({ onChangeForm, setUser }) => {
             className="flex flex-col rounded-2xl bg-[#000000ae] text-[#dbd4d4] px-7 py-6 shadow-2xl text-sm xs:text-base"
             onSubmit={handleSubmit}
         >
+            <ToastContainer />
             <h2 className="text-center text-xl sm:text-2xl font-medium">
                 Log in to your account
             </h2>

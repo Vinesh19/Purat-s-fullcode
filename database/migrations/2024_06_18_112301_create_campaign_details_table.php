@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('_campaign_details_trials', function (Blueprint $table) {
+        Schema::create('campaign_details', function (Blueprint $table) {
             $table->id();
             $table->string('username', 200)->nullable(); //nullable added by me
             $table->string('senderid', 200)->nullable();
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('_campaign_details_trials');
+        Schema::dropIfExists('campaign_details');
     }
 };

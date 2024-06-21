@@ -10,9 +10,8 @@ class TemplateController extends Controller
     // fetching templat_name from templates(table)
     public function show_name()
     {
-        // echo 'rahul';
         // Find the template by template_id
-        $template = Template::pluck('template_name','id');
+        $template = Template::pluck('template_name', 'id');
 
         // return $template;
 

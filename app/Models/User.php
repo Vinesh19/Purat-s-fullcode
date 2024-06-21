@@ -11,7 +11,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
 
-    // Specify the table name if it differs from the default 'templates'
+    // Specify the table name if it differs from the default
     protected $table = 'ci_admin';
 
     // Define the primary key if it's not 'id'
@@ -30,8 +30,8 @@ class User extends Authenticatable
         'password',
         'mobile_no',
         'email_otp',
-        'email_otp_verified_at'
-        // 'broadcast_id'
+        'email_otp_verified_at',
+        'otp'
     ];
 
     /**
@@ -56,8 +56,8 @@ class User extends Authenticatable
     /**
      * Get the broadcast output record associated with the user.
      */
-    public function broadcast_output()
-    {
-        return $this->hasOne(Broadcast_output::class);
-    }
+    // public function broadcast_output()
+    // {
+    //     return $this->hasOne(Broadcast_output::class);
+    // }
 }

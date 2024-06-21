@@ -5,12 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Broadcast_output extends Model
+class Group extends Model
 {
     use HasFactory;
+
+    protected $table = 'groups';
+
     protected $fillable = [
-        'broadcast_number',
-        'template',
-        'message'
+        'user_id',
+        'group_name',
+        'number'
     ];
 }

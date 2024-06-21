@@ -4,7 +4,6 @@ import NewBroadcast from "../containers/New-Broadcast";
 import Modal from "../components/Modal";
 
 const Dashboard = ({ user }) => {
-    console.log(user);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [hamburgerMenuOpen, setHamburgerMenuOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
