@@ -13,6 +13,8 @@ export const VERIFY_MOBILE_OTP = `${API_BASE_URL}/verify-mobile-otp`;
 export const LOGOUT = `${API_BASE_URL}/logout`;
 export const NEW_DASHBOARD_TEMPLATE = `${API_BASE_URL}/template-name`;
 export const NEW_DASHBOARD_TEMPLATE_MESSAGE = `${API_BASE_URL}/template`;
+export const NEW_DASHBOARD_TEMPLATE_GROUP = `${API_BASE_URL}/fetching-group-data`;
+export const SUBMIT_BROADCAST_DATA = `${API_BASE_URL}/insert-broadcast-data`;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -44,6 +46,10 @@ export const templateData = () => {
 
 export const fetchTemplateMessage = (templateId) => {
     return api.get(`${NEW_DASHBOARD_TEMPLATE_MESSAGE}/${templateId}`);
+};
+
+export const submitBroadcastData = (data) => {
+    return api.post(SUBMIT_BROADCAST_DATA, data);
 };
 
 export default api;

@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('group_name');
             $table->string('number');
             $table->timestamps();
+
+            $table->foreign('user_id')->references('admin_id')->on('ci_admin')->onUpdate('cascade');
+            //i do not use ondelete('cascade) because i do not want to delete user from ci_admin while deleting group from group table
         });
     }
 

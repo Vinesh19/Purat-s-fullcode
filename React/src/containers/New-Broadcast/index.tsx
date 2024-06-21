@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
-import { templateData, fetchTemplateMessage } from "../../services/api";
+import {
+    templateData,
+    fetchTemplateMessage,
+    submitBroadcastData,
+} from "../../services/api";
 import Mobile from "../../components/Mobile";
 
-const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
+const NewBroadcast = ({ closeModal, resetForm, user }) => {
+    console.log(user);
     const [templates, setTemplates] = useState({});
     const [selectedTemplate, setSelectedTemplate] = useState("");
     const [message, setMessage] = useState("");
@@ -16,6 +21,14 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
     const [currentCsvPage, setCurrentCsvPage] = useState(0);
     const [mediaContent, setMediaContent] = useState(null);
     const [contacts, setContacts] = useState("");
+    const [preview, setPreview] = useState({});
+    const [selectedDate, setSelectedDate] = useState("");
+    const [selectedTime, setSelectedTime] = useState("");
+    const [selectedMediaType, setSelectedMediaType] = useState("image");
+
+    // New state for buttons
+    const [selectedButtonType, setSelectedButtonType] = useState("none");
+    const [buttonData, setButtonData] = useState({});
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -78,6 +91,10 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
     const handleNextPage = () => setCurrentPage(2);
     const handlePreviousPage = () => setCurrentPage(1);
 
+    const handleContactsChange = (e) => {
+        setContacts(e.target.value);
+    };
+
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (file && file.type === "text/csv") {
@@ -100,7 +117,10 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
 
                 // Extract phone numbers from the CSV file and set the contacts state
                 const phoneNumbers = rows.slice(1).map((row) => row[0]); // Assuming phone numbers are in the first column
-                setContacts(phoneNumbers.join("\n"));
+                const combinedContacts = [
+                    ...new Set([...contacts.split("\n"), ...phoneNumbers]),
+                ].join("\n");
+                setContacts(combinedContacts);
             };
             reader.readAsText(file);
         } else {
@@ -129,12 +149,105 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
     const handleMediaUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setMediaContent(event.target.result);
-            };
-            reader.readAsDataURL(file);
+            setMediaContent(file); // Set the file object directly
         }
+    };
+
+    const handleMediaTypeChange = (e) => {
+        setSelectedMediaType(e.target.value);
+        setMediaContent(null); // Clear the previous media content
+    };
+
+    const handleButtonTypeChange = (e) => {
+        setSelectedButtonType(e.target.value);
+        setButtonData({});
+    };
+
+    const handleButtonDataChange = (e) => {
+        const { name, value } = e.target;
+        setButtonData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    const handleSubmitBroadcast = async () => {
+        // Ensure that we have all the necessary data
+        if (!selectedTemplate || !user.username || !message) {
+            alert("Please ensure all fields are properly filled.");
+            return;
+        }
+
+        const dataToSubmit = new FormData();
+        dataToSubmit.append("template_name1", selectedTemplate);
+        dataToSubmit.append("username", user.username);
+        dataToSubmit.append("message", message);
+        dataToSubmit.append("textbox", contacts);
+        dataToSubmit.append("delivery_date", selectedDate);
+        dataToSubmit.append("delivery_time", selectedTime);
+        dataToSubmit.append("media_file", mediaContent);
+
+        // Append dynamic attributes to FormData
+        Object.keys(attributes).forEach((key) => {
+            dataToSubmit.append(key, attributes[key]);
+        });
+
+        // Append button data to FormData
+        if (selectedButtonType === "callToAction") {
+            dataToSubmit.append(
+                "call_to_action_text",
+                buttonData.callPhoneText || ""
+            );
+            dataToSubmit.append(
+                "call_to_action_phone",
+                buttonData.callPhoneNumber || ""
+            );
+            dataToSubmit.append(
+                "call_to_action_website_text",
+                buttonData.visitWebsiteText || ""
+            );
+            dataToSubmit.append(
+                "call_to_action_website_url",
+                buttonData.visitWebsiteUrl || ""
+            );
+        } else if (selectedButtonType === "quickReply") {
+            dataToSubmit.append(
+                "quick_reply_text1",
+                buttonData.quickReply1 || ""
+            );
+            dataToSubmit.append(
+                "quick_reply_text2",
+                buttonData.quickReply2 || ""
+            );
+            dataToSubmit.append(
+                "quick_reply_text3",
+                buttonData.quickReply3 || ""
+            );
+        }
+
+        try {
+            // Call the API to submit the data
+            const response = await submitBroadcastData(dataToSubmit);
+            console.log("Submission Successful:", response.data);
+            alert("Broadcast submitted successfully!");
+            // Reset form or handle next steps
+            resetStates();
+        } catch (error) {
+            console.error("Failed to submit broadcast:", error);
+            alert("Failed to submit broadcast. Please try again.");
+        }
+
+        setPreview({
+            template_name1: selectedTemplate,
+            username: user.username,
+            message: message,
+            textbox: contacts,
+            delivery_date: selectedDate,
+            delivery_time: selectedTime,
+            media_file: URL.createObjectURL(mediaContent),
+            ...attributes,
+            ...buttonData,
+        });
     };
 
     const resetStates = () => {
@@ -151,6 +264,11 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
         setCurrentCsvPage(0);
         setMediaContent(null);
         setContacts("");
+        setSelectedDate("");
+        setSelectedTime("");
+        setSelectedMediaType("image");
+        setSelectedButtonType("none");
+        setButtonData({});
     };
 
     useEffect(() => {
@@ -179,7 +297,7 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                                 Broadcast Number
                                 <input
                                     type="text"
-                                    placeholder={broadcastNumber}
+                                    placeholder={user?.mobile_no}
                                     className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal cursor-not-allowed"
                                     disabled
                                 />
@@ -213,6 +331,124 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                                 ></textarea>
                             </label>
                         </div>
+
+                        <div className="mt-4">
+                            <label className="block font-medium">
+                                Buttons (Optional)
+                            </label>
+                            <select
+                                className="w-[49%] border rounded-md px-2 py-1 mt-1 outline-none text-gray-400"
+                                value={selectedButtonType}
+                                onChange={handleButtonTypeChange}
+                            >
+                                <option value="none">None</option>
+                                <option value="callToAction">
+                                    Call to action
+                                </option>
+                                <option value="quickReply">Quick reply</option>
+                            </select>
+                        </div>
+
+                        {selectedButtonType === "callToAction" && (
+                            <div className="mt-4">
+                                <label className="block font-medium">
+                                    Call to Action Data
+                                </label>
+                                <div className="flex gap-4 mt-2">
+                                    <label className="flex flex-col font-medium grow">
+                                        Call Phone Text
+                                        <input
+                                            type="text"
+                                            name="callPhoneText"
+                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
+                                            value={
+                                                buttonData.callPhoneText || ""
+                                            }
+                                            onChange={handleButtonDataChange}
+                                        />
+                                    </label>
+                                    <label className="flex flex-col font-medium grow">
+                                        Call Phone Number
+                                        <input
+                                            type="text"
+                                            name="callPhoneNumber"
+                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
+                                            value={
+                                                buttonData.callPhoneNumber || ""
+                                            }
+                                            onChange={handleButtonDataChange}
+                                        />
+                                    </label>
+                                </div>
+                                <div className="flex gap-4 mt-2">
+                                    <label className="flex flex-col font-medium grow">
+                                        Visit Website Text
+                                        <input
+                                            type="text"
+                                            name="visitWebsiteText"
+                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
+                                            value={
+                                                buttonData.visitWebsiteText ||
+                                                ""
+                                            }
+                                            onChange={handleButtonDataChange}
+                                        />
+                                    </label>
+                                    <label className="flex flex-col font-medium grow">
+                                        Visit Website URL
+                                        <input
+                                            type="text"
+                                            name="visitWebsiteUrl"
+                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
+                                            value={
+                                                buttonData.visitWebsiteUrl || ""
+                                            }
+                                            onChange={handleButtonDataChange}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedButtonType === "quickReply" && (
+                            <div className="mt-4">
+                                <label className="block font-medium">
+                                    Quick Reply Data
+                                </label>
+                                <div className="flex gap-4 mt-2">
+                                    <label className="flex flex-col font-medium grow">
+                                        Quick Reply 1
+                                        <input
+                                            type="text"
+                                            name="quickReply1"
+                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
+                                            value={buttonData.quickReply1 || ""}
+                                            onChange={handleButtonDataChange}
+                                        />
+                                    </label>
+                                    <label className="flex flex-col font-medium grow">
+                                        Quick Reply 2
+                                        <input
+                                            type="text"
+                                            name="quickReply2"
+                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
+                                            value={buttonData.quickReply2 || ""}
+                                            onChange={handleButtonDataChange}
+                                        />
+                                    </label>
+                                    <label className="flex flex-col font-medium grow">
+                                        Quick Reply 3
+                                        <input
+                                            type="text"
+                                            name="quickReply3"
+                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
+                                            value={buttonData.quickReply3 || ""}
+                                            onChange={handleButtonDataChange}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        )}
 
                         {callToAction.callPhoneText && (
                             <div>
@@ -311,6 +547,10 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                                     <input
                                         type="date"
                                         className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal text-gray-400"
+                                        value={selectedDate}
+                                        onChange={(e) =>
+                                            setSelectedDate(e.target.value)
+                                        }
                                     />
                                 </label>
 
@@ -319,6 +559,10 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                                     <input
                                         type="time"
                                         className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal text-gray-400"
+                                        value={selectedTime}
+                                        onChange={(e) =>
+                                            setSelectedTime(e.target.value)
+                                        }
                                     />
                                 </label>
                             </div>
@@ -343,7 +587,7 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                                     rows="4"
                                     cols="24"
                                     value={contacts}
-                                    readOnly
+                                    onChange={handleContactsChange}
                                 ></textarea>
                             </label>
 
@@ -413,16 +657,19 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {currentCsvData.map((row, index) => (
-                                        <tr key={index}>
-                                            <td className="border p-2">
-                                                {currentCsvPage * 5 + index + 1}
-                                            </td>
-                                            <td className="border p-2">
-                                                {row.join(", ")}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {user.groups.map((group) => {
+                                        const { id, group_name } = group;
+                                        return (
+                                            <tr key={id}>
+                                                <td className="border p-2">
+                                                    {id}
+                                                </td>
+                                                <td className="border p-2">
+                                                    {group_name}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
 
@@ -451,83 +698,96 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                         <div>
                             <h3 className="font-semibold">Upload Media</h3>
 
-                            <div className="flex gap-8">
-                                <div className="flex flex-col">
-                                    <label className="flex items-center gap-3 font-medium mt-4">
-                                        <span className="font-medium">
-                                            Image
-                                        </span>
-                                        <input
-                                            type="file"
-                                            name="mediaFile"
-                                            accept="image/*"
-                                            onChange={handleMediaUpload}
-                                        />
-                                    </label>
+                            <div className="flex gap-5">
+                                <label className="flex items-center gap-3 font-medium mt-4">
+                                    <input
+                                        type="radio"
+                                        name="mediaType"
+                                        value="image"
+                                        checked={selectedMediaType === "image"}
+                                        onChange={handleMediaTypeChange}
+                                    />
+                                    <span className="font-medium">Image</span>
+                                </label>
 
-                                    <label className="flex items-center gap-4 font-medium mt-4">
-                                        <span className="font-medium">
-                                            Video
-                                        </span>
-                                        <input
-                                            type="file"
-                                            name="mediaFile"
-                                            accept="video/*"
-                                            onChange={handleMediaUpload}
-                                        />
-                                    </label>
+                                <label className="flex items-center gap-3 font-medium mt-4">
+                                    <input
+                                        type="radio"
+                                        name="mediaType"
+                                        value="video"
+                                        checked={selectedMediaType === "video"}
+                                        onChange={handleMediaTypeChange}
+                                    />
+                                    <span className="font-medium">Video</span>
+                                </label>
 
-                                    <label className="flex items-center gap-8 font-medium mt-4">
-                                        <span className="font-medium">
-                                            File
-                                        </span>
-                                        <input
-                                            type="file"
-                                            name="mediaFile"
-                                            accept="image/*,video/*,.pdf"
-                                            onChange={handleMediaUpload}
-                                        />
-                                    </label>
-                                </div>
+                                <label className="flex items-center gap-3 font-medium mt-4">
+                                    <input
+                                        type="radio"
+                                        name="mediaType"
+                                        value="file"
+                                        checked={selectedMediaType === "file"}
+                                        onChange={handleMediaTypeChange}
+                                    />
+                                    <span className="font-medium">File</span>
+                                </label>
 
-                                <div>
-                                    {mediaContent && (
-                                        <div className="mt-2">
-                                            {mediaContent.startsWith(
-                                                "data:image/"
-                                            ) ? (
-                                                <img
-                                                    src={mediaContent}
-                                                    alt="Uploaded Media"
-                                                    className="mt-2 rounded"
-                                                    style={{
-                                                        maxHeight: "150px",
-                                                    }}
-                                                />
-                                            ) : mediaContent.startsWith(
-                                                  "data:video/"
-                                              ) ? (
-                                                <video
-                                                    controls
-                                                    src={mediaContent}
-                                                    className="mt-2 rounded"
-                                                    style={{
-                                                        maxHeight: "150px",
-                                                    }}
-                                                />
-                                            ) : (
-                                                <embed
-                                                    src={mediaContent}
-                                                    type="application/pdf"
-                                                    className="mt-2 rounded"
-                                                    style={{
-                                                        maxHeight: "150px",
-                                                    }}
-                                                />
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+                                <input
+                                    type="file"
+                                    name="mediaFile"
+                                    accept={
+                                        selectedMediaType === "image"
+                                            ? "image/*"
+                                            : selectedMediaType === "video"
+                                            ? "video/*"
+                                            : "image/*,video/*,.pdf"
+                                    }
+                                    onChange={handleMediaUpload}
+                                    className="mt-4"
+                                />
+                            </div>
+
+                            <div>
+                                {mediaContent && (
+                                    <div className="mt-2">
+                                        {selectedMediaType === "image" && (
+                                            <img
+                                                src={URL.createObjectURL(
+                                                    mediaContent
+                                                )}
+                                                alt="Uploaded Media"
+                                                className="mt-2 rounded"
+                                                style={{
+                                                    maxHeight: "150px",
+                                                }}
+                                            />
+                                        )}
+                                        {selectedMediaType === "video" && (
+                                            <video
+                                                controls
+                                                src={URL.createObjectURL(
+                                                    mediaContent
+                                                )}
+                                                className="mt-2 rounded"
+                                                style={{
+                                                    maxHeight: "150px",
+                                                }}
+                                            />
+                                        )}
+                                        {selectedMediaType === "file" && (
+                                            <embed
+                                                src={URL.createObjectURL(
+                                                    mediaContent
+                                                )}
+                                                type="application/pdf"
+                                                className="mt-2 rounded"
+                                                style={{
+                                                    maxHeight: "150px",
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -539,7 +799,10 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                                 Back
                             </button>
 
-                            <button className="bg-green-500 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-green-700 mt-4">
+                            <button
+                                className="bg-green-500 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-green-700 mt-4"
+                                onClick={handleSubmitBroadcast}
+                            >
                                 Submit and run
                             </button>
                         </div>
@@ -551,7 +814,7 @@ const NewBroadcast = ({ closeModal, resetForm, broadcastNumber }) => {
                 <h2 className="font-medium text-center text-2xl">Preview</h2>
 
                 <div>
-                    <Mobile />
+                    <Mobile data={preview} />
                 </div>
             </div>
         </div>

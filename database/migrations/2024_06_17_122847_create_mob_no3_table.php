@@ -56,6 +56,9 @@ return new class extends Migration
             $table->string('url_value', 100)->nullable(); //nullable added by me
             $table->string('text', 1100)->collation('utf8mb4_unicode_ci')->comment('footer')->nullable(); //nullable added by me
             $table->timestamps();
+
+            $table->foreign('username')->references('username')->on('ci_admin')->onUpdate('cascade');
+
         });
     }
     /**

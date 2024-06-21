@@ -5,9 +5,9 @@ import Modal from "../components/Modal";
 
 const Dashboard = ({ user }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [hamburgerMenuOpen, setHamburgerMenuOpen] = useState(false);
+    const [hamburgerMenuOpen, setHamburgerMenuOpen] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeMenuItem, setActiveMenuItem] = useState("");
+    const [activeMenuItem, setActiveMenuItem] = useState("Broadcast");
 
     const resetForm = useRef(null);
     const navigate = useNavigate();
@@ -39,244 +39,327 @@ const Dashboard = ({ user }) => {
         setActiveMenuItem(menuItem);
     };
 
+    const handleViewDataClick = () => {
+        setActiveMenuItem("ViewData");
+    };
+
     return (
-        <div>
-            {/* Main Content */}
-            <div className=" h-screen overflow-hidden">
-                <div className="flex justify-between shadow-md">
-                    <div className="flex items-center">
-                        <div
-                            className="lg:hidden"
-                            onClick={toggleHamburgerMenu}
-                        >
-                            <i className="fas fa-bars"></i>
-                        </div>
-
-                        <a href="#" className="btn btn-ghost text-4xl">
-                            PuRat
-                        </a>
+        <div className="h-screen flex flex-col overflow-hidden">
+            <div className="flex justify-between shadow-md">
+                <div className="flex items-center mx-4 my-1">
+                    <div className="lg:hidden" onClick={toggleHamburgerMenu}>
+                        <i className="fas fa-bars"></i>
                     </div>
 
-                    <div className="hidden lg:flex items-center">
-                        <ul className="menu menu-horizontal flex space-x-4">
-                            <li>
-                                <a
-                                    href="#"
-                                    onClick={() =>
-                                        handleMenuItemClick("TeamInbox")
-                                    }
-                                    className={
-                                        activeMenuItem === "TeamInbox"
-                                            ? "active"
-                                            : ""
-                                    }
-                                >
-                                    <i className="fas fa-inbox"></i> TeamInbox
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    onClick={() =>
-                                        handleMenuItemClick("Broadcast")
-                                    }
-                                    className={
-                                        activeMenuItem === "Broadcast"
-                                            ? "active"
-                                            : ""
-                                    }
-                                >
-                                    <i className="fas fa-broadcast-tower"></i>{" "}
-                                    Broadcast
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    onClick={() =>
-                                        handleMenuItemClick("Chatbots")
-                                    }
-                                    className={
-                                        activeMenuItem === "Chatbots"
-                                            ? "active"
-                                            : ""
-                                    }
-                                >
-                                    <i className="fas fa-robot"></i> Chatbots
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    onClick={() =>
-                                        handleMenuItemClick("Contacts")
-                                    }
-                                    className={
-                                        activeMenuItem === "Contacts"
-                                            ? "active"
-                                            : ""
-                                    }
-                                >
-                                    <i className="fas fa-address-book"></i>{" "}
-                                    Contacts
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    onClick={() =>
-                                        handleMenuItemClick("Automations")
-                                    }
-                                    className={
-                                        activeMenuItem === "Automations"
-                                            ? "active"
-                                            : ""
-                                    }
-                                >
-                                    <i className="fas fa-cogs"></i> Automations
-                                </a>
-                            </li>
-                            <li className="dropdown dropdown-hover">
-                                <button
-                                    tabIndex="0"
-                                    className="btn btn-ghost text-1xl"
-                                >
-                                    More
-                                </button>
-                                <ul className="dropdown-content menu shadow-lg bg-white rounded-lg p-2 w-52">
-                                    <li>
-                                        <a href="#">
-                                            <i className="fas fa-chart-bar"></i>{" "}
-                                            Analytics
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i className="fas fa-code"></i> API
-                                            docs
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i className="fas fa-users"></i>{" "}
-                                            User Management
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i className="fas fa-plug"></i>{" "}
-                                            Integration
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i className="fas fa-exchange-alt"></i>{" "}
-                                            Web Hooks
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#">
-                                            <i className="fas fa-shopping-cart"></i>{" "}
-                                            Commerce
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div className="flex items-center">
-                        <div className="dropdown dropdown-end notification-icon">
-                            <button
-                                tabIndex="0"
-                                className="btn btn-ghost btn-circle text-1xl p-2"
-                            >
-                                <i className="fas fa-bell"></i>
-                            </button>
-                        </div>
-
-                        <div
-                            id="userIcon"
-                            className="user-icon"
-                            onClick={toggleSidebar}
-                        >
-                            <button
-                                tabIndex="0"
-                                className="btn btn-ghost btn-circle avatar text-1xl p-2"
-                            >
-                                <i className="fas fa-user"></i>
-                            </button>
-                        </div>
-                    </div>
+                    <button
+                        className="btn btn-ghost text-4xl"
+                        onClick={() => handleMenuItemClick("PuRat")}
+                    >
+                        PuRat
+                    </button>
                 </div>
 
-                {/* Hamburger Menu for Mobile */}
-                <div
-                    id="hamburgerMenu"
-                    className={`hamburger-menu ${
-                        hamburgerMenuOpen ? "block" : "hidden"
-                    } w-max h-screen shadow-2xl`}
-                >
-                    <ul className=" lg:hidden menu menu-vertical p-4">
+                <div className="hidden lg:flex items-center">
+                    <ul className="menu menu-horizontal flex space-x-4">
                         <li>
-                            <a href="#">
+                            <button
+                                onClick={() => handleMenuItemClick("TeamInbox")}
+                                className={`btn btn-ghost ${
+                                    activeMenuItem === "TeamInbox"
+                                        ? "active"
+                                        : ""
+                                }`}
+                            >
                                 <i className="fas fa-inbox"></i> TeamInbox
-                            </a>
+                            </button>
                         </li>
                         <li>
-                            <a href="#">
+                            <button
+                                onClick={() => handleMenuItemClick("Broadcast")}
+                                className={`btn btn-ghost ${
+                                    activeMenuItem === "Broadcast"
+                                        ? "active"
+                                        : ""
+                                }`}
+                            >
                                 <i className="fas fa-broadcast-tower"></i>{" "}
                                 Broadcast
-                            </a>
+                            </button>
                         </li>
                         <li>
-                            <a href="#">
+                            <button
+                                onClick={() => handleMenuItemClick("Chatbots")}
+                                className={`btn btn-ghost ${
+                                    activeMenuItem === "Chatbots"
+                                        ? "active"
+                                        : ""
+                                }`}
+                            >
                                 <i className="fas fa-robot"></i> Chatbots
-                            </a>
+                            </button>
                         </li>
                         <li>
-                            <a href="#">
+                            <button
+                                onClick={() => handleMenuItemClick("Contacts")}
+                                className={`btn btn-ghost ${
+                                    activeMenuItem === "Contacts"
+                                        ? "active"
+                                        : ""
+                                }`}
+                            >
                                 <i className="fas fa-address-book"></i> Contacts
-                            </a>
+                            </button>
                         </li>
                         <li>
-                            <a href="#">
+                            <button
+                                onClick={() =>
+                                    handleMenuItemClick("Automations")
+                                }
+                                className={`btn btn-ghost ${
+                                    activeMenuItem === "Automations"
+                                        ? "active"
+                                        : ""
+                                }`}
+                            >
                                 <i className="fas fa-cogs"></i> Automations
-                            </a>
+                            </button>
                         </li>
-                        <li>
-                            <a href="#">
-                                <i className="fas fa-chart-bar"></i> Analytics
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                                <i className="fas fa-code"></i> API docs
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                                <i className="fas fa-users"></i> User Management
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                                <i className="fas fa-plug"></i> Integration
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                                <i className="fas fa-exchange-alt"></i> Web
-                                Hooks
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                                <i className="fas fa-shopping-cart"></i>{" "}
-                                Commerce
-                            </a>
+                        <li className="dropdown dropdown-hover z-20">
+                            <button
+                                tabIndex="0"
+                                className="btn btn-ghost text-1xl"
+                            >
+                                More
+                            </button>
+                            <ul className="dropdown-content menu shadow-lg bg-white rounded-lg p-2 w-52">
+                                <li>
+                                    <button className="btn btn-ghost text-left w-full">
+                                        <i className="fas fa-chart-bar"></i>{" "}
+                                        Analytics
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className="btn btn-ghost text-left w-full">
+                                        <i className="fas fa-code"></i> API docs
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className="btn btn-ghost text-left w-full">
+                                        <i className="fas fa-users"></i> User
+                                        Management
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className="btn btn-ghost text-left w-full">
+                                        <i className="fas fa-plug"></i>{" "}
+                                        Integration
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className="btn btn-ghost text-left w-full">
+                                        <i className="fas fa-exchange-alt"></i>{" "}
+                                        Web Hooks
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className="btn btn-ghost text-left w-full">
+                                        <i className="fas fa-shopping-cart"></i>{" "}
+                                        Commerce
+                                    </button>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
+                </div>
+
+                <div className="flex items-center">
+                    <div className="dropdown dropdown-end notification-icon">
+                        <button
+                            tabIndex="0"
+                            className="btn btn-ghost btn-circle text-1xl p-2"
+                        >
+                            <i className="fas fa-bell"></i>
+                        </button>
+                    </div>
+
+                    <div
+                        id="userIcon"
+                        className="user-icon"
+                        onClick={toggleSidebar}
+                    >
+                        <button
+                            tabIndex="0"
+                            className="btn btn-ghost btn-circle avatar text-1xl p-2"
+                        >
+                            <i className="fas fa-user"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex flex-grow">
+                <div
+                    className={`lg:hidden ${
+                        hamburgerMenuOpen ? "block" : "hidden"
+                    } w-fit h-screen shadow-2xl`}
+                >
+                    <ul className="menu menu-vertical p-4">
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() => handleMenuItemClick("TeamInbox")}
+                            >
+                                <i className="fas fa-inbox"></i> TeamInbox
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() => handleMenuItemClick("Broadcast")}
+                            >
+                                <i className="fas fa-broadcast-tower"></i>{" "}
+                                Broadcast
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() => handleMenuItemClick("Chatbots")}
+                            >
+                                <i className="fas fa-robot"></i> Chatbots
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() => handleMenuItemClick("Contacts")}
+                            >
+                                <i className="fas fa-address-book"></i> Contacts
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() =>
+                                    handleMenuItemClick("Automations")
+                                }
+                            >
+                                <i className="fas fa-cogs"></i> Automations
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() => handleMenuItemClick("Analytics")}
+                            >
+                                <i className="fas fa-chart-bar"></i> Analytics
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() => handleMenuItemClick("API docs")}
+                            >
+                                <i className="fas fa-code"></i> API docs
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() =>
+                                    handleMenuItemClick("User Management")
+                                }
+                            >
+                                <i className="fas fa-users"></i> User Management
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() =>
+                                    handleMenuItemClick("Integration")
+                                }
+                            >
+                                <i className="fas fa-plug"></i> Integration
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() => handleMenuItemClick("Web Hooks")}
+                            >
+                                <i className="fas fa-exchange-alt"></i> Web
+                                Hooks
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                className="btn btn-ghost text-left w-full"
+                                onClick={() => handleMenuItemClick("Commerce")}
+                            >
+                                <i className="fas fa-shopping-cart"></i>{" "}
+                                Commerce
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div className="flex-grow p-10 bg-gray-100">
+                    {activeMenuItem === "Broadcast" ? (
+                        <>
+                            <div className="bg-white p-5 shadow-md mb-5">
+                                <h1 className="text-2xl">
+                                    Manage Broadcast Services
+                                </h1>
+                            </div>
+                            <div className="flex gap-5">
+                                <div className="bg-teal-600 p-5 rounded-lg flex flex-col items-center gap-3 w-72 h-60">
+                                    <img
+                                        src="/src/assets/images/png/WhatsApp-img.jpg"
+                                        alt="WhatsApp Official"
+                                        className="w-24 h-24 rounded-3xl"
+                                    />
+                                    <p className="text-white text-lg">
+                                        WhatsApp Official
+                                    </p>
+                                    <button
+                                        className="bg-white text-black py-2 px-4 rounded cursor-pointer font-medium"
+                                        onClick={handleViewDataClick}
+                                    >
+                                        View Data →
+                                    </button>
+                                </div>
+                                <div className="bg-teal-600 p-5 rounded-lg flex flex-col items-center gap-3 w-72 h-60">
+                                    <img
+                                        src="/src/assets/images/png/WhatsApp-img.jpg"
+                                        alt="GSM SMS"
+                                        className="w-24 h-24 rounded-3xl"
+                                    />
+                                    <p className="text-white text-lg">
+                                        GSM SMS
+                                    </p>
+                                    <button
+                                        className="bg-white text-black py-2 px-4 rounded cursor-pointer font-medium"
+                                        onClick={handleViewDataClick}
+                                    >
+                                        View Data →
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            {activeMenuItem === "ViewData" && (
+                                <button
+                                    className="absolute right-5 btn bg-blue-500 text-white"
+                                    onClick={handleModal}
+                                >
+                                    New Broadcast
+                                </button>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -305,12 +388,10 @@ const Dashboard = ({ user }) => {
                                 height={24}
                                 alt="User Icon"
                             />
-
                             <div>
                                 <h2 className="text-lg sm:text-xl">
                                     {user?.username}
                                 </h2>
-
                                 <p className="text-sm text-gray-600">
                                     {user?.email}
                                 </p>
@@ -326,7 +407,6 @@ const Dashboard = ({ user }) => {
 
                     <div className="flex flex-col sm:flex-row gap-3">
                         <button className="btn">Settings</button>
-
                         <button className="btn">Copy click-to-chat link</button>
                     </div>
 
@@ -343,25 +423,12 @@ const Dashboard = ({ user }) => {
                 </div>
             </div>
 
-            <div className="absolute right-5 top-20">
-                {activeMenuItem === "Broadcast" && (
-                    <div>
-                        <button
-                            className="btn bg-blue-500 text-white"
-                            onClick={handleModal}
-                        >
-                            New Broadcast
-                        </button>
-                    </div>
-                )}
-            </div>
-
             {isModalOpen && (
                 <Modal isModalOpen={isModalOpen} closeModal={closeModal}>
                     <NewBroadcast
                         closeModal={closeModal}
                         resetForm={resetForm}
-                        broadcastNumber={user.mobile_no}
+                        user={user}
                     />
                 </Modal>
             )}

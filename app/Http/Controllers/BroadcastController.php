@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Validator;
 
 class BroadcastController extends Controller
 {
-
     public function store(Request $request)
     {
         // Validate incoming request
@@ -18,7 +17,6 @@ class BroadcastController extends Controller
             'username' => 'required',
             'name1' => 'nullable',
             'template_name1' => 'required',
-            // 'csv_file' => 'required|mimes:csv,txt', // Adjust max file size as needed
             'textbox' => 'string', // Added validation for the textbox field
         ]);
 
@@ -30,13 +28,22 @@ class BroadcastController extends Controller
         try {
             // Extract request data
             $username = $request->input('username');
-            $name1 = $request->input('name1'); //sender_id
+            $name1 = $request->input('name1'); // sender_id
             $template_name1 = $request->input('template_name1');
             $delivery_date = $request->input('delivery_date');
             $delivery_time = $request->input('delivery_time');
 
+            // Check if a media file is uploaded
             $media1 = $request->file('media_file');
-            $media_file_Path = $media1->store('media', 'public'); // Store the file in the 'public/media' directory
+            if ($media1) {
+                // Store the file in the 'public/media' directory
+                $media_file_Path = $media1->store('media', 'public');
+            } else {
+                // Skip processing if no media file is uploaded
+                $media_file_Path = null; // or handle as needed
+            }
+
+            // Extract other attributes from the request
             $media2 = $request->input('attribute1');
             $media3 = $request->input('attribute2');
             $media4 = $request->input('attribute3');
@@ -54,17 +61,17 @@ class BroadcastController extends Controller
             $status_campaign = $request->status;
             $queue_no = $request->queue_no;
 
-            // Extract mobile numbers from Textbox
+            // Extract mobile numbers from textbox and split them into an array
             $mobileNumbers = explode(',', $request->input('textbox'));
-            $numbers_counts = count($mobileNumbers); // Count the total number of mobile numbers for number column of campaign details
+            $numbers_counts = count($mobileNumbers); // Count the total number of mobile numbers
 
-
-            // Generate request_id
+            // Generate a unique request ID
             $request_id = rand(10000000, 99999999);
 
-            // Start transaction
+            // Start a database transaction
             DB::beginTransaction();
 
+            // Insert each mobile number along with media and other details
             foreach ($mobileNumbers as $receiver) {
                 $receiver = trim($receiver); // Trim any whitespace
                 if (!empty($receiver)) {
@@ -89,7 +96,9 @@ class BroadcastController extends Controller
                         'status' => 'PP1',
                         'delivery_date' => $delivery_date,
                         'delivery_time' => $delivery_time,
-                        'dat' => now()->format('d M Y'),
+                        // 'dat' => now()->format('d M Y'),
+                        'dat' => now(),
+                        // 'tim' => now(),
                         'tim' => now()->format('H:i'),
                         'request_id' => $request_id,
                         'created_at' => now(),
@@ -98,7 +107,7 @@ class BroadcastController extends Controller
                 }
             }
 
-            // Insert data into campaign_details_trials
+            // Insert campaign details
             CampaignDetail::create([
                 'username' => $username,
                 'senderid' => $name1,
@@ -112,12 +121,12 @@ class BroadcastController extends Controller
                 'queue_no' => $queue_no,
             ]);
 
-            // Commit transaction
+            // Commit the transaction
             DB::commit();
 
             return response()->json(['message' => 'Data inserted successfully'], 200);
         } catch (\Exception $e) {
-            // Rollback transaction on exception
+            // Rollback the transaction if an error occurs
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
         }

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use App\Models\Group;
 
 use App\Models\Broadcast_output;
 use Laravel\Passport\HasApiTokens;
@@ -60,4 +61,8 @@ class User extends Authenticatable
     // {
     //     return $this->hasOne(Broadcast_output::class);
     // }
+
+    public function groups(){
+        return $this->hasMany(Group::class, 'user_id');
+    }
 }
