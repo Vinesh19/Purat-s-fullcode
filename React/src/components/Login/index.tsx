@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // useNavigate for Routing
-import { login, requestMobileOtp, verifyMobileOtp } from "../services/api";
+import { useNavigate } from "react-router-dom";
+import { login, requestMobileOtp, verifyMobileOtp } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -31,7 +31,7 @@ const Login = ({ onChangeForm, setUser }) => {
     };
 
     useEffect(() => {
-        generateCaptcha(); // Generate initial CAPTCHA when component mounts
+        generateCaptcha();
     }, []);
 
     const handleShowPassword = () => {
@@ -63,14 +63,13 @@ const Login = ({ onChangeForm, setUser }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isCaptchaValid) {
-            toast.error("Please solve the CAPTCHA correctly.");
+            toast.error("CAPTCHA INVALID");
             return;
         }
 
         if (isMobileLogin) {
             if (!otpRequested) {
                 // Request OTP
-                console.log(mobileNumber);
                 try {
                     await requestMobileOtp(mobileNumber);
                     setOtpRequested(true);
@@ -102,7 +101,7 @@ const Login = ({ onChangeForm, setUser }) => {
                     setUser(response?.data?.user);
 
                     // Redirect to the Dashboard
-                    navigate("/dashboard");
+                    navigate("/dashboard", { replace: true });
                 } catch (error) {
                     console.error("Error logging in", error);
                     setErrorMessage(error?.response?.data?.message);
@@ -130,7 +129,7 @@ const Login = ({ onChangeForm, setUser }) => {
                 setUser(response?.data?.user);
 
                 // Redirect to the Dashboard
-                navigate("/dashboard");
+                navigate("/dashboard", { replace: true });
             } catch (error) {
                 console.error("Error logging in", error);
                 setErrorMessage(error?.response?.data?.message);
@@ -175,7 +174,7 @@ const Login = ({ onChangeForm, setUser }) => {
                     }}
                 >
                     <img
-                        src="src/assets/images/svg/profile.svg"
+                        src="/assets/images/svg/profile.svg"
                         width={16}
                         height={16}
                         alt="logo"
@@ -195,7 +194,7 @@ const Login = ({ onChangeForm, setUser }) => {
                     }}
                 >
                     <img
-                        src="src/assets/images/svg/apple.svg"
+                        src="/assets/images/svg/apple.svg"
                         width={16}
                         height={16}
                         alt="logo"
@@ -231,7 +230,7 @@ const Login = ({ onChangeForm, setUser }) => {
                                 required
                             />
                             <img
-                                src="src/assets/images/svg/password-eye-icon.svg"
+                                src="/assets/images/svg/password-eye-icon.svg"
                                 width={20}
                                 height={20}
                                 alt="eye-icon"
@@ -265,7 +264,7 @@ const Login = ({ onChangeForm, setUser }) => {
                                 className="flex items-center justify-center gap-2 px-3 py-1 border border-[#3a5663] hover:border-[#5d7281] rounded-3xl"
                             >
                                 <img
-                                    src="src/assets/images/svg/gmail.svg"
+                                    src="/assets/images/svg/gmail.svg"
                                     width={16}
                                     height={16}
                                     alt="logo"
@@ -277,7 +276,7 @@ const Login = ({ onChangeForm, setUser }) => {
                                 className="flex items-center justify-center gap-2 px-3 py-1 border border-[#3a5663] hover:border-[#5d7281] rounded-3xl"
                             >
                                 <img
-                                    src="src/assets/images/svg/logosfacebook.svg"
+                                    src="/assets/images/svg/logosfacebook.svg"
                                     width={16}
                                     height={16}
                                     alt="logo"
@@ -332,11 +331,12 @@ const Login = ({ onChangeForm, setUser }) => {
                         onChange={handleCaptchaChange}
                         required
                     />
-                    <button
-                        type="button"
-                        onClick={generateCaptcha}
-                    >
-                        <img src="src/assets/images/png/refresh_captcha.png" width={20} height={20} />
+                    <button type="button" onClick={generateCaptcha}>
+                        <img
+                            src="/assets/images/png/refresh_captcha.png"
+                            width={20}
+                            height={20}
+                        />
                     </button>
                 </label>
             </div>

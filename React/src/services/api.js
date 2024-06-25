@@ -26,6 +26,23 @@ const api = axios.create({
     },
 });
 
+// Interceptor to add Authorization header to requests
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("token");
+
+        if (token && ![SIGN_UP, LOGIN].includes(config.url)) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Export API functions
 export const signUp = (userData) => {
     return api.post(SIGN_UP, userData);
 };

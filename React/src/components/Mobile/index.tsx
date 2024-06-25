@@ -61,7 +61,7 @@ const Mobile = ({ data }) => {
                     onClick={sendMessage}
                 >
                     <img
-                        src="src/assets/images/svg/send-icon.svg"
+                        src="/assets/images/svg/send-icon.svg"
                         width={16}
                         height={16}
                         alt="send"

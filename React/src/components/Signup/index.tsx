@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { signUp } from "../services/api";
+import { signUp } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -183,7 +183,7 @@ const SignUpForm = ({ onChangeForm }) => {
                                 className="rounded-lg px-2 py-1.5 text-black outline-none"
                             />
                             <img
-                                src="src/assets/images/svg/password-eye-icon.svg"
+                                src="/assets/images/svg/password-eye-icon.svg"
                                 width={20}
                                 height={20}
                                 alt="eye-icon"
@@ -204,7 +204,7 @@ const SignUpForm = ({ onChangeForm }) => {
                                 className="rounded-lg px-2 py-1.5 text-black outline-none"
                             />
                             <img
-                                src="src/assets/images/svg/password-eye-icon.svg"
+                                src="/assets/images/svg/password-eye-icon.svg"
                                 width={20}
                                 height={20}
                                 alt="eye-icon"
@@ -231,7 +231,7 @@ const SignUpForm = ({ onChangeForm }) => {
                         className="flex items-center justify-center gap-2 px-3 py-1.5 text-black bg-white rounded-3xl"
                     >
                         <img
-                            src="src/assets/images/svg/gmail.svg"
+                            src="/assets/images/svg/gmail.svg"
                             width={16}
                             height={16}
                             alt="logo"
@@ -243,7 +243,7 @@ const SignUpForm = ({ onChangeForm }) => {
                         className="flex items-center justify-center gap-2 px-3 py-1.5 text-black bg-white rounded-3xl"
                     >
                         <img
-                            src="src/assets/images/svg/logosfacebook.svg"
+                            src="/assets/images/svg/logosfacebook.svg"
                             width={16}
                             height={16}
                             alt="logo"

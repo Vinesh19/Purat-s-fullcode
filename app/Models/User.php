@@ -62,7 +62,4 @@ class User extends Authenticatable
     //     return $this->hasOne(Broadcast_output::class);
     // }
 
-    public function groups(){
-        return $this->hasMany(Group::class, 'user_id');
-    }
 }

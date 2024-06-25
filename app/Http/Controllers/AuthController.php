@@ -121,7 +121,7 @@ class AuthController extends Controller
 
         // Attempt to authenticate the user
         if (Auth::attempt([$fieldType => $credentials['email_or_username'], 'password' => $credentials['password']])) {
-            $user = Auth::user()->load('groups');
+            $user = Auth::user();
             $token = $user->createToken("auth_token")->accessToken;
 
             // Return success response

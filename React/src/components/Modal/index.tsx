@@ -8,7 +8,7 @@ const Modal = (props) => {
             <div className="bg-white w-[75vw] h-[95vh] overflow-auto fixed px-6 py-4 scrollbar-hide">
                 <div>
                     <img
-                        src="src/assets/images/svg/CrossIcon.svg"
+                        src="/assets/images/svg/CrossIcon.svg"
                         width={20}
                         height={20}
                         alt="cross icon"

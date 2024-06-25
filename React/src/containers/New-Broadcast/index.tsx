@@ -676,7 +676,7 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                     <div className=" fixed z-20 top-0 left-0 w-[100vw] h-[100vh] flex justify-center items-center bg-[#0000006a]">
                         <div className="mt-6 border p-5 bg-white relative">
                             <img
-                                src="src/assets/images/svg/CrossIcon.svg"
+                                src="/assets/images/svg/CrossIcon.svg"
                                 width={20}
                                 height={20}
                                 alt="cross icon"

@@ -3,7 +3,7 @@ import {
     requestEmailOtp,
     verifyEmailOtp,
     changePassword,
-} from "../services/api";
+} from "../../services/api";
 
 const Forgot = ({ onChangeForm }) => {
     const [step, setStep] = useState("email");
@@ -136,7 +136,7 @@ const Forgot = ({ onChangeForm }) => {
                                     required
                                 />
                                 <img
-                                    src="src/assets/images/svg/password-eye-icon.svg"
+                                    src="/assets/images/svg/password-eye-icon.svg"
                                     width={20}
                                     height={20}
                                     alt="eye-icon"
@@ -160,7 +160,7 @@ const Forgot = ({ onChangeForm }) => {
                                     required
                                 />
                                 <img
-                                    src="src/assets/images/svg/password-eye-icon.svg"
+                                    src="/assets/images/svg/password-eye-icon.svg"
                                     width={20}
                                     height={20}
                                     alt="eye-icon"

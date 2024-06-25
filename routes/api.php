@@ -51,16 +51,18 @@ Route::post('/send-mobile-otp', [MobileOTPController::class, 'sendMobileOTP']);
 //varifying number otp
 Route::post('/verify-mobile-otp', [MobileOTPController::class, 'verifyMobileOTP']);
 
-//fetching template's name-list from templates(table)
-Route::get('/template-name', [TemplateController::class, 'show_name']);
-//fetching template's all data from templates(table)
-Route::get('/template/{template_id}', [TemplateController::class, 'show']);
-
-//group table for inserting data
-Route::post('/insert-group-data', [GroupController::class, 'store']);
-//group table for fetching data
-Route::post('/fetching-group-data/{group_name}', [GroupController::class, 'show']);
 
 
-//inserting broadcast data into Mob_no3 and Campaign_details
-Route::post('/insert-broadcast-data', [BroadcastController::class, 'store']);
+Route::middleware('auth:api')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    //fetching template's name-list from templates(table)
+    Route::get('/template-name', [TemplateController::class, 'show_name']);
+
+    //fetching template's all data from templates(table)
+    Route::get('/template/{template_id}', [TemplateController::class, 'show']);
+    
+    //inserting broadcast data into Mob_no3 and Campaign_details
+    Route::post('/insert-broadcast-data', [BroadcastController::class, 'store']);
+
+});
