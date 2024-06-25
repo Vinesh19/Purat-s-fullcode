@@ -39,9 +39,9 @@ return new class extends Migration
             $table->dateTime('created_at')->default(now());
             $table->date('updated_at')->nullable();
             $table->integer('status')->default(0);
-            $table->string('template_id', 100);
+            $table->string('template_id', 100)->nullable(); //nullable added by me
 
-            // $table->primary('id');
+            // $table->foreign('username')->references('username')->on('ci_admin')->onUpdate('cascade');
         });
     }
 

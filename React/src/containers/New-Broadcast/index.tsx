@@ -5,9 +5,10 @@ import {
     submitBroadcastData,
 } from "../../services/api";
 import Mobile from "../../components/Mobile";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const NewBroadcast = ({ closeModal, resetForm, user }) => {
-    console.log(user);
     const [templates, setTemplates] = useState({});
     const [selectedTemplate, setSelectedTemplate] = useState("");
     const [message, setMessage] = useState("");
@@ -25,10 +26,10 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
     const [selectedMediaType, setSelectedMediaType] = useState("image");
-
-    // New state for buttons
     const [selectedButtonType, setSelectedButtonType] = useState("none");
     const [buttonData, setButtonData] = useState({});
+    const [showGroupModal, setShowGroupModal] = useState(false);
+    const [headerMediaType, setHeaderMediaType] = useState([]);
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -36,21 +37,33 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                 const response = await templateData();
                 setTemplates(response?.data?.template || {});
             } catch (error) {
+                toast.error("Failed to fetch templates");
                 console.error("Failed to fetch templates", error);
             }
         };
+
+        const currentDateTime = new Date();
+        const formattedDate = currentDateTime.toISOString().split("T")[0];
+        const formattedTime = currentDateTime
+            .toTimeString()
+            .split(" ")[0]
+            .slice(0, 5);
+        setSelectedDate(formattedDate);
+        setSelectedTime(formattedTime);
 
         fetchTemplates();
     }, []);
 
     const handleTemplateChange = async (e) => {
         const selectedId = e.target.value;
+        setSelectedTemplate(selectedId); // Set the selected template ID
         try {
             const response = await fetchTemplateMessage(selectedId);
             const selectedTemplate = response?.data?.template;
 
-            setSelectedTemplate(selectedTemplate?.template_name);
             setMessage(selectedTemplate?.template_body || "");
+            setHeaderMediaType(selectedTemplate?.header_media_type || []);
+
             setCallToAction({
                 callPhoneNumber: selectedTemplate?.call_phone_btn_phone_number,
                 callPhoneText: selectedTemplate?.call_phone_btn_text,
@@ -75,6 +88,7 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
             });
             setAttributes(attrObj);
         } catch (error) {
+            toast.error("Failed to fetch template message");
             console.error("Failed to fetch template message", error);
             setMessage("");
             setAttributes({});
@@ -93,6 +107,7 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
 
     const handleContactsChange = (e) => {
         setContacts(e.target.value);
+        setCsvRowCount(e.target.value.split("\n").filter(Boolean).length);
     };
 
     const handleFileUpload = (e) => {
@@ -121,10 +136,13 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                     ...new Set([...contacts.split("\n"), ...phoneNumbers]),
                 ].join("\n");
                 setContacts(combinedContacts);
+                setCsvRowCount(
+                    combinedContacts.split("\n").filter(Boolean).length
+                );
             };
             reader.readAsText(file);
         } else {
-            alert("Please select a CSV file.");
+            toast.error("Please select a CSV file.");
             e.target.value = null; // Reset file input
         }
     };
@@ -158,23 +176,10 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
         setMediaContent(null); // Clear the previous media content
     };
 
-    const handleButtonTypeChange = (e) => {
-        setSelectedButtonType(e.target.value);
-        setButtonData({});
-    };
-
-    const handleButtonDataChange = (e) => {
-        const { name, value } = e.target;
-        setButtonData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
-    };
-
     const handleSubmitBroadcast = async () => {
         // Ensure that we have all the necessary data
         if (!selectedTemplate || !user.username || !message) {
-            alert("Please ensure all fields are properly filled.");
+            toast.error("Please ensure all fields are properly filled.");
             return;
         }
 
@@ -229,12 +234,25 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
             // Call the API to submit the data
             const response = await submitBroadcastData(dataToSubmit);
             console.log("Submission Successful:", response.data);
-            alert("Broadcast submitted successfully!");
+            toast.success("Broadcast submitted successfully!");
             // Reset form or handle next steps
             resetStates();
         } catch (error) {
             console.error("Failed to submit broadcast:", error);
-            alert("Failed to submit broadcast. Please try again.");
+            if (
+                error.response &&
+                error.response.data &&
+                error.response.data.errors
+            ) {
+                const errors = error.response.data.errors;
+                Object.keys(errors).forEach((key) => {
+                    errors[key].forEach((errorMsg) => {
+                        toast.error(errorMsg);
+                    });
+                });
+            } else {
+                toast.error("Failed to submit broadcast. Please try again.");
+            }
         }
 
         setPreview({
@@ -275,14 +293,22 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
         resetForm.current = resetStates;
     }, [resetForm]);
 
+    const mediaTypeLabels = {
+        image: "Image",
+        video: "Video",
+        document: "File",
+    };
+
     return (
-        <div className="flex h-[95vh]">
-            <div className="left-content grow xl:basis-[70%] overflow-y-auto pr-4">
+        <div className="flex h-[95vh] gap-[2%]">
+            <ToastContainer />
+            <div className="left-content grow xl:basis-[70%] pr-4 overflow-y-auto scrollbar-hide">
                 {currentPage === 1 && (
                     <div>
                         <h2 className="text-lg font-bold border-b-2 pb-4">
                             New Broadcast
                         </h2>
+
                         <div className="flex gap-5 mt-5">
                             <label className="flex flex-col font-medium grow">
                                 Broadcast Name
@@ -308,9 +334,10 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                             <label className="mt-4 font-medium block">
                                 Template
                             </label>
+
                             <select
                                 className="w-[49%] border rounded-md px-2 py-1 mt-1 outline-none text-gray-400"
-                                value={selectedTemplate}
+                                value={selectedTemplate} // Ensure the selected value is set
                                 onChange={handleTemplateChange}
                             >
                                 <option value="">Select Template</option>
@@ -332,177 +359,51 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                             </label>
                         </div>
 
-                        <div className="mt-4">
-                            <label className="block font-medium">
-                                Buttons (Optional)
-                            </label>
-                            <select
-                                className="w-[49%] border rounded-md px-2 py-1 mt-1 outline-none text-gray-400"
-                                value={selectedButtonType}
-                                onChange={handleButtonTypeChange}
-                            >
-                                <option value="none">None</option>
-                                <option value="callToAction">
-                                    Call to action
-                                </option>
-                                <option value="quickReply">Quick reply</option>
-                            </select>
+                        <h3 className="mt-4 font-medium">Call to Action</h3>
+                        <div className="flex justify-center items-center gap-3">
+                            {callToAction.callPhoneText && (
+                                <button className="btn bg-blue-500 text-white mb-2 grow">
+                                    {callToAction.callPhoneText}
+                                </button>
+                            )}
+
+                            {callToAction.callPhoneNumber && (
+                                <button className="btn bg-blue-500 text-white mb-2 grow">
+                                    {callToAction.callPhoneNumber}
+                                </button>
+                            )}
+
+                            {callToAction.visitWebsiteText && (
+                                <button className="btn bg-blue-500 text-white mb-2 grow">
+                                    {callToAction.visitWebsiteText}
+                                </button>
+                            )}
+
+                            {callToAction.visitWebsiteUrl && (
+                                <button className="btn bg-blue-500 text-white mb-2 grow">
+                                    {callToAction.visitWebsiteUrl}
+                                </button>
+                            )}
                         </div>
-
-                        {selectedButtonType === "callToAction" && (
-                            <div className="mt-4">
-                                <label className="block font-medium">
-                                    Call to Action Data
-                                </label>
-                                <div className="flex gap-4 mt-2">
-                                    <label className="flex flex-col font-medium grow">
-                                        Call Phone Text
-                                        <input
-                                            type="text"
-                                            name="callPhoneText"
-                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                            value={
-                                                buttonData.callPhoneText || ""
-                                            }
-                                            onChange={handleButtonDataChange}
-                                        />
-                                    </label>
-                                    <label className="flex flex-col font-medium grow">
-                                        Call Phone Number
-                                        <input
-                                            type="text"
-                                            name="callPhoneNumber"
-                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                            value={
-                                                buttonData.callPhoneNumber || ""
-                                            }
-                                            onChange={handleButtonDataChange}
-                                        />
-                                    </label>
-                                </div>
-                                <div className="flex gap-4 mt-2">
-                                    <label className="flex flex-col font-medium grow">
-                                        Visit Website Text
-                                        <input
-                                            type="text"
-                                            name="visitWebsiteText"
-                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                            value={
-                                                buttonData.visitWebsiteText ||
-                                                ""
-                                            }
-                                            onChange={handleButtonDataChange}
-                                        />
-                                    </label>
-                                    <label className="flex flex-col font-medium grow">
-                                        Visit Website URL
-                                        <input
-                                            type="text"
-                                            name="visitWebsiteUrl"
-                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                            value={
-                                                buttonData.visitWebsiteUrl || ""
-                                            }
-                                            onChange={handleButtonDataChange}
-                                        />
-                                    </label>
-                                </div>
-                            </div>
-                        )}
-
-                        {selectedButtonType === "quickReply" && (
-                            <div className="mt-4">
-                                <label className="block font-medium">
-                                    Quick Reply Data
-                                </label>
-                                <div className="flex gap-4 mt-2">
-                                    <label className="flex flex-col font-medium grow">
-                                        Quick Reply 1
-                                        <input
-                                            type="text"
-                                            name="quickReply1"
-                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                            value={buttonData.quickReply1 || ""}
-                                            onChange={handleButtonDataChange}
-                                        />
-                                    </label>
-                                    <label className="flex flex-col font-medium grow">
-                                        Quick Reply 2
-                                        <input
-                                            type="text"
-                                            name="quickReply2"
-                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                            value={buttonData.quickReply2 || ""}
-                                            onChange={handleButtonDataChange}
-                                        />
-                                    </label>
-                                    <label className="flex flex-col font-medium grow">
-                                        Quick Reply 3
-                                        <input
-                                            type="text"
-                                            name="quickReply3"
-                                            className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                            value={buttonData.quickReply3 || ""}
-                                            onChange={handleButtonDataChange}
-                                        />
-                                    </label>
-                                </div>
-                            </div>
-                        )}
-
-                        {callToAction.callPhoneText && (
-                            <div>
-                                <h3 className="mt-4 font-medium">
-                                    Call to Action
-                                </h3>
-                                <div className="flex flex-col mt-2">
-                                    <button className="btn bg-blue-500 text-white mb-2">
-                                        {callToAction.callPhoneText}
-                                    </button>
-                                    <input
-                                        type="text"
-                                        className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                        value={callToAction.callPhoneNumber}
-                                        readOnly
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {callToAction.visitWebsiteText && (
-                            <div>
-                                <div className="flex flex-col mt-2">
-                                    <button className="btn bg-blue-500 text-white mb-2">
-                                        {callToAction.visitWebsiteText}
-                                    </button>
-                                    <input
-                                        type="text"
-                                        className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                        value={callToAction.visitWebsiteUrl}
-                                        readOnly
-                                    />
-                                </div>
-                            </div>
-                        )}
 
                         {quickReply.quickReply1 && (
                             <div>
                                 <h3 className="mt-4 font-medium">
                                     Quick Reply
                                 </h3>
-                                <div className="flex flex-col mt-2">
+                                <div className="flex gap-3 mt-2">
                                     {quickReply.quickReply1 && (
-                                        <button className="btn bg-green-500 text-white mb-2">
+                                        <button className="btn bg-green-500 text-white mb-2 grow">
                                             {quickReply.quickReply1}
                                         </button>
                                     )}
                                     {quickReply.quickReply2 && (
-                                        <button className="btn bg-green-500 text-white mb-2">
+                                        <button className="btn bg-green-500 text-white mb-2 grow">
                                             {quickReply.quickReply2}
                                         </button>
                                     )}
                                     {quickReply.quickReply3 && (
-                                        <button className="btn bg-green-500 text-white mb-2">
+                                        <button className="btn bg-green-500 text-white mb-2 grow">
                                             {quickReply.quickReply3}
                                         </button>
                                     )}
@@ -599,138 +500,100 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                                     value={csvRowCount}
                                     disabled
                                 />
-                                <p className="font-normal mt-2">
-                                    <span className="font-medium">
-                                        Import from CSV
-                                    </span>{" "}
-                                    <input
-                                        type="file"
-                                        name="csvFile"
-                                        accept=".csv"
-                                        onChange={handleFileUpload}
-                                    />{" "}
-                                    {uploadProgress > 0 && (
-                                        <div
-                                            className="radial-progress"
-                                            style={{
-                                                "--value": uploadProgress,
-                                                "--size": "50px",
-                                                "--thickness": "4px",
-                                                height: "50px",
-                                                width: "50px",
-                                            }}
-                                            role="progressbar"
-                                        >
-                                            {uploadProgress}%
-                                        </div>
-                                    )}
-                                </p>
+                                <div className="font-normal mt-2 flex">
+                                    <div>
+                                        <span className="font-medium">
+                                            Import from CSV
+                                        </span>{" "}
+                                        <input
+                                            type="file"
+                                            name="csvFile"
+                                            accept=".csv"
+                                            onChange={handleFileUpload}
+                                        />{" "}
+                                    </div>
+                                    <div>
+                                        {uploadProgress > 0 && (
+                                            <span
+                                                className="radial-progress"
+                                                style={{
+                                                    "--value": uploadProgress,
+                                                    "--size": "50px",
+                                                    "--thickness": "4px",
+                                                    height: "50px",
+                                                    width: "50px",
+                                                }}
+                                                role="progressbar"
+                                            >
+                                                {uploadProgress}%
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </label>
                         </div>
 
-                        <div className="mt-6 border p-5">
-                            <h3 className="text-xl">
-                                Import from contact groups
-                            </h3>
-
-                            <div className="flex justify-between mt-2">
-                                <p>
-                                    Show{" "}
-                                    <select className="border px-2 mx-1">
-                                        <option value="10">10</option>
-                                    </select>{" "}
-                                    entries
-                                </p>
-                                <p>
-                                    Search{" "}
-                                    <input type="text" className="border" />
-                                </p>
-                            </div>
-
-                            <table className="w-full border-collapse border mt-4">
-                                <thead>
-                                    <tr>
-                                        <th className="border p-2">S.No</th>
-                                        <th className="border p-2">
-                                            Group name
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {user.groups.map((group) => {
-                                        const { id, group_name } = group;
-                                        return (
-                                            <tr key={id}>
-                                                <td className="border p-2">
-                                                    {id}
-                                                </td>
-                                                <td className="border p-2">
-                                                    {group_name}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-
-                            <div className="flex justify-between mt-4">
-                                <button
-                                    className="bg-gray-600 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-gray-500"
-                                    onClick={handlePreviousCsvPage}
-                                    disabled={currentCsvPage === 0}
-                                >
-                                    Previous
-                                </button>
-
-                                <button
-                                    className="bg-gray-600 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-gray-500"
-                                    onClick={handleNextCsvPage}
-                                    disabled={
-                                        (currentCsvPage + 1) * 5 >=
-                                        csvData.length - 1
-                                    }
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </div>
+                        <button
+                            onClick={() => setShowGroupModal(true)}
+                            className="btn btn-success my-5 text-gray-50"
+                        >
+                            Import Contacts From Group
+                        </button>
 
                         <div>
                             <h3 className="font-semibold">Upload Media</h3>
 
                             <div className="flex gap-5">
-                                <label className="flex items-center gap-3 font-medium mt-4">
-                                    <input
-                                        type="radio"
-                                        name="mediaType"
-                                        value="image"
-                                        checked={selectedMediaType === "image"}
-                                        onChange={handleMediaTypeChange}
-                                    />
-                                    <span className="font-medium">Image</span>
-                                </label>
+                                {headerMediaType.includes("image") && (
+                                    <label className="flex items-center gap-3 font-medium mt-4">
+                                        <input
+                                            type="radio"
+                                            name="mediaType"
+                                            value="image"
+                                            checked={
+                                                selectedMediaType === "image"
+                                            }
+                                            onChange={handleMediaTypeChange}
+                                        />
+                                        <span className="font-medium">
+                                            Image
+                                        </span>
+                                    </label>
+                                )}
 
-                                <label className="flex items-center gap-3 font-medium mt-4">
-                                    <input
-                                        type="radio"
-                                        name="mediaType"
-                                        value="video"
-                                        checked={selectedMediaType === "video"}
-                                        onChange={handleMediaTypeChange}
-                                    />
-                                    <span className="font-medium">Video</span>
-                                </label>
+                                {headerMediaType.includes("video") && (
+                                    <label className="flex items-center gap-3 font-medium mt-4">
+                                        <input
+                                            type="radio"
+                                            name="mediaType"
+                                            value="video"
+                                            checked={
+                                                selectedMediaType === "video"
+                                            }
+                                            onChange={handleMediaTypeChange}
+                                        />
+                                        <span className="font-medium">
+                                            Video
+                                        </span>
+                                    </label>
+                                )}
 
-                                <label className="flex items-center gap-3 font-medium mt-4">
-                                    <input
-                                        type="radio"
-                                        name="mediaType"
-                                        value="file"
-                                        checked={selectedMediaType === "file"}
-                                        onChange={handleMediaTypeChange}
-                                    />
-                                    <span className="font-medium">File</span>
-                                </label>
+                                {headerMediaType.includes("document") && (
+                                    <label className="flex items-center gap-3 font-medium mt-4">
+                                        <input
+                                            type="radio"
+                                            name="mediaType"
+                                            value="file"
+                                            checked={
+                                                selectedMediaType === "file"
+                                            }
+                                            onChange={handleMediaTypeChange}
+                                        />
+                                        <span className="font-medium">
+                                            File
+                                        </span>
+                                    </label>
+                                )}
 
                                 <input
                                     type="file"
@@ -808,10 +671,92 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                         </div>
                     </div>
                 )}
+
+                {showGroupModal && (
+                    <div className=" fixed z-20 top-0 left-0 w-[100vw] h-[100vh] flex justify-center items-center bg-[#0000006a]">
+                        <div className="mt-6 border p-5 bg-white relative">
+                            <img
+                                src="src/assets/images/svg/CrossIcon.svg"
+                                width={20}
+                                height={20}
+                                alt="cross icon"
+                                className="absolute top-5 right-5 cursor-pointer"
+                                onClick={() => setShowGroupModal(false)}
+                            />
+
+                            <h3 className="text-xl">
+                                Import Contacts From Group
+                            </h3>
+
+                            <div className="flex gap-10 justify-between my-6">
+                                <p>
+                                    Show{" "}
+                                    <select className="border px-2 mx-1">
+                                        <option value="10">10</option>
+                                    </select>{" "}
+                                    entries
+                                </p>
+                                <p>
+                                    Search{" "}
+                                    <input type="text" className="border" />
+                                </p>
+                            </div>
+
+                            <table className="w-full border-collapse border">
+                                <thead>
+                                    <tr>
+                                        <th className="border p-2">S.No</th>
+                                        <th className="border p-2">
+                                            Group name
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {user.groups.map((group) => {
+                                        const { id, group_name } = group;
+                                        return (
+                                            <tr key={id}>
+                                                <td className="border p-2">
+                                                    {id}
+                                                </td>
+                                                <td className="border p-2">
+                                                    {group_name}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+
+                            <div className="flex justify-between mt-4">
+                                <button
+                                    className="bg-gray-600 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-gray-500"
+                                    onClick={handlePreviousCsvPage}
+                                    disabled={currentCsvPage === 0}
+                                >
+                                    Previous
+                                </button>
+
+                                <button
+                                    className="bg-gray-600 text-white font-medium rounded px-5 py-2 cursor-pointer hover:bg-gray-500"
+                                    onClick={handleNextCsvPage}
+                                    disabled={
+                                        (currentCsvPage + 1) * 5 >=
+                                        csvData.length - 1
+                                    }
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            <div className="hidden xl:basis-[30%] xl:flex flex-col items-center">
-                <h2 className="font-medium text-center text-2xl">Preview</h2>
+            <div className="hidden xl:basis-[28%] xl:flex flex-col items-center">
+                <h2 className="font-medium text-center text-2xl mb-3">
+                    Preview
+                </h2>
 
                 <div>
                     <Mobile data={preview} />

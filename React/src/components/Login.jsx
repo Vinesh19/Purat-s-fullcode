@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // useNavigate for Routing
 import { login, requestMobileOtp, verifyMobileOtp } from "../services/api";
 import { ToastContainer, toast } from "react-toastify";
@@ -14,8 +14,25 @@ const Login = ({ onChangeForm, setUser }) => {
     const [otp, setOtp] = useState("");
     const [otpRequested, setOtpRequested] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [captcha1, setCaptcha1] = useState(0);
+    const [captcha2, setCaptcha2] = useState(0);
+    const [captchaInput, setCaptchaInput] = useState("");
+    const [isCaptchaValid, setIsCaptchaValid] = useState(false);
 
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
+
+    const generateCaptcha = () => {
+        const num1 = Math.floor(Math.random() * 9) + 1;
+        const num2 = Math.floor(Math.random() * 9) + 1;
+        setCaptcha1(num1);
+        setCaptcha2(num2);
+        setCaptchaInput("");
+        setIsCaptchaValid(false);
+    };
+
+    useEffect(() => {
+        generateCaptcha(); // Generate initial CAPTCHA when component mounts
+    }, []);
 
     const handleShowPassword = () => {
         setShowPassword(!showPassword);
@@ -37,8 +54,19 @@ const Login = ({ onChangeForm, setUser }) => {
         setOtp(e.target.value);
     };
 
+    const handleCaptchaChange = (e) => {
+        const value = e.target.value;
+        setCaptchaInput(value);
+        setIsCaptchaValid(parseInt(value) === captcha1 + captcha2);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!isCaptchaValid) {
+            toast.error("Please solve the CAPTCHA correctly.");
+            return;
+        }
+
         if (isMobileLogin) {
             if (!otpRequested) {
                 // Request OTP
@@ -64,22 +92,22 @@ const Login = ({ onChangeForm, setUser }) => {
                     console.log("Login successful", response?.data);
 
                     // Store the token and user data in localStorage
-                    localStorage.setItem("token", response.data.token);
+                    localStorage.setItem("token", response?.data?.token);
                     localStorage.setItem(
                         "user",
-                        JSON.stringify(response.data.user)
+                        JSON.stringify(response?.data?.user)
                     );
 
                     // Update the user state
-                    setUser(response.data.user);
+                    setUser(response?.data?.user);
 
                     // Redirect to the Dashboard
                     navigate("/dashboard");
                 } catch (error) {
                     console.error("Error logging in", error);
-                    setErrorMessage(error.response?.data?.message);
+                    setErrorMessage(error?.response?.data?.message);
                     toast.error(
-                        error.response?.data?.message || "Failed to verify OTP"
+                        error?.response?.data?.message || "Failed to verify OTP"
                     );
                 }
             }
@@ -92,21 +120,23 @@ const Login = ({ onChangeForm, setUser }) => {
                 console.log("Login successful", response.data);
 
                 // Store the token and user data in localStorage
-                localStorage.setItem("token", response.data.token);
+                localStorage.setItem("token", response?.data?.token);
                 localStorage.setItem(
                     "user",
-                    JSON.stringify(response.data.user)
+                    JSON.stringify(response?.data?.user)
                 );
 
                 // Update the user state
-                setUser(response.data.user);
+                setUser(response?.data?.user);
 
                 // Redirect to the Dashboard
                 navigate("/dashboard");
             } catch (error) {
                 console.error("Error logging in", error);
-                setErrorMessage(error.response?.data?.message);
-                toast.error(error.response?.data?.message || "Failed to login");
+                setErrorMessage(error?.response?.data?.message);
+                toast.error(
+                    error?.response?.data?.message || "Failed to login"
+                );
             }
         }
     };
@@ -288,6 +318,28 @@ const Login = ({ onChangeForm, setUser }) => {
                     )}
                 </div>
             )}
+
+            <div className="mt-4">
+                <label className="flex gap-5 justify-center items-center text-lg">
+                    captcha :
+                    <span className="text-xl">
+                        {captcha1} + {captcha2} =
+                    </span>
+                    <input
+                        type="text"
+                        className="rounded-md px-2 py-1 border border-gray-300 outline-none text-gray-700 w-24"
+                        value={captchaInput}
+                        onChange={handleCaptchaChange}
+                        required
+                    />
+                    <button
+                        type="button"
+                        onClick={generateCaptcha}
+                    >
+                        <img src="src/assets/images/png/refresh_captcha.png" width={20} height={20} />
+                    </button>
+                </label>
+            </div>
 
             <button
                 type="submit"

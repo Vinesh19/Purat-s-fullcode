@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('mob_no3', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('receiver')->nullable(); //nullable added by me
+            $table->string('receiver')->nullable(); //nullable added by me
             $table->string('whatsappid', 500)->comment('0=webhook not triggered')->nullable(); //nullable added by me
             $table->string('senderid', 500)->nullable(); //nullable added by me
             $table->string('senderpwd', 100)->nullable(); //nullable added by me
@@ -57,8 +57,8 @@ return new class extends Migration
             $table->string('text', 1100)->collation('utf8mb4_unicode_ci')->comment('footer')->nullable(); //nullable added by me
             $table->timestamps();
 
-            $table->foreign('username')->references('username')->on('ci_admin')->onUpdate('cascade');
-
+            $table->foreign('username')->references('username')->on('ci_admin')->onDelete('cascade')->onUpdate('cascade');
+            // $table->foreign('template_id')->references('template_name')->on('templates')->onDelete('cascade')->onUpdate('cascade');
         });
     }
     /**

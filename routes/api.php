@@ -30,6 +30,7 @@ Route::post('/login', [AuthController::class, 'login']);
 //for logout
 Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
 });
 
 //for verifying email
@@ -42,6 +43,8 @@ Route::post('/verify-mobile', [AuthController::class, 'verifyMobile']);
 Route::post('/send-email-otp', [EmailOTPController::class, 'sendEmailOTP']);
 //verifying email otp
 Route::post('/verify-email-otp', [EmailOTPController::class, 'verifyEmailOTP']);
+//update password in case of forget password+
+Route::post('/update-password', [EmailOTPController::class, 'update']);
 
 //sending otp on number
 Route::post('/send-mobile-otp', [MobileOTPController::class, 'sendMobileOTP']);

@@ -2,8 +2,9 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import NewBroadcast from "../containers/New-Broadcast";
 import Modal from "../components/Modal";
+import { logout } from "../services/api";
 
-const Dashboard = ({ user }) => {
+const Dashboard = ({ user, setUser }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [hamburgerMenuOpen, setHamburgerMenuOpen] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,10 +30,17 @@ const Dashboard = ({ user }) => {
         setIsModalOpen(false);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/"); // Redirect to the index page
+    const handleLogout = async () => {
+        try {
+            await logout();
+            localStorage.removeItem("user");
+            localStorage.removeItem("token"); // If you have a token
+            setUser(null);
+            navigate("/");
+        } catch (error) {
+            console.error("Failed to logout:", error);
+            // Optionally, handle error display to the user here
+        }
     };
 
     const handleMenuItemClick = (menuItem) => {
@@ -124,7 +132,7 @@ const Dashboard = ({ user }) => {
                                 <i className="fas fa-cogs"></i> Automations
                             </button>
                         </li>
-                        <li className="dropdown dropdown-hover z-20">
+                        <li className="dropdown dropdown-hover">
                             <button
                                 tabIndex="0"
                                 className="btn btn-ghost text-1xl"
@@ -309,12 +317,12 @@ const Dashboard = ({ user }) => {
                     {activeMenuItem === "Broadcast" ? (
                         <>
                             <div className="bg-white p-5 shadow-md mb-5">
-                                <h1 className="text-2xl">
+                                <h1 className="text-lg md:text-2xl font-medium">
                                     Manage Broadcast Services
                                 </h1>
                             </div>
-                            <div className="flex gap-5">
-                                <div className="bg-teal-600 p-5 rounded-lg flex flex-col items-center gap-3 w-72 h-60">
+                            <div className="flex flex-col md:flex-row gap-5">
+                                <div className="bg-teal-600 p-5 rounded-lg flex flex-col items-center gap-3 w-64 h-56 lg:w-72 lg:h-60">
                                     <img
                                         src="/src/assets/images/png/WhatsApp-img.jpg"
                                         alt="WhatsApp Official"
@@ -330,7 +338,7 @@ const Dashboard = ({ user }) => {
                                         View Data →
                                     </button>
                                 </div>
-                                <div className="bg-teal-600 p-5 rounded-lg flex flex-col items-center gap-3 w-72 h-60">
+                                <div className="bg-teal-600 p-5 rounded-lg flex flex-col items-center gap-3 w-64 h-56 lg:w-72 lg:h-60">
                                     <img
                                         src="/src/assets/images/png/WhatsApp-img.jpg"
                                         alt="GSM SMS"

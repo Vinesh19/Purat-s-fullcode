@@ -18,7 +18,7 @@ const Mobile = ({ data }) => {
     };
 
     return (
-        <div className="mobile-ui bg-white rounded-2xl border-[12px] border-[#fbf9f9] shadow-md flex flex-col h-[85vh]">
+        <div className="mobile-ui bg-white rounded-3xl border-[14px] border-white shadow-2xl flex flex-col h-[82vh]">
             <div className="p-2 flex items-center justify-between bg-[#3ea663] rounded-t-lg">
                 <div className="flex items-center gap-2">
                     <i className="fas fa-arrow-left text-white text-xl"></i>
@@ -43,7 +43,7 @@ const Mobile = ({ data }) => {
                     <input
                         type="text"
                         id="messageInput"
-                        className="flex-grow bg-transparent placeholder-gray-600 outline-none"
+                        className="flex-grow bg-transparent placeholder-gray-600 outline-none w-36"
                         placeholder="Message"
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}

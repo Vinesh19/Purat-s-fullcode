@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Carbon;
@@ -98,5 +99,33 @@ class EmailOTPController extends Controller
             'status' => 1,
             'message' => 'OTP verified.'
         ], 200);
+    }
+
+    public function update(Request $request)
+    {
+        // return $request;
+        // Validate incoming request
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:ci_admin,email',
+            'password' => 'required|confirmed|min:8',
+            'password_confirmation' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()], 400);
+        }
+
+        // Retrieve user by email
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        // Update user password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json(['message' => 'Password successfully updated.']);
     }
 }

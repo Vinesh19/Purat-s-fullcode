@@ -13,3 +13,8 @@
     background-repeat: no-repeat;
     background-size: cover;
 }
+
+.scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
