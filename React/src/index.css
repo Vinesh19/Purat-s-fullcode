@@ -9,7 +9,7 @@
 }
 
 .mobile-ui {
-    background: url("./assets/images/png/mobile-bg.jpg");
+    background: url("/assets/images/png/mobile-bg.jpg");
     background-repeat: no-repeat;
     background-size: cover;
 }

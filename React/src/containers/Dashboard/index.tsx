@@ -31,7 +31,7 @@ const Dashboard = ({ user, setUser }) => {
                                 href="#"
                                 className="p-3 text-xl font-semibold rounded lg:bg-transparent text-purple-700 lg:p-0"
                             >
-                                Home
+                                PuRat
                             </a>
                         </div>
 

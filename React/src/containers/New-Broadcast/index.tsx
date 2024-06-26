@@ -54,6 +54,28 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
         fetchTemplates();
     }, []);
 
+    useEffect(() => {
+        // Update the preview whenever relevant states change
+        const previewData = {
+            message,
+            delivery_date: selectedDate,
+            delivery_time: selectedTime,
+            media_file: mediaContent ? URL.createObjectURL(mediaContent) : null,
+            media_type: mediaContent ? mediaContent.type : null, // Include media type
+            action: callToAction,
+            reply: quickReply,
+        };
+        setPreview(previewData);
+        console.log("Preview data:", previewData); // Log the preview data to verify
+    }, [
+        message,
+        selectedDate,
+        selectedTime,
+        mediaContent,
+        callToAction,
+        quickReply,
+    ]);
+
     const handleTemplateChange = async (e) => {
         const selectedId = e.target.value;
         setSelectedTemplate(selectedId); // Set the selected template ID
@@ -254,18 +276,6 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                 toast.error("Failed to submit broadcast. Please try again.");
             }
         }
-
-        setPreview({
-            template_name1: selectedTemplate,
-            username: user.username,
-            message: message,
-            textbox: contacts,
-            delivery_date: selectedDate,
-            delivery_time: selectedTime,
-            media_file: URL.createObjectURL(mediaContent),
-            ...attributes,
-            ...buttonData,
-        });
     };
 
     const resetStates = () => {
@@ -449,9 +459,9 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                                         type="date"
                                         className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal text-gray-400"
                                         value={selectedDate}
-                                        onChange={(e) =>
-                                            setSelectedDate(e.target.value)
-                                        }
+                                        onChange={(e) => {
+                                            setSelectedDate(e.target.value);
+                                        }}
                                     />
                                 </label>
 
@@ -461,9 +471,9 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                                         type="time"
                                         className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal text-gray-400"
                                         value={selectedTime}
-                                        onChange={(e) =>
-                                            setSelectedTime(e.target.value)
-                                        }
+                                        onChange={(e) => {
+                                            setSelectedTime(e.target.value);
+                                        }}
                                     />
                                 </label>
                             </div>
