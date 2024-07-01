@@ -1,11 +1,18 @@
 import React, { memo } from "react";
 
-const Modal = (props) => {
-    const { isModalOpen, closeModal, children } = props;
-
+const Modal = ({
+    isModalOpen,
+    closeModal,
+    children,
+    width = "75vw",
+    height = "95vh",
+}) => {
     return isModalOpen ? (
         <div className="fixed z-10 top-0 left-0 w-full h-full bg-black bg-opacity-55 flex items-center justify-center">
-            <div className="bg-white w-[75vw] h-[95vh] overflow-auto fixed px-6 py-4 scrollbar-hide">
+            <div
+                className="bg-white overflow-auto fixed px-6 py-4 scrollbar-hide"
+                style={{ width, height }}
+            >
                 <div>
                     <img
                         src="/assets/images/svg/CrossIcon.svg"

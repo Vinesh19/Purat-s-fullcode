@@ -5,10 +5,13 @@ import {
     submitBroadcastData,
 } from "../../services/api";
 import Mobile from "../../components/Mobile";
+import Input from "../../components/Input";
+import Dropdown from "../../components/Dropdown";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const NewBroadcast = ({ closeModal, resetForm, user }) => {
+    console.log(user);
     const [templates, setTemplates] = useState({});
     const [selectedTemplate, setSelectedTemplate] = useState("");
     const [message, setMessage] = useState("");
@@ -320,14 +323,12 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                         </h2>
 
                         <div className="flex gap-5 mt-5">
-                            <label className="flex flex-col font-medium grow">
-                                Broadcast Name
-                                <input
-                                    type="text"
-                                    placeholder="Broadcast Name"
-                                    className="rounded-md px-2 py-[2px] mt-1 border outline-none font-normal"
-                                />
-                            </label>
+                            <Input
+                                label="Broadcast Name"
+                                type="text"
+                                placeholder="Broadcast Name"
+                                className="grow"
+                            />
 
                             <label className="flex flex-col font-medium grow">
                                 Broadcast Number
@@ -345,18 +346,18 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                                 Template
                             </label>
 
-                            <select
-                                className="w-[49%] border rounded-md px-2 py-1 mt-1 outline-none text-gray-400"
-                                value={selectedTemplate} // Ensure the selected value is set
+                            <Dropdown
+                                className="max-w-[48%]"
+                                options={Object.entries(templates).map(
+                                    ([id, name]) => ({
+                                        id,
+                                        name,
+                                    })
+                                )}
+                                value={selectedTemplate}
                                 onChange={handleTemplateChange}
-                            >
-                                <option value="">Select Template</option>
-                                {Object.entries(templates).map(([id, name]) => (
-                                    <option key={id} value={id}>
-                                        {name}
-                                    </option>
-                                ))}
-                            </select>
+                                placeholder="Select Template"
+                            />
 
                             <label className="flex flex-col mt-4 font-medium">
                                 Message

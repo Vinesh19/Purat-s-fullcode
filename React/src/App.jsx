@@ -5,6 +5,8 @@ import DashboardPage from "./pages/dashboard";
 import BroadcastPage from "./pages/broadcast";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
+import TeamInbox from "./containers/TeamInbox";
+import WhatsappNavbar from "./components/WhatsappNavbar";
 
 const validateToken = () => {
     const token = localStorage.getItem("token");
@@ -47,14 +49,24 @@ const App = () => {
                         </ProtectedRoute>
                     }
                 />
+
                 <Route
                     path="/dashboard/whatsapp"
                     element={
                         <ProtectedRoute user={user}>
-                            <BroadcastPage user={user} setUser={setUser} />
+                            <WhatsappNavbar user={user} setUser={setUser} />
                         </ProtectedRoute>
                     }
-                />
+                >
+                    <Route
+                        path="/dashboard/whatsapp/broadcast"
+                        element={<BroadcastPage user={user} />}
+                    />
+                    <Route
+                        path="/dashboard/whatsapp/teamInbox"
+                        element={<TeamInbox />}
+                    />
+                </Route>
             </Routes>
         </Router>
     );

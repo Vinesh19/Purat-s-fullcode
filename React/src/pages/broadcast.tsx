@@ -1,7 +1,7 @@
 import Broadcast from "../containers/Broadcast";
 
-const BroadcastPage = ({ user, setUser }) => {
-    return <Broadcast user={user} setUser={setUser} />;
+const BroadcastPage = ({ user }) => {
+    return <Broadcast user={user} />;
 };
 
 export default BroadcastPage;
