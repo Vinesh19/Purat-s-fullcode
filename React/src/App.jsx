@@ -64,7 +64,7 @@ const App = () => {
                     />
                     <Route
                         path="/dashboard/whatsapp/teamInbox"
-                        element={<TeamInbox />}
+                        element={<TeamInbox user={user} />}
                     />
                 </Route>
             </Routes>

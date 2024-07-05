@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faFilter, faPlus } from "@fortawesome/free-solid-svg-icons";
 import Dropdown from "../Dropdown";
@@ -12,8 +12,8 @@ import {
 } from "../../services/api";
 import { toast } from "react-toastify";
 
-const ChatList = () => {
-    const [selectedChatId, setSelectedChatId] = useState(null);
+const ChatList = ({ user }) => {
+    const [selectedChat, setSelectedChat] = useState(null);
     const [selectedChatMessages, setSelectedChatMessages] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -21,11 +21,24 @@ const ChatList = () => {
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    const handleChatSelect = (id) => {
-        const selectedChat = TeamInbox.find((chat) => chat.id === id);
-        setSelectedChatId(id);
-        setSelectedChatMessages(selectedChat ? selectedChat.message : []);
-        setShowContactTemplate(false); // Ensure contact template is hidden when switching chats
+    useEffect(() => {
+        // Fetch initial templates and messages when component mounts
+        fetchTemplatesAndMessages();
+    }, []);
+
+    const handleChatSelect = (e) => {
+        const chatId = e.target.value;
+        setSelectedChat(chatId);
+
+        // Find the selected chat in TeamInbox and set its messages
+        const selectedChatData = TeamInbox.find((chat) => chat.id === chatId);
+        if (selectedChatData) {
+            setSelectedChatMessages(selectedChatData.message);
+        } else {
+            setSelectedChatMessages([]);
+        }
+
+        setShowContactTemplate(false); // Hide contact template view
     };
 
     const handleModal = () => {
@@ -54,7 +67,9 @@ const ChatList = () => {
     const fetchTemplatesAndMessages = async () => {
         try {
             setLoading(true);
-            const response = await templateData();
+            const response = await templateData({
+                username: user.username,
+            });
             if (response?.data?.template) {
                 const templatesArray = Object.entries(
                     response.data.template
@@ -132,13 +147,11 @@ const ChatList = () => {
                 <div className="flex justify-between items-center mt-2  border-b pb-4">
                     <div className="flex flex-col">
                         <Dropdown
-                            options={TeamInbox.map(({ id, name }) => ({
-                                id,
-                                name,
-                            }))}
-                            value={selectedChatId}
-                            onChange={(e) => handleChatSelect(e.target.value)}
+                            options={TeamInbox}
+                            value={selectedChat}
+                            onChange={handleChatSelect}
                             placeholder="All Chats"
+                            valueKey="id"
                             className="border-none w-40 font-medium text-xl pl-0"
                         />
                         <span className="text-xs text-slate-400">
@@ -189,7 +202,7 @@ const ChatList = () => {
                     width="50vw"
                     height="60vh"
                 >
-                    <FilterConversation />
+                    <FilterConversation closeModal={closeModal} />
                 </Modal>
             )}
         </div>

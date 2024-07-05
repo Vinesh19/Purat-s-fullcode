@@ -4,11 +4,9 @@ import { faPhone } from "@fortawesome/free-solid-svg-icons";
 import Dropdown from "../Dropdown";
 import Input from "../Input";
 
-const ContactTemplate = ({
-    templates,
-    loading,
-    setShowContactTemplate,
-}) => {
+import { ContactList } from "../../services/api";
+
+const ContactTemplate = ({ templates, loading, setShowContactTemplate }) => {
     const [selectedContact, setSelectedContact] = useState("");
     const [showTemplates, setShowTemplates] = useState(false);
 
@@ -42,7 +40,7 @@ const ContactTemplate = ({
                     <span className="font-medium">Or</span>
                     <div>
                         <Dropdown
-                            options={[]} // Update with actual ContactList options
+                            options={ContactList} // Update with actual ContactList options
                             value={selectedContact}
                             onChange={handleContactChange}
                             placeholder="Search contacts"

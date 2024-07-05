@@ -1,3 +1,18 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    faArrowLeft,
+    faCamera,
+    faCircleUser,
+    faEllipsisVertical,
+    faFaceGrinWide,
+    faFaceSmile,
+    faIndianRupeeSign,
+    faPaperclip,
+    faPhone,
+    faVideo,
+} from "@fortawesome/free-solid-svg-icons";
+import React from "react";
+
 const Mobile = ({ data }) => {
     const {
         callPhoneNumber,
@@ -117,15 +132,18 @@ const Mobile = ({ data }) => {
 
     return (
         <div className="mobile-ui bg-white rounded-3xl border-[14px] border-white shadow-2xl flex flex-col h-[82vh]">
-            <div className="p-2 flex items-center justify-between bg-[#3ea663] rounded-t-lg">
+            <div className="p-2 flex items-center justify-between bg-[#3ea663] rounded-t-lg text-white">
                 <div className="flex items-center gap-2">
-                    <i className="fas fa-arrow-left text-white text-xl"></i>
-                    <i className="fas fa-user-circle text-white text-3xl"></i>
+                    <FontAwesomeIcon icon={faArrowLeft} />
+                    <FontAwesomeIcon icon={faCircleUser} className="text-3xl" />
                 </div>
                 <div className="flex gap-4">
-                    <i className="fas fa-video text-white text-lg"></i>
-                    <i className="fas fa-phone text-white text-lg"></i>
-                    <i className="fas fa-ellipsis-v text-white text-lg"></i>
+                    <FontAwesomeIcon icon={faVideo} className="text-lg" />
+                    <FontAwesomeIcon icon={faPhone} className="text-lg" />
+                    <FontAwesomeIcon
+                        icon={faEllipsisVertical}
+                        className="text-lg"
+                    />
                 </div>
             </div>
 
@@ -155,7 +173,10 @@ const Mobile = ({ data }) => {
 
             <div className="flex items-center p-2 gap-2 bg-gray-300 rounded-b-lg">
                 <div className="flex items-center bg-gray-200 rounded-full p-1 gap-2 flex-grow">
-                    <i className="far fa-smile text-gray-600 text-lg"></i>
+                    <FontAwesomeIcon
+                        icon={faFaceGrinWide}
+                        className="text-gray-600 text-lg"
+                    />
                     <input
                         type="text"
                         id="messageInput"
@@ -163,9 +184,18 @@ const Mobile = ({ data }) => {
                         placeholder="Message"
                         autoFocus
                     />
-                    <i className="fas fa-paperclip text-gray-600 text-lg rotate-[-45deg]"></i>
-                    <i className="fas fa-inr text-gray-600 text-lg"></i>
-                    <i className="fas fa-camera text-gray-600 text-lg"></i>
+                    <FontAwesomeIcon
+                        icon={faPaperclip}
+                        className="text-gray-600 text-lg rotate-[-45deg]"
+                    />
+                    <FontAwesomeIcon
+                        icon={faIndianRupeeSign}
+                        className="text-gray-600 text-lg"
+                    />
+                    <FontAwesomeIcon
+                        icon={faCamera}
+                        className="text-gray-600 text-lg"
+                    />
                 </div>
                 <div className="bg-green-500 cursor-pointer w-8 h-8 rounded-full flex justify-center items-center">
                     <img

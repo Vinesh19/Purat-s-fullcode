@@ -2,16 +2,17 @@ import { useState, useEffect } from "react";
 import {
     templateData,
     fetchTemplateMessage,
+    templateGroups,
     submitBroadcastData,
 } from "../../services/api";
 import Mobile from "../../components/Mobile";
 import Input from "../../components/Input";
 import Dropdown from "../../components/Dropdown";
+import Loader from "../../components/Loader";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const NewBroadcast = ({ closeModal, resetForm, user }) => {
-    console.log(user);
     const [templates, setTemplates] = useState({});
     const [selectedTemplate, setSelectedTemplate] = useState("");
     const [message, setMessage] = useState("");
@@ -23,61 +24,17 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
     const [csvRowCount, setCsvRowCount] = useState(0);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [currentCsvPage, setCurrentCsvPage] = useState(0);
-    const [mediaContent, setMediaContent] = useState(null);
     const [contacts, setContacts] = useState("");
     const [preview, setPreview] = useState({});
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
-    const [selectedMediaType, setSelectedMediaType] = useState("image");
     const [selectedButtonType, setSelectedButtonType] = useState("none");
     const [buttonData, setButtonData] = useState({});
     const [showGroupModal, setShowGroupModal] = useState(false);
-    const [headerMediaType, setHeaderMediaType] = useState([]);
-
-    useEffect(() => {
-        const fetchTemplates = async () => {
-            try {
-                const response = await templateData();
-                setTemplates(response?.data?.template || {});
-            } catch (error) {
-                toast.error("Failed to fetch templates");
-                console.error("Failed to fetch templates", error);
-            }
-        };
-
-        const currentDateTime = new Date();
-        const formattedDate = currentDateTime.toISOString().split("T")[0];
-        const formattedTime = currentDateTime
-            .toTimeString()
-            .split(" ")[0]
-            .slice(0, 5);
-        setSelectedDate(formattedDate);
-        setSelectedTime(formattedTime);
-
-        fetchTemplates();
-    }, []);
-
-    useEffect(() => {
-        // Update the preview whenever relevant states change
-        const previewData = {
-            message,
-            delivery_date: selectedDate,
-            delivery_time: selectedTime,
-            media_file: mediaContent ? URL.createObjectURL(mediaContent) : null,
-            media_type: mediaContent ? mediaContent.type : null, // Include media type
-            action: callToAction,
-            reply: quickReply,
-        };
-        setPreview(previewData);
-        console.log("Preview data:", previewData); // Log the preview data to verify
-    }, [
-        message,
-        selectedDate,
-        selectedTime,
-        mediaContent,
-        callToAction,
-        quickReply,
-    ]);
+    const [headerMediaType, setHeaderMediaType] = useState(null);
+    const [mediaContent, setMediaContent] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [groups, setGroups] = useState([]);
 
     const handleTemplateChange = async (e) => {
         const selectedId = e.target.value;
@@ -85,9 +42,10 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
         try {
             const response = await fetchTemplateMessage(selectedId);
             const selectedTemplate = response?.data?.template;
+            console.log("selectedTemplate", selectedTemplate);
 
             setMessage(selectedTemplate?.template_body || "");
-            setHeaderMediaType(selectedTemplate?.header_media_type || []);
+            setHeaderMediaType(selectedTemplate?.header_media_type);
 
             setCallToAction({
                 callPhoneNumber: selectedTemplate?.call_phone_btn_phone_number,
@@ -117,6 +75,18 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
             console.error("Failed to fetch template message", error);
             setMessage("");
             setAttributes({});
+        }
+    };
+
+    const fetchTemplateGroups = async () => {
+        try {
+            const response = await templateGroups({
+                username: user.username,
+            });
+            setGroups(response?.data);
+        } catch (error) {
+            toast.error("Failed to fetch group data");
+            console.error("Failed to fetch groups", error);
         }
     };
 
@@ -192,13 +162,9 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
     const handleMediaUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
+            console.log("Selected file:", file); // Add logging for debugging
             setMediaContent(file); // Set the file object directly
         }
-    };
-
-    const handleMediaTypeChange = (e) => {
-        setSelectedMediaType(e.target.value);
-        setMediaContent(null); // Clear the previous media content
     };
 
     const handleSubmitBroadcast = async () => {
@@ -208,14 +174,21 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
             return;
         }
 
+        setIsSubmitting(true);
+
         const dataToSubmit = new FormData();
-        dataToSubmit.append("template_name1", selectedTemplate);
+
+        const templateId = selectedTemplate;
+        const templateName = templates[templateId];
+
+        dataToSubmit.append("template_name1", templateName);
         dataToSubmit.append("username", user.username);
         dataToSubmit.append("message", message);
         dataToSubmit.append("textbox", contacts);
         dataToSubmit.append("delivery_date", selectedDate);
         dataToSubmit.append("delivery_time", selectedTime);
-        dataToSubmit.append("media_file", mediaContent);
+        dataToSubmit.append("media_file", mediaContent); 
+        dataToSubmit.append("template_id2", selectedTemplate);
 
         // Append dynamic attributes to FormData
         Object.keys(attributes).forEach((key) => {
@@ -258,10 +231,10 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
         try {
             // Call the API to submit the data
             const response = await submitBroadcastData(dataToSubmit);
-            console.log("Submission Successful:", response.data);
             toast.success("Broadcast submitted successfully!");
             // Reset form or handle next steps
             resetStates();
+            closeModal();
         } catch (error) {
             console.error("Failed to submit broadcast:", error);
             if (
@@ -278,6 +251,8 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
             } else {
                 toast.error("Failed to submit broadcast. Please try again.");
             }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -297,20 +272,59 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
         setContacts("");
         setSelectedDate("");
         setSelectedTime("");
-        setSelectedMediaType("image");
         setSelectedButtonType("none");
         setButtonData({});
     };
 
     useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                const response = await templateData({
+                    username: user.username,
+                });
+                setTemplates(response?.data?.template || {});
+            } catch (error) {
+                toast.error("Failed to fetch templates");
+                console.error("Failed to fetch templates", error);
+            }
+        };
+
+        const currentDateTime = new Date();
+        const formattedDate = currentDateTime.toISOString().split("T")[0];
+        const formattedTime = currentDateTime
+            .toTimeString()
+            .split(" ")[0]
+            .slice(0, 5);
+        setSelectedDate(formattedDate);
+        setSelectedTime(formattedTime);
+
+        fetchTemplates();
+    }, []);
+
+    useEffect(() => {
+        const previewData = {
+            message,
+            delivery_date: selectedDate,
+            delivery_time: selectedTime,
+            media_file: mediaContent ? URL.createObjectURL(mediaContent) : null,
+            media_type: mediaContent ? mediaContent.type : null, // Include media type
+            action: callToAction,
+            reply: quickReply,
+        };
+
+        setPreview(previewData);
+    }, [
+        message,
+        selectedDate,
+        selectedTime,
+        mediaContent,
+        callToAction,
+        quickReply,
+    ]);
+
+    useEffect(() => {
         resetForm.current = resetStates;
     }, [resetForm]);
-
-    const mediaTypeLabels = {
-        image: "Image",
-        video: "Video",
-        document: "File",
-    };
 
     return (
         <div className="flex h-[95vh] gap-[2%]">
@@ -357,6 +371,7 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                                 value={selectedTemplate}
                                 onChange={handleTemplateChange}
                                 placeholder="Select Template"
+                                valueKey="id"
                             />
 
                             <label className="flex flex-col mt-4 font-medium">
@@ -545,7 +560,10 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                         </div>
 
                         <button
-                            onClick={() => setShowGroupModal(true)}
+                            onClick={() => {
+                                setShowGroupModal(true);
+                                fetchTemplateGroups();
+                            }}
                             className="btn btn-success my-5 text-gray-50"
                         >
                             Import Contacts From Group
@@ -555,64 +573,13 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                             <h3 className="font-semibold">Upload Media</h3>
 
                             <div className="flex gap-5">
-                                {headerMediaType.includes("image") && (
-                                    <label className="flex items-center gap-3 font-medium mt-4">
-                                        <input
-                                            type="radio"
-                                            name="mediaType"
-                                            value="image"
-                                            checked={
-                                                selectedMediaType === "image"
-                                            }
-                                            onChange={handleMediaTypeChange}
-                                        />
-                                        <span className="font-medium">
-                                            Image
-                                        </span>
-                                    </label>
-                                )}
-
-                                {headerMediaType.includes("video") && (
-                                    <label className="flex items-center gap-3 font-medium mt-4">
-                                        <input
-                                            type="radio"
-                                            name="mediaType"
-                                            value="video"
-                                            checked={
-                                                selectedMediaType === "video"
-                                            }
-                                            onChange={handleMediaTypeChange}
-                                        />
-                                        <span className="font-medium">
-                                            Video
-                                        </span>
-                                    </label>
-                                )}
-
-                                {headerMediaType.includes("document") && (
-                                    <label className="flex items-center gap-3 font-medium mt-4">
-                                        <input
-                                            type="radio"
-                                            name="mediaType"
-                                            value="file"
-                                            checked={
-                                                selectedMediaType === "file"
-                                            }
-                                            onChange={handleMediaTypeChange}
-                                        />
-                                        <span className="font-medium">
-                                            File
-                                        </span>
-                                    </label>
-                                )}
-
                                 <input
                                     type="file"
                                     name="mediaFile"
                                     accept={
-                                        selectedMediaType === "image"
+                                        headerMediaType === "Image"
                                             ? "image/*"
-                                            : selectedMediaType === "video"
+                                            : headerMediaType === "Video"
                                             ? "video/*"
                                             : "image/*,video/*,.pdf"
                                     }
@@ -624,7 +591,7 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                             <div>
                                 {mediaContent && (
                                     <div className="mt-2">
-                                        {selectedMediaType === "image" && (
+                                        {headerMediaType === "Image" && (
                                             <img
                                                 src={URL.createObjectURL(
                                                     mediaContent
@@ -636,7 +603,7 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                                                 }}
                                             />
                                         )}
-                                        {selectedMediaType === "video" && (
+                                        {headerMediaType === "Video" && (
                                             <video
                                                 controls
                                                 src={URL.createObjectURL(
@@ -648,7 +615,7 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                                                 }}
                                             />
                                         )}
-                                        {selectedMediaType === "file" && (
+                                        {headerMediaType === "Document" && (
                                             <embed
                                                 src={URL.createObjectURL(
                                                     mediaContent
@@ -684,7 +651,7 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                 )}
 
                 {showGroupModal && (
-                    <div className=" fixed z-20 top-0 left-0 w-[100vw] h-[100vh] flex justify-center items-center bg-[#0000006a]">
+                    <div className="fixed z-20 top-0 left-0 w-[100vw] h-[100vh] flex justify-center items-center bg-[#0000006a]">
                         <div className="mt-6 border p-5 bg-white relative">
                             <img
                                 src="/assets/images/svg/CrossIcon.svg"
@@ -723,19 +690,16 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {user.groups.map((group) => {
-                                        const { id, group_name } = group;
-                                        return (
-                                            <tr key={id}>
-                                                <td className="border p-2">
-                                                    {id}
-                                                </td>
-                                                <td className="border p-2">
-                                                    {group_name}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {groups.map((group, index) => (
+                                        <tr key={index}>
+                                            <td className="border p-2">
+                                                {index + 1}
+                                            </td>
+                                            <td className="border p-2">
+                                                {group}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
 
@@ -773,6 +737,12 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
                     <Mobile data={preview} />
                 </div>
             </div>
+
+            {isSubmitting && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <Loader />
+                </div>
+            )}
         </div>
     );
 };

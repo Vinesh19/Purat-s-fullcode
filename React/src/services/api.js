@@ -16,8 +16,9 @@ export const CHANGE_PASSWORD = `${API_BASE_URL}/update-password`;
 export const LOGOUT = `${API_BASE_URL}/logout`;
 export const NEW_DASHBOARD_TEMPLATE = `${API_BASE_URL}/template-name`;
 export const NEW_DASHBOARD_TEMPLATE_MESSAGE = `${API_BASE_URL}/template`;
-export const NEW_DASHBOARD_TEMPLATE_GROUP = `${API_BASE_URL}/fetching-group-data`;
+export const NEW_DASHBOARD_TEMPLATE_GROUP = `${API_BASE_URL}/fetching-group-names`;
 export const SUBMIT_BROADCAST_DATA = `${API_BASE_URL}/insert-broadcast-data`;
+export const SEARCH_FILTERED_DATA = `${API_BASE_URL}/filtered-data`;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -79,16 +80,24 @@ export const logout = () => {
     return api.post(LOGOUT);
 };
 
-export const templateData = () => {
-    return api.get(NEW_DASHBOARD_TEMPLATE);
+export const templateData = (user) => {
+    return api.post(NEW_DASHBOARD_TEMPLATE, user);
 };
 
 export const fetchTemplateMessage = (templateId) => {
     return api.get(`${NEW_DASHBOARD_TEMPLATE_MESSAGE}/${templateId}`);
 };
 
+export const templateGroups = (user) => {
+    return api.post(NEW_DASHBOARD_TEMPLATE_GROUP, user);
+};
+
 export const submitBroadcastData = (data) => {
     return api.post(SUBMIT_BROADCAST_DATA, data);
+};
+
+export const searchFilteredData = (search) => {
+    return api.post(SEARCH_FILTERED_DATA, search);
 };
 
 export default api;
@@ -192,6 +201,6 @@ export const filterAttribute = [
 ];
 
 export const filterOperation = [
-    { id: "1", name: "Contain" },
-    { id: "2", name: "Does not contain" },
+    { id: "1", name: "=" },
+    { id: "2", name: "!=" },
 ];

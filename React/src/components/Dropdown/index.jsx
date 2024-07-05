@@ -1,12 +1,19 @@
 import classNames from "classnames";
 
-const Dropdown = ({ options, value, onChange, placeholder, className }) => {
+const Dropdown = ({
+    options,
+    value,
+    onChange,
+    placeholder,
+    className,
+    valueKey = "name",
+}) => {
     return (
         <select
             className={classNames(
                 "w-full border rounded-md px-2 py-1.5 mt-1 outline-none",
                 className,
-                { "text-gray-400": !value } // Apply gray text color when no value is selected
+                { "text-gray-400": !value }
             )}
             value={value}
             onChange={onChange}
@@ -17,7 +24,7 @@ const Dropdown = ({ options, value, onChange, placeholder, className }) => {
                 </option>
             )}
             {options.map((option) => (
-                <option key={option.id} value={option.id}>
+                <option key={option.id} value={option[valueKey]}>
                     {option.name}
                 </option>
             ))}
