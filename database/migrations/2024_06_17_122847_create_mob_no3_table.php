@@ -28,7 +28,8 @@ return new class extends Migration
             $table->string('request_id', 30)->nullable(); //nullable added by me
             $table->string('delivery_time', 30)->nullable(); //nullable added by me
             $table->string('delivery_date')->nullable(); //nullable added by me//datetime into string by me
-            $table->string('template_id', 100)->nullable();
+            $table->string('template_id', 100);
+            $table->unsignedBigInteger('template_id2');
             $table->text('message')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
             $table->string('schedule_date', 45)->default('0000-00-00')->nullable(); //nullable added by me
             $table->string('schedule_time')->default(now())->nullable(); //nullable added by me//datetime into string by me
@@ -59,6 +60,8 @@ return new class extends Migration
 
             $table->foreign('username')->references('username')->on('ci_admin')->onDelete('cascade')->onUpdate('cascade');
             // $table->foreign('template_id')->references('template_name')->on('templates')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('template_id2')->references('id')->on('templates')->onDelete('cascade');
+            // $table->foreign('template_id')->references('template_name')->on('templates')->onDelete('cascade');
         });
     }
     /**

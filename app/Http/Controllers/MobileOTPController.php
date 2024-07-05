@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
+// use Illuminate\Support\Carbon;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+
 
 class MobileOTPController extends Controller
 {
@@ -32,6 +35,7 @@ class MobileOTPController extends Controller
             // Store OTP in database
             $user->update([
                 'otp' => $otp,
+                'otp_created_at' => Carbon::now()
             ]);
 
             // Send OTP via HTTP request
@@ -70,23 +74,33 @@ class MobileOTPController extends Controller
             ->first();
 
         if ($user) {
+
+            $otpCreationTime = Carbon::parse($user->otp_created_at);
+            $currentTime = Carbon::now('Asia/Kolkata');
+
+            // return $currentTime;
+
+            if ($currentTime->diffInMinutes($otpCreationTime) > 1) {
+                return response()->json(['status' => 0, 'message' => 'OTP has expired.'], 400);
+            }
             // OTP is valid, you can perform any further actions here
 
             // Optionally, you might want to invalidate the OTP after verification
             $user->update([
                 'otp' => null,
+                'otp_created_at' => null,
             ]);
- // Generate a token for the authenticated session
-        $token = $user->createToken('auth_token')->accessToken;
 
-        // Return the token and user information
-        return response()->json([
-            'message' => 'OTP verified successfully.',
-            'token' => $token,
-            'user' => $user
-        ], 200);
-    } else {
-        return response()->json(['status' => 0, 'message' => 'Invalid OTP or mobile number.'], 400);
+            $token = $user->createToken("auth_token")->accessToken;
+
+            return response()->json([
+                'message' => 'OTP verified successfully.',
+                'status' => 1,
+                'user' => $user,
+                'token' => $token,
+            ], 200);
+        } else {
+            return response()->json(['status' => 0, 'message' => 'Invalid OTP or mobile number.'], 400);
+        }
     }
 }
-    }

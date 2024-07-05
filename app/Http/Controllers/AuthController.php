@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -15,139 +14,184 @@ class AuthController extends Controller
 
     public function registration(Request $request)
     {
-        //Validate incoming request
-        $validator = Validator::make($request->all(), [
-            'firstname' => 'required|string|max:45',
-            'lastname' => 'required|string|max:45',
-            'email' => 'required|string|email|unique:ci_admin,email|max:45',
-            'username' => 'required|string|unique:ci_admin,username|max:45',
-            'password' => 'confirmed|required|string|min:8|max:255',
-            'password_confirmation' => 'required|string|min:8|max:255', // Add confirmation field
-            'mobile_no' => 'required|string|unique:ci_admin,mobile_no',
-        ]);
+        try {
+            // Validate incoming request
+            $validator = Validator::make($request->all(), [
+                'firstname' => 'required|string|max:255',
+                'lastname' => 'required|string|max:255',
+                'email' => 'required|string|email|unique:ci_admin,email|max:255',
+                'username' => 'required|string|unique:ci_admin,username|max:255',
+                'password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'max:255',
+                    'confirmed',
+                    'regex:/[A-Z]/', // Ensure password contains at least one uppercase letter
+                    'regex:/[@$!%*#?&]/', // Ensure password contains at least one special character
+                    'regex:/[0-9]/' // Ensure password contains at least one digit
+                ],
+                'password_confirmation' => 'required|string|min:8|max:255', // Add confirmation field
+                'mobile_no' => 'required|string|unique:ci_admin,mobile_no|digits_between:8,15',
+            ], [
+                'password.regex' => 'Password must contain at least one uppercase letter, one special character, and one digit.',
+            ]);
 
-        // Return validation errors if any
-        if ($validator->fails()) {
-            return response()->json(['status' => 0, 'message' => $validator->errors()], 400);
-        }
+            // Return validation errors if any
+            if ($validator->fails()) {
+                return response()->json(['status' => 0, 'message' => $validator->errors()], 400);
+            }
 
-        // Create new user
-        $user = User::create([
-            'firstname' => $request->firstname,
-            'lastname' => $request->lastname,
-            'name' => $request->name,
-            'email' => $request->email,
-            'username' => $request->username,
-            'password' => Hash::make($request->password),
-            'mobile_no' => $request->mobile_no,
-        ]);
+            // Create new user
+            $user = User::create([
+                'firstname' => $request->firstname,
+                'lastname' => $request->lastname,
+                'email' => $request->email,
+                'username' => $request->username,
+                'password' => Hash::make($request->password),
+                'mobile_no' => $request->mobile_no,
+            ]);
 
-        $token = $user->createToken("auth_token")->accessToken;
-
-        // Return success response
-        return response()->json(
-            [
-                'message' => 'User registered successfully',
-                'token' => $token,
-                'user' => $user
-            ],
-            201
-        );
-    }
-
-    public function verifyEmail(Request $request)
-    {
-        // Validate incoming request
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email|max:45',
-        ]);
-
-        // Check if validation fails
-        if ($validator->fails()) {
-            return response()->json(['status' => 0, 'message' => $validator->errors()->first()], 400);
-        }
-
-        // Check if email exists
-        $user = User::where('email', $request->email)->first();
-        if ($user) {
-            // Email exists
-            return response()->json(['status' => 1, 'message' => 'Email exists'], 200);
-        } else {
-            // Email does not exist
-            return response()->json(['status' => 0, 'message' => 'Email does not exist'], 200);
-        }
-    }
-
-    public function verifyMobile(Request $request)
-    {
-        // Validate incoming request
-        $validator = Validator::make($request->all(), [
-            'mobile_no' => 'required|numeric',
-        ]);
-
-        // Check if validation fails
-        if ($validator->fails()) {
-            return response()->json(['status' => 0, 'message' => $validator->errors()->first()], 400);
-        }
-
-        // Check if mobile_no exists
-        $user = User::where('mobile_no', $request->mobile_no)->first();
-        if ($user) {
-            // mobile_no exists
-            return response()->json(['status' => 1, 'message' => 'mobile_no exists'], 200);
-        } else {
-            // mobile_no does not exist
-            return response()->json(['status' => 0, 'message' => 'mobile_no does not exist'], 200);
-        }
-    }
-
-    public function login(Request $request)
-    {
-        // Validate incoming request
-        $validator = Validator::make($request->all(), [
-            'email_or_username' => 'required|string',
-            'password' => 'required|string',
-        ]);
-
-        // Return validation errors if any
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $credentials = $request->only('email_or_username', 'password');
-
-        // Determine the login field type based on input
-        $fieldType = filter_var($credentials['email_or_username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-
-        // Attempt to authenticate the user
-        if (Auth::attempt([$fieldType => $credentials['email_or_username'], 'password' => $credentials['password']])) {
-            $user = Auth::user();
+            // Create an auth token for the user
             $token = $user->createToken("auth_token")->accessToken;
 
             // Return success response
-            return response()->json([
-                'message' => 'User logged in successfully',
-                'token' => $token,
-                'user' => $user
-            ], 200);
-        } else {
-            // Return error response
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(
+                [
+                    'status' => 1,
+                    'message' => 'User registered successfully',
+                    'token' => $token,
+                    'user' => $user
+                ],
+                201
+            );
+        } catch (\Exception $e) {
+            // Return error response with exception message
+            return response()->json(['status' => 0, 'message' => $e->getMessage()], 500);
         }
     }
 
+
+    public function verifyEmail(Request $request)
+    {
+        try {
+            // Validate incoming request
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|string|email|max:255',
+            ]);
+
+            // Check if validation fails
+            if ($validator->fails()) {
+                return response()->json(['status' => 0, 'message' => $validator->errors()], 400);
+            }
+
+            // Check if email exists
+            $user = User::where('email', $request->email)->first();
+            if ($user) {
+                // Email exists
+                return response()->json(['status' => 1, 'message' => 'Email exists'], 200);
+            } else {
+                // Email does not exist
+                return response()->json(['status' => 0, 'message' => 'Email does not exist'], 200);
+            }
+        } catch (\Exception $e) {
+            // Return error response with exception message
+            return response()->json(['status' => 0, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+
+    public function verifyMobile(Request $request)
+    {
+        try {
+            // Validate incoming request
+            $validator = Validator::make($request->all(), [
+                'mobile_no' => 'required|numeric|digits_between:8,15',
+            ]);
+
+            // Check if validation fails
+            if ($validator->fails()) {
+                return response()->json(['status' => 0, 'message' => $validator->errors()->first()], 400);
+            }
+
+            // Check if mobile_no exists
+            $user = User::where('mobile_no', $request->mobile_no)->first();
+            if ($user) {
+                // mobile_no exists
+                return response()->json(['status' => 1, 'message' => 'mobile_no exists'], 200);
+            } else {
+                // mobile_no does not exist
+                return response()->json(['status' => 0, 'message' => 'mobile_no does not exist'], 200);
+            }
+        } catch (\Exception $e) {
+            // Return error response with exception message
+            return response()->json(['status' => 0, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+
+    public function login(Request $request)
+    {
+        try {
+            // Validate incoming request
+            $validator = Validator::make($request->all(), [
+                'email_or_username' => 'required|string',
+                'password' => 'required|string',
+            ]);
+
+            // Return validation errors if any
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $credentials = $request->only('email_or_username', 'password');
+
+            // Determine the login field type based on input
+            $fieldType = filter_var($credentials['email_or_username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+            // Attempt to authenticate the user
+            if (Auth::attempt([$fieldType => $credentials['email_or_username'], 'password' => $credentials['password']])) {
+                $user = Auth::user();
+                $token = $user->createToken("auth_token")->accessToken;
+
+                // Return success response
+                return response()->json([
+                    'status' => 1,
+                    'message' => 'User logged in successfully',
+                    'token' => $token,
+                    'user' => $user
+                ], 200);
+            } else {
+                // Return error response
+                return response()->json(['status' => 0, 'message' => 'Invalid credentials'], 401);
+            }
+        } catch (\Exception $e) {
+            // Return error response with exception message
+            return response()->json(['status' => 0, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+
     public function logout(Request $request)
     {
-        // Extract token from the Authorization header
-        $token = $request->bearerToken();
-        if ($token) {
-            // Revoke the access token associated with the token
-            $token = $request->user()->tokens->find($token);
-            if ($token) {
-                $token->revoke();
-            }
+        try {
+            // Get the token that the user is currently authenticated with
+            $token = $request->user()->token();
+
+            // Revoke the token
+            $token->revoke();
+
+            // Return success response
+            return response()->json([
+                'status' => 1,
+                'message' => 'User logged out successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            // Return error response with exception message
+            return response()->json([
+                'status' => 0,
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ], 500);
         }
-        // Logging out the user from the application
-        return response()->json(['message' => 'User logged out successfully'], 200);
     }
 }

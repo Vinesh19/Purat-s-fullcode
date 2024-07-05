@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Carbon;
 
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str; //needed in email verification
 use Illuminate\Support\Facades\URL; //needed in email verification
 
@@ -43,11 +43,16 @@ class EmailOTPController extends Controller
             $id = $user->admin_id;
             $user = User::find($id);
             $user->otp = $otp;
+            $user->otp_created_at = Carbon::now();
             $user->save();
+
+            $token = $user->createToken("auth_token")->accessToken;
+
             return response()->json([
                 'email' => $user->email,
                 'status' => 1,
-                'message' => 'OTP send successfully.'
+                'message' => 'OTP send successfully.',
+                'token' => $token,
             ], 200);
         } else {
             return response()->json([
@@ -80,6 +85,8 @@ class EmailOTPController extends Controller
             ], 422);
         }
 
+        // $user = User::where('email', $request->email)->first();
+        // Check if the mobile number and OTP match in the user table
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
@@ -90,10 +97,23 @@ class EmailOTPController extends Controller
             return response()->json(['message' => 'Invalid OTP.'], 400);
         }
 
-        // Save the verification time in the specified format
-        $user->otp = '';
-        // $user->otp_verified_at = Carbon::now()->format('Y_m_d H:i:s');
-        $user->save();
+        // $otpCreationTime = Carbon::parse($user->otp_created_at);
+        $otpCreationTime = Carbon::parse($user->otp_created_at,);
+        $currentTime = Carbon::now();
+
+        // return $currentTime;
+        // "2024-06-30T17:24:31.000000Z"
+        // "2024-06-30T17:26:46.014682Z"
+
+        if ($currentTime->diffInMinutes($otpCreationTime) > 1) {
+            return response()->json(['status' => 0, 'message' => 'OTP has expired.'], 400);
+        }
+
+        // Optionally, you might want to invalidate the OTP after verification
+        $user->update([
+            'otp' => null,
+            'otp_created_at' => null,
+        ]);
 
         return response()->json([
             'status' => 1,
@@ -126,6 +146,9 @@ class EmailOTPController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return response()->json(['message' => 'Password successfully updated.']);
+        return response()->json([
+            'status' => 1,
+            'message' => 'Password successfully updated.'
+        ]);
     }
 }

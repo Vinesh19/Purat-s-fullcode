@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('reason');
             $table->integer('category');
             $table->string('new_category', 100);
-            $table->integer('language')->comment('1 = en_US, 13 = en_GB, 14 = en');
+            $table->unsignedBigInteger('language')->comment('1 = en_US, 13 = en_GB, 14 = en');
             $table->text('header_area_type');
             $table->text('header_text')->charset('utf8mb4')->collation('utf8mb4_unicode_ci')->nullable(); //add nulable from my side
             $table->string('header_media_type')->nullable();
@@ -41,7 +41,8 @@ return new class extends Migration
             $table->integer('status')->default(0);
             $table->string('template_id', 100)->nullable(); //nullable added by me
 
-            // $table->foreign('username')->references('username')->on('ci_admin')->onUpdate('cascade');
+            $table->foreign('username')->references('username')->on('ci_admin')->onUpdate('cascade');
+            $table->foreign('language')->references('id')->on('languages')->onUpdate('cascade');
         });
     }
 

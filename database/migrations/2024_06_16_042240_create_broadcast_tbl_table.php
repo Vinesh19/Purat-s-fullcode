@@ -36,8 +36,8 @@ return new class extends Migration
             $table->string('lineCount', 50)->nullable();
             $table->string('group_table_length', 50)->nullable();
 
-            // $table->foreign('template_id')->references('id')->on('templates')->onDelete('cascade')->onUpdate('cascade');
-            // $table->foreign('username')->references('username')->on('ci_admin')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('template_id')->references('id')->on('templates')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('username')->references('username')->on('ci_admin')->onDelete('cascade')->onUpdate('cascade');
 
             // $table->primary('id');
         });

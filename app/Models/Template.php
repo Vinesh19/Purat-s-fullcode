@@ -17,11 +17,19 @@ class Template extends Model
 
     // Specify which attributes are mass assignable
     protected $fillable = [
-        'username',
-        'template_name',
-        'reason',
-        // Add more attributes as needed
+        'username', 'template_name', 'reason', 'category', 'new_category',
+        'language', 'header_area_type', 'header_text', 'header_media_type',
+        'header_media_set', 'template_body', 'template_footer', 'button_type_set',
+        'call_action_type_set1', 'call_action_type_set2', 'call_phone_btn_text',
+        'call_phone_btn_phone_number', 'visit_website_btn_text', 'visit_website_url_set',
+        'visit_website_url_text', 'quick_reply_btn_text1', 'quick_reply_btn_text2',
+        'quick_reply_btn_text3', 'status', 'template_id'
     ];
+    public $timestamps = true;
 
     // Optionally define relationships or other methods here
+    public function language()
+    {
+        return $this->belongsTo(Language::class, 'language', 'id');
+    }
 }

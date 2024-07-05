@@ -1,16 +1,15 @@
 <?php
 
 namespace App\Models;
-use App\Models\Group;
 
-use App\Models\Broadcast_output;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, HasFactory;
 
     // Specify the table name if it differs from the default
     protected $table = 'ci_admin';
@@ -32,7 +31,8 @@ class User extends Authenticatable
         'mobile_no',
         'email_otp',
         'email_otp_verified_at',
-        'otp'
+        'otp',
+        'otp_created_at',
     ];
 
     /**
@@ -52,14 +52,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'email_otp_verified_at' => 'datetime',
+        'otp_created_at' => 'datetime',
     ];
-
-    /**
-     * Get the broadcast output record associated with the user.
-     */
-    // public function broadcast_output()
-    // {
-    //     return $this->hasOne(Broadcast_output::class);
-    // }
-
 }

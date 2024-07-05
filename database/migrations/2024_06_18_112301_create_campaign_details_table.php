@@ -25,8 +25,7 @@ return new class extends Migration
             $table->string('queue_no', 200)->nullable(); //nullable added by me
             $table->timestamps(); // Adds created_at and updated_at columns
 
-            $table->foreign('username')->references('username')->on('ci_admin')->onUpdate('cascade');
-
+            $table->foreign('username')->references('username')->on('ci_admin')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
