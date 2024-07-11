@@ -8,6 +8,8 @@ const Input = ({
     placeholder,
     disabled = false,
     required = false,
+    noBorder = false, 
+    autoFocus = false, 
     className = "",
     errorMessage,
     ...props
@@ -22,9 +24,15 @@ const Input = ({
                 placeholder={placeholder}
                 disabled={disabled}
                 required={required}
-                className={`rounded-md px-2 py-1.5 mt-1 border outline-none font-normal ${
-                    disabled ? "cursor-not-allowed" : ""
-                }`}
+                autoFocus={autoFocus} 
+                className={classNames(
+                    "rounded-md px-2 py-1.5 mt-1 outline-none font-normal",
+                    {
+                        "cursor-not-allowed": disabled,
+                        "border-none": noBorder, 
+                        border: !noBorder, 
+                    }
+                )}
                 {...props}
             />
             {errorMessage && (

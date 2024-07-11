@@ -5,7 +5,6 @@ import {
     faCircleUser,
     faEllipsisVertical,
     faFaceGrinWide,
-    faFaceSmile,
     faIndianRupeeSign,
     faPaperclip,
     faPhone,

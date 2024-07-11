@@ -5,6 +5,7 @@ import Dropdown from "../Dropdown";
 import Input from "../Input";
 
 import { ContactList } from "../../services/api";
+import Button from "../Button";
 
 const ContactTemplate = ({ templates, loading, setShowContactTemplate }) => {
     const [selectedContact, setSelectedContact] = useState("");
@@ -48,17 +49,18 @@ const ContactTemplate = ({ templates, loading, setShowContactTemplate }) => {
                     </div>
                     <div className="flex gap-4 mt-5 justify-end">
                         <button
-                            className="border px-10 py-2 rounded border-green-500 text-green-500"
+                            className="border px-6 py-2 rounded border-green-500 text-green-500"
                             onClick={handleClose}
                         >
                             Close
                         </button>
-                        <button
-                            className="border px-10 py-2 rounded bg-green-500 text-white"
+                        <button>Next</button>
+                        <Button
+                            className="border px-6 py-2 rounded bg-green-500 text-white"
                             onClick={handleNextClick}
                         >
                             Next
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
