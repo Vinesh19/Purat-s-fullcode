@@ -28,8 +28,8 @@ const Button = ({
 
     const variantStyles = {
         [VARIANTS.DEFAULT]: "border-gray-500 text-gray-500",
-        [VARIANTS.PRIMARY]: "border-green-500 bg-green-500 text-white",
-        [VARIANTS.SECONDARY]: "border-green-500 text-green-500",
+        [VARIANTS.PRIMARY]: "border-green-600 bg-green-600 text-white",
+        [VARIANTS.SECONDARY]: "border-green-600 text-green-600",
     };
 
     const sizeStyles = {

@@ -1,30 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faFilter, faPlus } from "@fortawesome/free-solid-svg-icons";
 import Dropdown from "../Dropdown";
 import Modal from "../Modal";
 import FilterConversation from "../FilterConversation";
 import ContactTemplate from "../ContactTemplate";
-import {
-    TeamInbox,
-    templateData,
-    fetchTemplateMessage,
-} from "../../services/api";
-import { toast } from "react-toastify";
+import { TeamInbox } from "../../services/api";
 
-const ChatList = ({ user }) => {
+const ChatList = ({ templates }) => {
     const [selectedChat, setSelectedChat] = useState(null);
     const [selectedChatMessages, setSelectedChatMessages] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [showContactTemplate, setShowContactTemplate] = useState(false);
-    const [templates, setTemplates] = useState([]);
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        // Fetch initial templates and messages when component mounts
-        fetchTemplatesAndMessages();
-    }, []);
 
     const handleChatSelect = (e) => {
         const chatId = e.target.value;
@@ -57,57 +45,8 @@ const ChatList = ({ user }) => {
         message.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const toggleContactTemplate = async () => {
+    const toggleContactTemplate = () => {
         setShowContactTemplate(!showContactTemplate);
-        if (!showContactTemplate) {
-            await fetchTemplatesAndMessages();
-        }
-    };
-
-    const fetchTemplatesAndMessages = async () => {
-        try {
-            setLoading(true);
-            const response = await templateData({
-                username: user.username,
-            });
-            if (response?.data?.template) {
-                const templatesArray = Object.entries(
-                    response.data.template
-                ).map(([id, name]) => ({ id, name }));
-
-                const templatesWithMessages = await Promise.all(
-                    templatesArray.map(async (template) => {
-                        try {
-                            const messageResponse = await fetchTemplateMessage(
-                                template.id
-                            );
-                            const templateBody =
-                                messageResponse?.data?.template
-                                    ?.template_body || "No message available";
-                            return { ...template, templateBody };
-                        } catch (error) {
-                            console.error(
-                                `Failed to fetch message for template ${template.id}`,
-                                error
-                            );
-                            return {
-                                ...template,
-                                templateBody: "Failed to fetch message",
-                            };
-                        }
-                    })
-                );
-
-                setTemplates(templatesWithMessages);
-            } else {
-                toast.error("No templates found");
-            }
-        } catch (error) {
-            toast.error("Failed to fetch templates");
-            console.error("Failed to fetch templates", error);
-        } finally {
-            setLoading(false);
-        }
     };
 
     return (
@@ -178,7 +117,6 @@ const ChatList = ({ user }) => {
                 {showContactTemplate ? (
                     <ContactTemplate
                         templates={templates}
-                        loading={loading}
                         setShowContactTemplate={setShowContactTemplate}
                     />
                 ) : filteredMessages.length > 0 ? (

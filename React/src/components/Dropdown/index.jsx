@@ -11,7 +11,7 @@ const Dropdown = ({
     return (
         <select
             className={classNames(
-                "w-full border rounded-md px-2 py-1.5 mt-1 outline-none",
+                "w-full border rounded-md px-2 py-1.5 mt-1 outline-none cursor-pointer",
                 className,
                 { "text-gray-400": !value }
             )}
