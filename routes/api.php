@@ -46,18 +46,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/template-name', [TemplateController::class, 'show_name']);
     //fetching template's all data from templates(table)
     Route::get('/template/{template_id}', [TemplateController::class, 'show']);
-    //group table for inserting data
-    Route::post('/insert-group-data', [GroupController::class, 'store']);
-    // Route for fetching groups by 'added_by' (username)
-    Route::post('/fetching-group-names', [GroupController::class, 'index']);
-    //group table for fetching data
-    Route::post('/fetching-group-data/{group_name}', [GroupController::class, 'show']);
-    //created_at 27-6-2024
-    //insert chat messages
-    Route::post('/insert-chat-messages', [ChatMessageController::class, 'store']);
-    //fetch chat messages
-    Route::post('/fetch-chat-messages', [ChatMessageController::class, 'fetchMessages']);
-    Route::post('filtered-data', [BroadcastController::class, 'getFilteredData']);
+    //chat inbox
+Route::post('advance-filtered-data', [ChatMessageController::class, 'getAdvanceFilteredData']); //fetching data with advance filter (status, attribute, assignee)
+Route::post('filtered-data', [ChatMessageController::class, 'getFilteredData']); //fetching data with filter (open,expired,active.broadcast etc)
+Route::get('chat-messages', [ChatMessageController::class, 'fetchMessages']);
+Route::post('chat-message-room/update', [ChatMessageController::class, 'updateColumn']);
 });
 
 //inserting data into templates
@@ -98,4 +91,3 @@ Route::get('/mobile-numbers/count', [GraphController::class, 'getCountByTimeFram
 Route::get('/unique-messages', [ChatMessageController::class, 'getUniqueMessages']);
 
 
-Route::post('filtered-data', [BroadcastController::class, 'getFilteredData']);

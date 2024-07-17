@@ -29,18 +29,18 @@ return new class extends Migration
             $table->string('delivery_time', 30)->nullable(); //nullable added by me
             $table->string('delivery_date')->nullable(); //nullable added by me//datetime into string by me
             $table->string('template_id', 100);
-            $table->unsignedBigInteger('template_id2');
-            $table->text('message')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
+            // $table->unsignedBigInteger('template_id2');
+            $table->string('message')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
             $table->string('schedule_date', 45)->default('0000-00-00')->nullable(); //nullable added by me
             $table->string('schedule_time')->default(now())->nullable(); //nullable added by me//datetime into string by me
             $table->string('success_full_per', 45)->default('0')->comment('3=fake, 0=real, 1=scrub pending');
-            $table->text('media1')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
-            $table->text('media2')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
-            $table->text('media3')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
-            $table->text('media4')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
-            $table->text('media5')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
-            $table->text('media6')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
-            $table->text('media7')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
+            $table->string('media1')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
+            $table->string('media2')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
+            $table->string('media3')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
+            $table->string('media4')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
+            $table->string('media5')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
+            $table->string('media6')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
+            $table->string('media7')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
             $table->text('media8')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
             $table->text('media9')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
             $table->text('media10')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
@@ -59,9 +59,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('username')->references('username')->on('ci_admin')->onDelete('cascade')->onUpdate('cascade');
-            // $table->foreign('template_id')->references('template_name')->on('templates')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('template_id2')->references('id')->on('templates')->onDelete('cascade');
-            // $table->foreign('template_id')->references('template_name')->on('templates')->onDelete('cascade');
+            // $table->foreign('template_id2')->references('id')->on('templates')->onDelete('cascade');
         });
     }
     /**

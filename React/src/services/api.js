@@ -18,7 +18,7 @@ export const NEW_DASHBOARD_TEMPLATE = `${API_BASE_URL}/template-name`;
 export const NEW_DASHBOARD_TEMPLATE_MESSAGE = `${API_BASE_URL}/template`;
 export const NEW_DASHBOARD_TEMPLATE_GROUP = `${API_BASE_URL}/fetching-group-names`;
 export const SUBMIT_BROADCAST_DATA = `${API_BASE_URL}/insert-broadcast-data`;
-export const SEARCH_FILTERED_DATA = `${API_BASE_URL}/filtered-data`;
+export const CHATS_DATA = `${API_BASE_URL}/filtered-data`;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -96,75 +96,69 @@ export const submitBroadcastData = (data) => {
     return api.post(SUBMIT_BROADCAST_DATA, data);
 };
 
-export const searchFilteredData = (search) => {
-    return api.post(SEARCH_FILTERED_DATA, search);
+// export const searchFilteredData = (search) => {
+//     return api.post(SEARCH_FILTERED_DATA, search);
+// };
+
+export const fetchAllChats = (action) => {
+    return api.post(CHATS_DATA, action);
 };
 
 export default api;
 
-export const TeamInbox = [
+export const CHATS_TYPE = [
     {
         id: "1",
         name: "Active chats",
-        message: [
-            "We’re glad you want to know about WATI, Vinesh Wadhwani 😃",
-            "Hi sairam vengalasetty 👋,Thank you for your message.How can we help you today?",
-            "Please check out the attached video to get an overview of our platform 📺 and how to sign up for a WATI account 🚀.",
-        ],
+        action: "active",
     },
     {
         id: "2",
-        name: "Broadcasts",
-        message: [
-            "Hi sairam vengalasetty 👋,Thank you for your message.How can we help you today?",
-        ],
+        name: "Broadcast",
+        action: "broadcast",
     },
     {
         id: "3",
         name: "Unassigned",
-        message: [
-            "Please check out the attached video to get an overview of our platform 📺 and how to sign up for a WATI account 🚀.",
-        ],
+        action: "unassigned",
     },
     {
         id: "4",
         name: "Unread",
-        message: [
-            "Hi sairam vengalasetty 👋,Thank you for your message.How can we help you today?",
-        ],
+        action: "unread",
     },
     {
         id: "5",
-        name: "last 24 Hours",
-        message: ["We’re glad you want to know about WATI, Vinesh Wadhwani 😃"],
+        name: "Expired",
+        action: "expired",
     },
     {
         id: "6",
         name: "Assigned to me",
-        message: [
-            "Please check out the attached video to get an overview of our platform 📺 and how to sign up for a WATI account 🚀.",
-        ],
+        action: "assign_to_me",
     },
     {
         id: "7",
-        name: "Favourite only",
-        message: ["We’re glad you want to know about WATI, Vinesh Wadhwani 😃"],
+        name: "Favorite only",
+        action: "favorite",
     },
     {
         id: "8",
         name: "Open",
-        message: [
-            "Hi sairam vengalasetty 👋,Thank you for your message.How can we help you today?",
-        ],
+        action: "open",
     },
     {
         id: "9",
         name: "Pending",
-        message: [
-            "Please check out the attached video to get an overview of our platform 📺 and how to sign up for a WATI account 🚀.",
-        ],
+        action: "pending",
+    },
+    {
+        id: "10",
+        name: "Solved",
+        action: "solved",
     },
 ];
+
 
 export const ContactList = [
     { id: "1", name: "9090119192" },

@@ -4,7 +4,6 @@ import {
     filterStatus,
     filterAttribute,
     filterOperation,
-    searchFilteredData,
 } from "../../services/api";
 import { useState } from "react";
 
@@ -29,16 +28,15 @@ const FilterConversation = ({ closeModal }) => {
             contain: operation,
             value: filteredInput,
         };
+        closeModal();
 
-        try {
-            const response = await searchFilteredData(searchParams);
-            console.log("Filtered data:", response.data);
-            closeModal(); // Close modal after applying filters
-            // Optionally handle response data, e.g., set it to state or pass it to another component
-        } catch (error) {
-            console.error("Failed to fetch filtered data:", error);
-            // Optionally handle errors, e.g., show error message to user
-        }
+        // try {
+        //     const response = await searchFilteredData(searchParams);
+        //     console.log("Filtered data:", response.data);
+        //     closeModal();
+        // } catch (error) {
+        //     console.error("Failed to fetch filtered data:", error);
+        // }
     };
 
     return (

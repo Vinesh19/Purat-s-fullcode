@@ -14,13 +14,10 @@ return new class extends Migration
         Schema::create('chat_messages_room', function (Blueprint $table) {
             $table->id('id'); // Laravel automatically handles NOT NULL for primary keys
             $table->string('sender_id', 255)->nullable()->collation('utf8mb4_unicode_ci');
-            $table->string('receiver_id', 255)->nullable()->collation('utf8mb4_unicode_ci');
+            $table->string('receiver_id', 255)->unique()->collation('utf8mb4_unicode_ci');
             $table->tinyInteger('status')->comment('0=open, 1=expired, 2=pending, 3=solved, 4=spam');
             $table->tinyInteger('is_starred')->default(0)->comment('0=no, 1=yes');
-            $table->string('username', 255);
-
-            $table->foreign('username')->references('username')->on('ci_admin')->onDelete('cascade')->onUpdate('cascade');
-            // $table->foreign('receiver_id')->references('receiver_id')->on('chat_messages')->onDelete('cascade')->onUpdate('cascade');
+            $table->tinyInteger('is_read')->default(0)->comment('0=unread, 1=read');
         });
     }
 

@@ -36,8 +36,7 @@ return new class extends Migration
             $table->string('quick_reply_btn_text1')->nullable()->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
             $table->string('quick_reply_btn_text2')->nullable()->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
             $table->string('quick_reply_btn_text3')->nullable()->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
-            $table->dateTime('created_at')->default(now());
-            $table->date('updated_at')->nullable();
+            $table->timestamps();
             $table->integer('status')->default(0);
             $table->string('template_id', 100)->nullable(); //nullable added by me
 

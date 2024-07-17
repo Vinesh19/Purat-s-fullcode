@@ -31,6 +31,9 @@ return new class extends Migration
             $table->string('eventtype', 100)->comment('Broadcast=outgoing/message=incoming');
             $table->string('whts_ref_id', 200);
             $table->timestamps(); //s-sir se puchkar liya
+
+            // $table->unsignedBigInteger('room_id');
+
             $table->foreign('username')
                 ->references('username')->on('ci_admin')
                 ->onDelete('cascade');

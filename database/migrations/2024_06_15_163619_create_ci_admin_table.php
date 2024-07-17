@@ -77,6 +77,7 @@ return new class extends Migration
 
             $table->string('otp')->nullable(); //columns itself added by me for otp verification.
             $table->timestamp('otp_created_at')->nullable(); //columns itself added by me for otp verification.
+            // $table->string('verified_mobile_no')->nullable(); //added for submitting mobile number during login verification
             $table->rememberToken();
         });
     }

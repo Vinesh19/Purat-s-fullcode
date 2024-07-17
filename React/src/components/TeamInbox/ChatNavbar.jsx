@@ -23,9 +23,9 @@ const ChatNavbar = () => {
 
     useEffect(() => {
         getTime();
-        const interval = setInterval(getTime, 60000); // Update time every minute
+        const interval = setInterval(getTime, 60000); 
 
-        return () => clearInterval(interval); // Cleanup interval on component unmount
+        return () => clearInterval(interval); 
     }, []);
 
     return (

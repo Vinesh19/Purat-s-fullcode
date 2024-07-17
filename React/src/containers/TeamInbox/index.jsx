@@ -5,10 +5,18 @@ import ChatList from "../../components/TeamInbox/ChatList";
 import ChatContent from "../../components/TeamInbox/ChatContent";
 import UserInfo from "../../components/TeamInbox/UserInfo";
 
-import { templateData, fetchTemplateMessage } from "../../services/api";
+import {
+    templateData,
+    fetchTemplateMessage,
+    fetchAllChats,
+} from "../../services/api";
 
 const TeamInbox = ({ user }) => {
     const [templates, setTemplates] = useState([]);
+    const [chats, setChats] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [totalCount, setTotalCount] = useState(0);
+    const [action, setAction] = useState("active");
 
     const fetchTemplatesAndMessages = async () => {
         try {
@@ -54,18 +62,51 @@ const TeamInbox = ({ user }) => {
         }
     };
 
-    useEffect(() => {
-        fetchTemplatesAndMessages();
-    }, []);
+    const fetchChats = async (actionType) => {
+        try {
+            const response = await fetchAllChats({
+                action: actionType,
+                username: user.username,
+            });
+
+            if (response?.data?.data) {
+                setChats(response?.data?.data);
+                setUnreadCount(response?.data?.unreadCount);
+                setTotalCount(response?.data?.totalCount);
+            } else {
+                toast.error("No chats found");
+            }
+        } catch (error) {
+            toast.error("Failed to fetch chats");
+            console.error("Failed to fetch chats", error);
+        }
+    };
+
+     useEffect(() => {
+         fetchTemplatesAndMessages();
+     }, []); 
+
+     useEffect(() => {
+         fetchChats(action);
+     }, [action]); 
 
     return (
         <div className="flex">
             <div className="basis-1/4">
-                <ChatList templates={templates} />
+                <ChatList
+                    templates={templates}
+                    chats={chats}
+                    unreadCount={unreadCount}
+                    totalCount={totalCount}
+                    action={action}
+                    setAction={setAction}
+                />
             </div>
+
             <div className="grow">
                 <ChatContent templates={templates} />
             </div>
+
             <div className="basis-1/4">
                 <UserInfo />
             </div>

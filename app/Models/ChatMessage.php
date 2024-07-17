@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\ChatMessageRoom;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ChatMessage extends Model
 {
@@ -25,8 +26,14 @@ class ChatMessage extends Model
         'type',
         'eventtype',
         'whts_ref_id'
+        // 'room_id'
     ];
 
     public $timestamps = true; // Ensure timestamps are handled automatically
 
+    public function chatRoom()
+    {
+        return $this->hasOne(ChatMessageRoom::class, 'receiver_id', 'receiver_id');
+        // ->whereColumn('sender_id', 'sender_id');
+    }
 }

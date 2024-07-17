@@ -8,6 +8,7 @@ import Button from "../Button";
 import Modal from "../Modal";
 import Templates from "./Templates";
 import FileUploadModal from "./FileUploadModal";
+import QuickReplyMessages from "./QuickReplyMessages";
 
 const ChatFooter = ({ templates }) => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -15,6 +16,7 @@ const ChatFooter = ({ templates }) => {
     const [showTemplateButton, setShowTemplateButton] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFileMediaClicked, setIsFileMediaClicked] = useState(false);
+    const [isQuickReplyModalOpen, setIsQuickReplyModalOpen] = useState(false);
 
     const onEmojiClick = (event) => {
         setMessage((prevMessage) => prevMessage + event.emoji);
@@ -36,6 +38,10 @@ const ChatFooter = ({ templates }) => {
 
     const handleFileClicked = () => {
         setIsFileMediaClicked(!isFileMediaClicked);
+    };
+
+    const handleQuickReplyClick = () => {
+        setIsQuickReplyModalOpen(!isQuickReplyModalOpen);
     };
 
     return (
@@ -68,6 +74,7 @@ const ChatFooter = ({ templates }) => {
                 <FontAwesomeIcon
                     icon={faBolt}
                     className="text-gray-400 text-xl cursor-pointer"
+                    onClick={handleQuickReplyClick}
                 />
 
                 <div className="relative">
@@ -126,6 +133,18 @@ const ChatFooter = ({ templates }) => {
                     className="rounded-lg"
                 >
                     <FileUploadModal />
+                </Modal>
+            )}
+
+            {isQuickReplyModalOpen && (
+                <Modal
+                    isModalOpen={isQuickReplyModalOpen}
+                    closeModal={handleQuickReplyClick}
+                    width="60vw"
+                    height="90vh"
+                    className="rounded-lg"
+                >
+                    <QuickReplyMessages templates={templates} />
                 </Modal>
             )}
         </div>

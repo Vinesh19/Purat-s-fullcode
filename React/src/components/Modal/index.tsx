@@ -11,7 +11,7 @@ const Modal = ({
 }) => {
     return isModalOpen ? (
         <div
-            className={`fixed z-10 top-0 left-0 w-full h-full bg-black bg-opacity-55 flex ${
+            className={`fixed z-10 top-0 left-0 w-full h-full bg-black bg-opacity-70 flex ${
                 isSidebar ? "items-start" : "items-center"
             } justify-center`}
         >
