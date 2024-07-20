@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar, faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
 import Dropdown from "../Dropdown";
-import { ContactList } from "../../services/api";
+import { CONTACT_LIST } from "../../services/constant";
 
 const ChatNavbar = () => {
     const [time, setTime] = useState("");
@@ -53,7 +53,7 @@ const ChatNavbar = () => {
 
                 <div>
                     <Dropdown
-                        options={ContactList}
+                        options={CONTACT_LIST}
                         value={user}
                         onChange={handleUserChange}
                         placeholder="Select User"
@@ -73,7 +73,7 @@ const ChatNavbar = () => {
 
             <div>
                 <Dropdown
-                    options={ContactList}
+                    options={CONTACT_LIST}
                     value={user}
                     onChange={handleUserChange}
                     placeholder="Submit As"

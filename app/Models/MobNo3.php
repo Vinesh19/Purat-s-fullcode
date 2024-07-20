@@ -22,7 +22,7 @@ class MobNo3 extends Model
         'media9',
         'username',
         'template_id',
-        'template_id2',
+        // 'template_id2',
         'name',
         'status',
         'delivery_date',
@@ -31,6 +31,10 @@ class MobNo3 extends Model
         'tim',
         'request_id',
     ];
+    // public function template()
+    // {
+    //     return $this->belongsTo(Template::class, 'template_id', 'template_name');
+    // }
     public function template()
     {
         return $this->belongsTo(Template::class, 'template_id2', 'id');

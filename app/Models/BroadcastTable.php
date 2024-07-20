@@ -41,6 +41,4 @@ class BroadcastTable extends Model
         'group_table_length',
     ];
 
-    // Assuming 'id' is auto-incremented and not listed in fillable
-    // 'created_at' and 'updated_at' are managed by Eloquent by default
 }

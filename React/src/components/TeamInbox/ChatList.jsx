@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faSearch,
@@ -9,10 +9,11 @@ import {
 
 import Dropdown from "../Dropdown";
 import Modal from "../Modal";
-import FilterConversation from "../FilterConversation";
-import ContactTemplate from "../ContactTemplate";
+import AdvanceFilter from "./AdvanceFilter";
+import ContactTemplate from "./ContactTemplate";
 
-import { CHATS_TYPE } from "../../services/api";
+import { CHATS_TYPE } from "../../services/constant";
+import "./TeamInbox.css";
 
 const ChatList = ({
     templates,
@@ -21,19 +22,22 @@ const ChatList = ({
     totalCount,
     action,
     setAction,
+    user,
+    contacts,
 }) => {
-    console.log(action);
     const [selectedChat, setSelectedChat] = useState(action);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [showContactTemplate, setShowContactTemplate] = useState(false);
+    const [hoveredChat, setHoveredChat] = useState(null);
+    const [starredChats, setStarredChats] = useState({});
 
     const handleChatSelection = (e) => {
         const selectedValue = e.target.value;
-        console.log("Selected Value:", selectedValue);
         const selectedChatType = CHATS_TYPE.find(
             (type) => type.name === selectedValue
         );
+
         setSelectedChat(selectedChatType.name);
         setAction(selectedChatType.action);
         setShowContactTemplate(false);
@@ -49,6 +53,9 @@ const ChatList = ({
 
     const toggleContactTemplate = () => {
         setShowContactTemplate(!showContactTemplate);
+        if (!showContactTemplate) {
+            setAction("contacts"); 
+        }
     };
 
     const formatTime = (dateString) => {
@@ -79,6 +86,20 @@ const ChatList = ({
         }
     };
 
+    const handleStarToggle = useCallback((chatId) => {
+        setStarredChats((prevStarredChats) => {
+            const isStarred = !!prevStarredChats[chatId];
+            // Simulate API call
+            console.log(
+                `Simulating API call to update star status for chat ${chatId}: ${!isStarred}`
+            );
+            return {
+                ...prevStarredChats,
+                [chatId]: !isStarred,
+            };
+        });
+    }, []);
+
     useEffect(() => {
         const initialChatType = CHATS_TYPE.find(
             (type) => type.action === action
@@ -87,6 +108,16 @@ const ChatList = ({
             initialChatType ? initialChatType.name : CHATS_TYPE[0].name
         );
     }, [action]);
+
+    useEffect(() => {
+        const initialStarredChats = chats.reduce((acc, chat) => {
+            if (chat?.chat_room?.is_starred === "favorite") {
+                acc[chat.chat_room.id] = true;
+            }
+            return acc;
+        }, {});
+        setStarredChats(initialStarredChats);
+    }, [chats]);
 
     return (
         <div className="p-6">
@@ -129,7 +160,7 @@ const ChatList = ({
                             value={selectedChat}
                             onChange={handleChatSelection}
                             placeholder="All Chats"
-                            className="border-none w-40 font-medium text-xl pl-0"
+                            className="border-none font-medium text-xl pl-0"
                         />
                         <span className="text-xs font-medium text-slate-400">
                             {`${totalCount} Chats  ${unreadCount} Unread`}
@@ -157,29 +188,40 @@ const ChatList = ({
                     <ContactTemplate
                         templates={templates}
                         setShowContactTemplate={setShowContactTemplate}
+                        contacts={contacts}
                     />
                 ) : chats?.length > 0 ? (
                     chats?.map((chat) => (
                         <div
                             key={chat?.chat_room?.id}
                             className="border-b py-4 hover:bg-[#fdfdfd] cursor-pointer px-2 my-1"
+                            onMouseEnter={() =>
+                                setHoveredChat(chat.chat_room.id)
+                            }
+                            onMouseLeave={() => setHoveredChat(null)}
                         >
                             <div className="flex justify-between items-center">
-                                <h3 className="font-bold ">
+                                <h3 className="font-bold">
                                     {chat?.replySourceMessage}
                                 </h3>
                                 <FontAwesomeIcon
                                     icon={faStar}
+                                    onClick={() =>
+                                        handleStarToggle(chat.chat_room.id)
+                                    }
                                     className={
-                                        chat?.chat_room?.is_starred ===
-                                        "favorite"
-                                            ? "text-amber-300"
-                                            : "text-slate-100"
+                                        starredChats[chat.chat_room.id]
+                                            ? "text-amber-300 cursor-pointer"
+                                            : hoveredChat === chat.chat_room.id
+                                            ? "text-slate-100 cursor-pointer"
+                                            : "hidden"
                                     }
                                 />
                             </div>
 
-                            <div className="my-1">{chat?.text}</div>
+                            <div className="my-1 truncate-multiline">
+                                {chat?.text}
+                            </div>
 
                             <div className="flex justify-between text-xs">
                                 <p
@@ -205,7 +247,7 @@ const ChatList = ({
                     width="50vw"
                     height="60vh"
                 >
-                    <FilterConversation closeModal={handleModal} />
+                    <AdvanceFilter closeModal={handleModal} user={user} />
                 </Modal>
             )}
         </div>

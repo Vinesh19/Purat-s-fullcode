@@ -5,9 +5,8 @@ import Dropdown from "../Dropdown";
 import Input from "../Input";
 import Button from "../Button";
 
-import { ContactList } from "../../services/api";
-
-const ContactTemplate = ({ templates, setShowContactTemplate }) => {
+const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
+    console.log("contacts", contacts);
     const [selectedContact, setSelectedContact] = useState("");
     const [showTemplates, setShowTemplates] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -21,7 +20,7 @@ const ContactTemplate = ({ templates, setShowContactTemplate }) => {
     };
 
     const handleClose = () => {
-        setShowContactTemplate(false); // Use setShowContactTemplate to close the template
+        setShowContactTemplate(false);
     };
 
     const handleSearchChange = (e) => {
@@ -35,6 +34,11 @@ const ContactTemplate = ({ templates, setShowContactTemplate }) => {
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase())
     );
+
+    const transformedContacts = contacts.map((contact) => ({
+        id: contact.receiver_id,
+        name: `${contact.replySourceMessage} (${contact.receiver_id})`,
+    }));
 
     return (
         <div className="bg-slate-100 rounded-lg p-3 flex flex-col gap-2 text-center">
@@ -54,7 +58,7 @@ const ContactTemplate = ({ templates, setShowContactTemplate }) => {
                     <span className="font-medium">Or</span>
                     <div>
                         <Dropdown
-                            options={ContactList} // Update with actual ContactList options
+                            options={transformedContacts} // Update with actual ContactList options
                             value={selectedContact}
                             onChange={handleContactChange}
                             placeholder="Search contacts"

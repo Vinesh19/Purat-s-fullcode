@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\MobNo3;
-use App\Models\Template;
-use App\Models\ChatMessage;
 use Illuminate\Http\Request;
 use App\Models\CampaignDetail;
 use Illuminate\Support\Facades\DB;
@@ -17,10 +15,25 @@ class BroadcastController extends Controller
         // Validate incoming request
         $validator = Validator::make($request->all(), [
             'username' => 'required',
-            'name1' => 'nullable',
-            'template_name1' => 'required',
-            'template_id2' => 'required',
-            'textbox' => 'required|string|regex:/^[0-9\s\n]+$/', // Validation for numbers, spaces, and new lines only
+            'name1' => 'nullable', //updated
+            'textbox' => [
+                'required',
+                'string',
+                'regex:/^[0-9\s\n]+$/', // Validation for numbers, spaces, and new lines only
+                function ($attribute, $value, $fail) {
+                    $lines = preg_split('/\r\n|\r|\n/', $value);
+                    foreach ($lines as $lineNumber => $line) {
+                        $line = trim($line);
+                        if (!empty($line) && !preg_match('/^\d{10,16}$/', $line)) {
+                            $fail("Each mobile number must be between 10 to 16 digits. Invalid number: $line on line " . ($lineNumber + 1));
+                        }
+                    }
+                }
+            ],
+            'scheduled_date' => 'required|date_format:Y-m-d', //updated
+            'scheduled_time' => 'required|date_format:H:i', //updated
+            'broadcast_name' => 'required',
+            'template_name' => 'required',
         ]);
 
         // Return validation errors if any
@@ -32,15 +45,12 @@ class BroadcastController extends Controller
             // Extract request data
             $username = $request->input('username');
             $name1 = $request->input('name1'); // sender_id
-            $template_name1 = $request->input('template_name1');
-            $template_id2 = $request->input('template_id2');
-            $delivery_date = $request->input('delivery_date');
-            $delivery_time = $request->input('delivery_time');
-
+            $schedule_date = $request->input('scheduled_date'); //updated
+            $schedule_time = $request->input('scheduled_time'); //updated
+            $broadcast_name = $request->input('broadcast_name'); //updated
+            $template_name = $request->input('template_name'); //updated
             $media1 = $request->file('media_file');
             $media_file_Path = $media1 ? $media1->store('media', 'public') : null;
-            // $media1 = $request->input('media_file');
-
             $media2 = $request->input('attribute1');
             $media3 = $request->input('attribute2');
             $media4 = $request->input('attribute3');
@@ -53,12 +63,9 @@ class BroadcastController extends Controller
             $media11 = $request->input('attribute10');
             $media12 = $request->input('attribute11');
             $media13 = $request->input('attribute12');
-
             $reseller = $request->reseller;
-            $status_campaign = $request->status;
-            $queue_no = $request->queue_no;
-
-            // $template_id2 = Template::where('username', $username)->get('id');
+            $status_campaign = $request->status_campaign; //updated
+            $status = $request->status; //updated
 
             // Extract mobile numbers from Textbox (split by new line)
             $mobileNumbers = preg_split('/\r\n|\r|\n/', $request->input('textbox'));
@@ -76,7 +83,6 @@ class BroadcastController extends Controller
                     $data[] = [
                         'receiver' => $receiver,
                         'media1' => $media_file_Path,
-                        // 'media1' => $media1,
                         'media2' => $media2,
                         'media3' => $media3,
                         'media4' => $media4,
@@ -90,14 +96,14 @@ class BroadcastController extends Controller
                         'media12' => $media12,
                         'media13' => $media13,
                         'username' => $username,
-                        'template_id' => $template_name1,
-                        'template_id2' => $template_id2,
+                        'template_id' => $template_name,
+                        // 'template_id2' => $template_id2,
                         'name' => $name1,
-                        'status' => 'PP1',
-                        'delivery_date' => $delivery_date,
-                        'delivery_time' => $delivery_time,
-                        'dat' => now()->format('d M Y'),
-                        'tim' => now()->format('H:i'),
+                        'status' => $status,
+                        'schedule_date' => $schedule_date, //updated
+                        'schedule_time' => $schedule_time, //updated
+                        // 'dat' => now()->format('d M Y'),//updated
+                        // 'tim' => now()->format('H:i'),//updated
                         'request_id' => $request_id,
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -117,15 +123,14 @@ class BroadcastController extends Controller
             // Insert data into campaign_details_trials
             CampaignDetail::create([
                 'username' => $username,
-                'senderid' => $name1,
+                'senderid' => $broadcast_name,
                 'request_id' => $request_id,
                 'Reseller' => $reseller,
-                'dat' => $delivery_date,
-                'estimated_time' => $delivery_time,
-                'date' => $delivery_date,
-                'status' => $status_campaign,
+                'status' => $status_campaign ?? 'pending', // Use the default value if not provided
                 'numbers' => $numbers_counts,
-                'queue_no' => $queue_no,
+                'queue_no' => $template_name,
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
 
             // Commit transaction

@@ -7,10 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str; //needed in email verification
-use Illuminate\Support\Facades\URL; //needed in email verification
 
 class EmailOTPController extends Controller
 {
@@ -46,13 +43,13 @@ class EmailOTPController extends Controller
             $user->otp_created_at = Carbon::now();
             $user->save();
 
-            $token = $user->createToken("auth_token")->accessToken;
+            // $token = $user->createToken("auth_token")->accessToken;
 
             return response()->json([
                 'email' => $user->email,
                 'status' => 1,
                 'message' => 'OTP send successfully.',
-                'token' => $token,
+                // 'token' => $token,
             ], 200);
         } else {
             return response()->json([
@@ -115,9 +112,12 @@ class EmailOTPController extends Controller
             'otp_created_at' => null,
         ]);
 
+        // $token = $user->createToken("auth_token")->accessToken;
+
         return response()->json([
             'status' => 1,
-            'message' => 'OTP verified.'
+            'message' => 'OTP verified.',
+            // 'token' => $token,
         ], 200);
     }
 

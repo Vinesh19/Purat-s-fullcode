@@ -33,6 +33,7 @@ class User extends Authenticatable
         'email_otp_verified_at',
         'otp',
         'otp_created_at',
+        // 'verified_mobile_no',
     ];
 
     /**

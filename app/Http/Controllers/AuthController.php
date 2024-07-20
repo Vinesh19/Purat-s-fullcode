@@ -53,14 +53,14 @@ class AuthController extends Controller
             ]);
 
             // Create an auth token for the user
-            $token = $user->createToken("auth_token")->accessToken;
+            // $token = $user->createToken("auth_token")->accessToken;
 
             // Return success response
             return response()->json(
                 [
                     'status' => 1,
                     'message' => 'User registered successfully',
-                    'token' => $token,
+                    // 'token' => $token,
                     'user' => $user
                 ],
                 201
@@ -71,72 +71,13 @@ class AuthController extends Controller
         }
     }
 
-
-    public function verifyEmail(Request $request)
-    {
-        try {
-            // Validate incoming request
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|string|email|max:255',
-            ]);
-
-            // Check if validation fails
-            if ($validator->fails()) {
-                return response()->json(['status' => 0, 'message' => $validator->errors()], 400);
-            }
-
-            // Check if email exists
-            $user = User::where('email', $request->email)->first();
-            if ($user) {
-                // Email exists
-                return response()->json(['status' => 1, 'message' => 'Email exists'], 200);
-            } else {
-                // Email does not exist
-                return response()->json(['status' => 0, 'message' => 'Email does not exist'], 200);
-            }
-        } catch (\Exception $e) {
-            // Return error response with exception message
-            return response()->json(['status' => 0, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
-        }
-    }
-
-
-    public function verifyMobile(Request $request)
-    {
-        try {
-            // Validate incoming request
-            $validator = Validator::make($request->all(), [
-                'mobile_no' => 'required|numeric|digits_between:8,15',
-            ]);
-
-            // Check if validation fails
-            if ($validator->fails()) {
-                return response()->json(['status' => 0, 'message' => $validator->errors()->first()], 400);
-            }
-
-            // Check if mobile_no exists
-            $user = User::where('mobile_no', $request->mobile_no)->first();
-            if ($user) {
-                // mobile_no exists
-                return response()->json(['status' => 1, 'message' => 'mobile_no exists'], 200);
-            } else {
-                // mobile_no does not exist
-                return response()->json(['status' => 0, 'message' => 'mobile_no does not exist'], 200);
-            }
-        } catch (\Exception $e) {
-            // Return error response with exception message
-            return response()->json(['status' => 0, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
-        }
-    }
-
-
     public function login(Request $request)
     {
         try {
             // Validate incoming request
             $validator = Validator::make($request->all(), [
-                'email_or_username' => 'required|string',
-                'password' => 'required|string',
+                'email_or_username' => 'required|string|max:255',
+                'password' => 'required|string|max:255',
             ]);
 
             // Return validation errors if any
@@ -154,6 +95,13 @@ class AuthController extends Controller
                 $user = Auth::user();
                 $token = $user->createToken("auth_token")->accessToken;
 
+                // Update last_login column to current timestamp
+                // Find the user based on the login field type
+                $user_ci_admin = User::where($fieldType, $credentials['email_or_username'])->first();
+                // return $user_ci_admin;
+                $user_ci_admin->last_login = now();
+                $user_ci_admin->save();
+
                 // Return success response
                 return response()->json([
                     'status' => 1,
@@ -170,7 +118,6 @@ class AuthController extends Controller
             return response()->json(['status' => 0, 'message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
-
 
     public function logout(Request $request)
     {

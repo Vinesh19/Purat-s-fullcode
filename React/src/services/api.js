@@ -14,11 +14,11 @@ export const SEND_EMAIL_OTP = `${API_BASE_URL}/send-email-otp`;
 export const VERIFY_EMAIL_OTP = `${API_BASE_URL}/verify-email-otp`;
 export const CHANGE_PASSWORD = `${API_BASE_URL}/update-password`;
 export const LOGOUT = `${API_BASE_URL}/logout`;
-export const NEW_DASHBOARD_TEMPLATE = `${API_BASE_URL}/template-name`;
-export const NEW_DASHBOARD_TEMPLATE_MESSAGE = `${API_BASE_URL}/template`;
+export const TEMPLATE_DATA = `${API_BASE_URL}/template`;
 export const NEW_DASHBOARD_TEMPLATE_GROUP = `${API_BASE_URL}/fetching-group-names`;
 export const SUBMIT_BROADCAST_DATA = `${API_BASE_URL}/insert-broadcast-data`;
 export const CHATS_DATA = `${API_BASE_URL}/filtered-data`;
+export const ADVANCE_FILTER_CHAT_DATA = `${API_BASE_URL}/advance-filtered-data`;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -80,12 +80,8 @@ export const logout = () => {
     return api.post(LOGOUT);
 };
 
-export const templateData = (user) => {
-    return api.post(NEW_DASHBOARD_TEMPLATE, user);
-};
-
-export const fetchTemplateMessage = (templateId) => {
-    return api.get(`${NEW_DASHBOARD_TEMPLATE_MESSAGE}/${templateId}`);
+export const templateData = (data) => {
+    return api.post(TEMPLATE_DATA, data);
 };
 
 export const templateGroups = (user) => {
@@ -96,105 +92,13 @@ export const submitBroadcastData = (data) => {
     return api.post(SUBMIT_BROADCAST_DATA, data);
 };
 
-// export const searchFilteredData = (search) => {
-//     return api.post(SEARCH_FILTERED_DATA, search);
-// };
-
 export const fetchAllChats = (action) => {
     return api.post(CHATS_DATA, action);
 };
 
+export const advanceFilterChatData = (data) => {
+    return api.post(ADVANCE_FILTER_CHAT_DATA, data);
+};
+
 export default api;
 
-export const CHATS_TYPE = [
-    {
-        id: "1",
-        name: "Active chats",
-        action: "active",
-    },
-    {
-        id: "2",
-        name: "Broadcast",
-        action: "broadcast",
-    },
-    {
-        id: "3",
-        name: "Unassigned",
-        action: "unassigned",
-    },
-    {
-        id: "4",
-        name: "Unread",
-        action: "unread",
-    },
-    {
-        id: "5",
-        name: "Expired",
-        action: "expired",
-    },
-    {
-        id: "6",
-        name: "Assigned to me",
-        action: "assign_to_me",
-    },
-    {
-        id: "7",
-        name: "Favorite only",
-        action: "favorite",
-    },
-    {
-        id: "8",
-        name: "Open",
-        action: "open",
-    },
-    {
-        id: "9",
-        name: "Pending",
-        action: "pending",
-    },
-    {
-        id: "10",
-        name: "Solved",
-        action: "solved",
-    },
-];
-
-
-export const ContactList = [
-    { id: "1", name: "9090119192" },
-    { id: "2", name: "939892723" },
-    { id: "3", name: "6767283923" },
-    { id: "4", name: "43874834834" },
-    { id: "5", name: "939892723" },
-    { id: "6", name: "4934988555" },
-    { id: "7", name: "7873393033" },
-    { id: "8", name: "939892723" },
-];
-
-export const filterStatus = [
-    { id: "1", name: "Attribute" },
-    { id: "2", name: "Assignee" },
-    { id: "3", name: "Status" },
-    { id: "4", name: "Team" },
-    { id: "5", name: "Tag" },
-];
-
-export const filterAttribute = [
-    { id: "1", name: "Attribute1" },
-    { id: "2", name: "Attribute2" },
-    { id: "3", name: "Attribute3" },
-    { id: "4", name: "Attribute4" },
-    { id: "5", name: "Attribute5" },
-    { id: "6", name: "Attribute6" },
-    { id: "7", name: "Attribute7" },
-    { id: "8", name: "Attribute8" },
-    { id: "9", name: "Attribute9" },
-    { id: "10", name: "Attribute10" },
-    { id: "11", name: "Attribute11" },
-    { id: "12", name: "Attribute12" },
-];
-
-export const filterOperation = [
-    { id: "1", name: "=" },
-    { id: "2", name: "!=" },
-];

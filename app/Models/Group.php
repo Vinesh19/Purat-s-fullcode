@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Contact;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Group extends Model
 {
@@ -16,4 +17,9 @@ class Group extends Model
         'Group_name',
         'added_by'
     ];
+
+    public function contacts()
+    {
+        return $this->hasMany(Contact::class, 'Contact_group_id', 'id');
+    }
 }

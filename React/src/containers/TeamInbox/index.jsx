@@ -7,7 +7,6 @@ import UserInfo from "../../components/TeamInbox/UserInfo";
 
 import {
     templateData,
-    fetchTemplateMessage,
     fetchAllChats,
 } from "../../services/api";
 
@@ -17,45 +16,49 @@ const TeamInbox = ({ user }) => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
     const [action, setAction] = useState("active");
+    const [contacts, setContacts] = useState([]);
 
     const fetchTemplatesAndMessages = async () => {
         try {
             const response = await templateData({
                 username: user.username,
+                action: "read"
             });
 
-            if (response?.data?.template) {
-                const templatesArray = Object.entries(
-                    response.data.template
-                ).map(([id, name]) => ({ id, name }));
+            console.log('temp', response)
 
-                const templatesWithMessages = await Promise.all(
-                    templatesArray.map(async (template) => {
-                        try {
-                            const messageResponse = await fetchTemplateMessage(
-                                template.id
-                            );
-                            const templateBody =
-                                messageResponse?.data?.template
-                                    ?.template_body || "No message available";
-                            return { ...template, templateBody };
-                        } catch (error) {
-                            console.error(
-                                `Failed to fetch message for template ${template.id}`,
-                                error
-                            );
-                            return {
-                                ...template,
-                                templateBody: "Failed to fetch message",
-                            };
-                        }
-                    })
-                );
+            // if (response?.data?.template) {
+            //     const templatesArray = Object.entries(
+            //         response.data.template
+            //     ).map(([id, name]) => ({ id, name }));
 
-                setTemplates(templatesWithMessages);
-            } else {
-                toast.error("No templates found");
-            }
+            //     const templatesWithMessages = await Promise.all(
+            //         templatesArray.map(async (template) => {
+            //             try {
+            //                 const messageResponse = await fetchTemplateMessage(
+            //                     template.id
+            //                 );
+            //                 const templateBody =
+            //                     messageResponse?.data?.template
+            //                         ?.template_body || "No message available";
+            //                 return { ...template, templateBody };
+            //             } catch (error) {
+            //                 console.error(
+            //                     `Failed to fetch message for template ${template.id}`,
+            //                     error
+            //                 );
+            //                 return {
+            //                     ...template,
+            //                     templateBody: "Failed to fetch message",
+            //                 };
+            //             }
+            //         })
+            //     );
+
+            //     setTemplates(templatesWithMessages);
+            // } else {
+            //     toast.error("No templates found");
+            // }
         } catch (error) {
             toast.error("Failed to fetch templates");
             console.error("Failed to fetch templates", error);
@@ -66,15 +69,19 @@ const TeamInbox = ({ user }) => {
         try {
             const response = await fetchAllChats({
                 action: actionType,
-                username: user.username,
+                username: user?.username,
             });
 
             if (response?.data?.data) {
-                setChats(response?.data?.data);
-                setUnreadCount(response?.data?.unreadCount);
-                setTotalCount(response?.data?.totalCount);
+                if (actionType === "contacts") {
+                    setContacts(response?.data?.data); 
+                } else {
+                    setChats(response?.data?.data);
+                    setUnreadCount(response?.data?.unreadCount);
+                    setTotalCount(response?.data?.totalCount);
+                }
             } else {
-                toast.error("No chats found");
+                toast.error("No data found");
             }
         } catch (error) {
             toast.error("Failed to fetch chats");
@@ -82,13 +89,13 @@ const TeamInbox = ({ user }) => {
         }
     };
 
-     useEffect(() => {
-         fetchTemplatesAndMessages();
-     }, []); 
+    useEffect(() => {
+        fetchTemplatesAndMessages();
+    }, []);
 
-     useEffect(() => {
-         fetchChats(action);
-     }, [action]); 
+    useEffect(() => {
+        fetchChats(action);
+    }, [action]);
 
     return (
         <div className="flex">
@@ -100,6 +107,8 @@ const TeamInbox = ({ user }) => {
                     totalCount={totalCount}
                     action={action}
                     setAction={setAction}
+                    user={user}
+                    contacts={contacts}
                 />
             </div>
 

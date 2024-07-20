@@ -13,8 +13,17 @@ return new class extends Migration
     {
         Schema::create('assign_users', function (Blueprint $table) {
             $table->id();
-            $table->string('assign_user');
             $table->string('username');
+            $table->string('assign_user');
+            $table->tinyInteger('roll')->default(0)->comment('0=trial, 1= , 2= , 3=');
+            $table->string('agent_email')->nullable();
+            $table->tinyInteger('is_email_verified')->default(0);
+            $table->string('agent_mobile')->nullable();
+            $table->tinyInteger('is_mobile_verified')->default(0);
+            $table->string('online_status');
+            $table->timestamp('last_login_at')->nullable();
+            $table->string('last_login_IP')->nullable();
+            $table->string('team')->default('all_team');
             $table->timestamps();
         });
     }

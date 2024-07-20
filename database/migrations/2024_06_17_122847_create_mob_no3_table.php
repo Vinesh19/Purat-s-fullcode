@@ -25,14 +25,14 @@ return new class extends Migration
             $table->string('dat', 30)->nullable(); //nullable added by me
             $table->string('tim', 30)->nullable(); //nullable added by me
             $table->string('credits', 10)->nullable(); //nullable added by me
-            $table->string('request_id', 30)->nullable(); //nullable added by me
+            $table->string('request_id', 30);
             $table->string('delivery_time', 30)->nullable(); //nullable added by me
             $table->string('delivery_date')->nullable(); //nullable added by me//datetime into string by me
             $table->string('template_id', 100);
             // $table->unsignedBigInteger('template_id2');
             $table->string('message')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
-            $table->string('schedule_date', 45)->default('0000-00-00')->nullable(); //nullable added by me
-            $table->string('schedule_time')->default(now())->nullable(); //nullable added by me//datetime into string by me
+            $table->string('schedule_date');
+            $table->time('schedule_time');
             $table->string('success_full_per', 45)->default('0')->comment('3=fake, 0=real, 1=scrub pending');
             $table->string('media1')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content
             $table->string('media2')->nullable()->collation('utf8mb4_unicode_ci'); //Changed to TEXT for potentially large content

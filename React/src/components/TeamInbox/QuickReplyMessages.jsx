@@ -8,7 +8,7 @@ import Input from "../Input";
 import Modal from "../Modal";
 import CreateQuickReply from "./CreateQuickReply";
 
-import { ContactList } from "../../services/api";
+import { CONTACT_LIST } from "../../services/constant";
 
 const QuickReplyMessages = () => {
     const [openCreateQuickReply, setOpenCreateQuickReply] = useState(false);
@@ -58,7 +58,7 @@ const QuickReplyMessages = () => {
             <div className="flex items-center gap-28 border-b pb-4">
                 <h3 className="text-lg font-semibold">Use a Quick Response</h3>
                 <div className="flex gap-5">
-                    <Dropdown options={ContactList} placeholder="Most Used" />
+                    <Dropdown options={CONTACT_LIST} placeholder="Most Used" />
                     <Input placeholder="Search" />
                     <Button variant="primary" onClick={handleCreateModal}>
                         Create

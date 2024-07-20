@@ -20,5 +20,6 @@ class ChatMessageRoom extends Model
         // 'username'
     ];
 
-
+    // Disable automatic timestamps
+    public $timestamps = false;
 }
