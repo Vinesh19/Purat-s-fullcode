@@ -2,18 +2,18 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
-import Dropdown from "../Dropdown";
-import Input from "../Input";
-import Button from "../Button";
-import MultiSelectDropdown from "../MultiSelectDropdown";
+import Dropdown from "../../Dropdown";
+import Input from "../../Input";
+import Button from "../../Button";
+import MultiSelectDropdown from "../../MultiSelectDropdown";
 
-import { advanceFilterChatData } from "../../services/api";
+import { advanceFilterChatData } from "../../../services/api";
 import {
     FILTER_STATUS,
     FILTER_ATTRIBUTE,
     FILTER_OPERATION,
     FILTER_OPTIONS,
-} from "../../services/constant";
+} from "../../../services/constant";
 
 const AdvanceFilter = ({ closeModal, user }) => {
     const [filters, setFilters] = useState([

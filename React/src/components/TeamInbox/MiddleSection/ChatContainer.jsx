@@ -1,13 +1,16 @@
+import ChatContent from "./ChatContent";
 import ChatFooter from "./ChatFooter";
 import ChatNavbar from "./ChatNavbar";
 
-const ChatContent = ({ templates }) => {
+const ChatContainer = ({ templates }) => {
     return (
         <div className="bg-slate-50 h-full flex flex-col">
             <div>
                 <ChatNavbar />
             </div>
-            <div className=" flex-1"></div>
+            <div className="flex-1">
+                <ChatContent />
+            </div>
             <div>
                 <ChatFooter templates={templates} />
             </div>
@@ -15,4 +18,4 @@ const ChatContent = ({ templates }) => {
     );
 };
 
-export default ChatContent;
+export default ChatContainer;

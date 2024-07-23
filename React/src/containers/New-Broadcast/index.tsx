@@ -36,47 +36,47 @@ const NewBroadcast = ({ closeModal, resetForm, user }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [groups, setGroups] = useState([]);
 
-    const handleTemplateChange = async (e) => {
-        const selectedId = e.target.value;
-        setSelectedTemplate(selectedId); // Set the selected template ID
-        try {
-            const response = await fetchTemplateMessage(selectedId);
-            const selectedTemplate = response?.data?.template;
-            console.log("selectedTemplate", selectedTemplate);
+    // const handleTemplateChange = async (e) => {
+    //     const selectedId = e.target.value;
+    //     setSelectedTemplate(selectedId); // Set the selected template ID
+    //     try {
+    //         const response = await fetchTemplateMessage(selectedId);
+    //         const selectedTemplate = response?.data?.template;
+    //         console.log("selectedTemplate", selectedTemplate);
 
-            setMessage(selectedTemplate?.template_body || "");
-            setHeaderMediaType(selectedTemplate?.header_media_type);
+    //         setMessage(selectedTemplate?.template_body || "");
+    //         setHeaderMediaType(selectedTemplate?.header_media_type);
 
-            setCallToAction({
-                callPhoneNumber: selectedTemplate?.call_phone_btn_phone_number,
-                callPhoneText: selectedTemplate?.call_phone_btn_text,
-                visitWebsiteText: selectedTemplate?.visit_website_btn_text,
-                visitWebsiteUrl: selectedTemplate?.visit_website_url_text,
-            });
+    //         setCallToAction({
+    //             callPhoneNumber: selectedTemplate?.call_phone_btn_phone_number,
+    //             callPhoneText: selectedTemplate?.call_phone_btn_text,
+    //             visitWebsiteText: selectedTemplate?.visit_website_btn_text,
+    //             visitWebsiteUrl: selectedTemplate?.visit_website_url_text,
+    //         });
 
-            setQuickReply({
-                quickReply1: selectedTemplate?.quick_reply_btn_text1,
-                quickReply2: selectedTemplate?.quick_reply_btn_text2,
-                quickReply3: selectedTemplate?.quick_reply_btn_text3,
-            });
+    //         setQuickReply({
+    //             quickReply1: selectedTemplate?.quick_reply_btn_text1,
+    //             quickReply2: selectedTemplate?.quick_reply_btn_text2,
+    //             quickReply3: selectedTemplate?.quick_reply_btn_text3,
+    //         });
 
-            // Extract dynamic attributes from the message
-            const matches =
-                selectedTemplate?.template_body?.match(/{{\s*[\w]+\s*}}/g) ||
-                [];
-            const attrObj = {};
-            matches.forEach((match, index) => {
-                const key = match.replace(/[{}]/g, "").trim();
-                attrObj[`attribute${index + 1}`] = key;
-            });
-            setAttributes(attrObj);
-        } catch (error) {
-            toast.error("Failed to fetch template message");
-            console.error("Failed to fetch template message", error);
-            setMessage("");
-            setAttributes({});
-        }
-    };
+    //         // Extract dynamic attributes from the message
+    //         const matches =
+    //             selectedTemplate?.template_body?.match(/{{\s*[\w]+\s*}}/g) ||
+    //             [];
+    //         const attrObj = {};
+    //         matches.forEach((match, index) => {
+    //             const key = match.replace(/[{}]/g, "").trim();
+    //             attrObj[`attribute${index + 1}`] = key;
+    //         });
+    //         setAttributes(attrObj);
+    //     } catch (error) {
+    //         toast.error("Failed to fetch template message");
+    //         console.error("Failed to fetch template message", error);
+    //         setMessage("");
+    //         setAttributes({});
+    //     }
+    // };
 
     const fetchTemplateGroups = async () => {
         try {

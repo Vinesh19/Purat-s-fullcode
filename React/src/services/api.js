@@ -18,6 +18,7 @@ export const TEMPLATE_DATA = `${API_BASE_URL}/template`;
 export const NEW_DASHBOARD_TEMPLATE_GROUP = `${API_BASE_URL}/fetching-group-names`;
 export const SUBMIT_BROADCAST_DATA = `${API_BASE_URL}/insert-broadcast-data`;
 export const CHATS_DATA = `${API_BASE_URL}/filtered-data`;
+export const FAVORITE_CHAT = `${API_BASE_URL}/chat-message-room/update`;
 export const ADVANCE_FILTER_CHAT_DATA = `${API_BASE_URL}/advance-filtered-data`;
 
 const api = axios.create({
@@ -98,6 +99,10 @@ export const fetchAllChats = (action) => {
 
 export const advanceFilterChatData = (data) => {
     return api.post(ADVANCE_FILTER_CHAT_DATA, data);
+};
+
+export const favoriteChats = (payload) => {
+    return api.post(FAVORITE_CHAT, payload);
 };
 
 export default api;

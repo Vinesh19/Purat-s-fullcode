@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar, faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
-import Dropdown from "../Dropdown";
-import { CONTACT_LIST } from "../../services/constant";
+
+import Dropdown from "../../Dropdown";
+import SubmitDropdown from "./SubmitDropdown";
+
+import { CONTACT_LIST, SUBMIT_STATUS } from "../../../services/constant";
 
 const ChatNavbar = () => {
     const [time, setTime] = useState("");
     const [user, setUser] = useState("");
+    const [submitStatus, setSubmitStatus] = useState(null);
 
     const getTime = () => {
         const currentDateTime = new Date();
@@ -21,15 +25,19 @@ const ChatNavbar = () => {
         setUser(e.target.value);
     };
 
+    const handleSubmitStatusChange = (status) => {
+        setSubmitStatus(status);
+    };
+
     useEffect(() => {
         getTime();
-        const interval = setInterval(getTime, 60000); 
+        const interval = setInterval(getTime, 60000);
 
-        return () => clearInterval(interval); 
+        return () => clearInterval(interval);
     }, []);
 
     return (
-        <div className="flex items-center justify-between bg-white shadow-lg m-1 px-8 py-4 rounded-sm w-[50vw]">
+        <div className="flex items-center justify-between bg-white shadow-lg m-1 px-8 py-4 rounded-sm">
             <div className="text-green-600 font-semibold border-2 rounded-full inline p-2 bg-slate-50">
                 {time}
             </div>
@@ -72,12 +80,11 @@ const ChatNavbar = () => {
             </div>
 
             <div>
-                <Dropdown
-                    options={CONTACT_LIST}
-                    value={user}
-                    onChange={handleUserChange}
+                <SubmitDropdown
+                    options={SUBMIT_STATUS}
+                    value={submitStatus}
+                    onChange={handleSubmitStatusChange}
                     placeholder="Submit As"
-                    className="font-semibold bg-slate-50 border-none hover:border-green-500"
                 />
             </div>
         </div>

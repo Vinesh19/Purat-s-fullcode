@@ -94,3 +94,9 @@ export const FILTER_OPTIONS = [
     { id: "3", name: "Pending", color: "#f1c40f" },
     { id: "4", name: "Expired", color: "#e74c3c" },
 ];
+
+export const SUBMIT_STATUS = [
+    { id: 1, name: "Open", color: "blue" },
+    { id: 2, name: "Pending", color: "orange" },
+    { id: 3, name: "Solved", color: "green" },
+];

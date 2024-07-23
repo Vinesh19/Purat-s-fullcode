@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Button from "../Button";
+import Button from "../../Button";
 
 const CreateQuickReply = ({ onSave, initialData }) => {
     const [title, setTitle] = useState(initialData ? initialData.title : "");

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Input from "../Input";
-import Modal from "../Modal";
+import Input from "../../Input";
+import Modal from "../../Modal";
 import CustomParameter from "./CustomParameter";
 
 const UserInfo = () => {

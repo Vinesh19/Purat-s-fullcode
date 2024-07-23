@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
-import Button from "../Button";
+import Button from "../../Button";
 
 const CustomParameter = ({ onSave, params }) => {
     const [attributes, setAttributes] = useState(params);

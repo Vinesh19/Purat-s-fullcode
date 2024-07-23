@@ -3,9 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperclip, faSmile, faBolt } from "@fortawesome/free-solid-svg-icons";
 import EmojiPicker from "emoji-picker-react";
 
-import Input from "../Input";
-import Button from "../Button";
-import Modal from "../Modal";
+import Input from "../../Input";
+import Button from "../../Button";
+import Modal from "../../Modal";
 import Templates from "./Templates";
 import FileUploadModal from "./FileUploadModal";
 import QuickReplyMessages from "./QuickReplyMessages";

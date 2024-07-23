@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import Button from "../Button";
+import { useState, useRef } from "react";
+import Button from "../../Button";
 
 const FileUploadModal = () => {
     const [selectedOption, setSelectedOption] = useState(null);

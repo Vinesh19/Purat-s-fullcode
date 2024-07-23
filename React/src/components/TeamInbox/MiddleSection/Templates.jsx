@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Input from "../Input";
+import Input from "../../Input";
 
 const Templates = ({ templates }) => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -10,11 +10,14 @@ const Templates = ({ templates }) => {
 
     const filteredTemplates = templates.filter(
         (template) =>
-            template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            template.templateBody
+            template.template_name
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+            template.template_body
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase())
     );
+
     return (
         <div className="h-full flex flex-col">
             <div className="flex items-center gap-4 border-b-2 pb-4">
@@ -33,8 +36,10 @@ const Templates = ({ templates }) => {
                         key={template.id}
                         className="bg-white py-5 rounded border-b hover:bg-slate-50 cursor-pointer"
                     >
-                        <h3 className="font-bold mb-1">{template.name}</h3>
-                        <p>{template.templateBody}</p>
+                        <h3 className="font-bold mb-1">
+                            {template.template_name}
+                        </h3>
+                        <p>{template.template_body}</p>
                     </div>
                 ))}
             </div>

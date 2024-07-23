@@ -2,13 +2,13 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
-import Button from "../Button";
-import Dropdown from "../Dropdown";
-import Input from "../Input";
-import Modal from "../Modal";
+import Button from "../../Button";
+import Dropdown from "../../Dropdown";
+import Input from "../../Input";
+import Modal from "../../Modal";
 import CreateQuickReply from "./CreateQuickReply";
 
-import { CONTACT_LIST } from "../../services/constant";
+import { CONTACT_LIST } from "../../../services/constant";
 
 const QuickReplyMessages = () => {
     const [openCreateQuickReply, setOpenCreateQuickReply] = useState(false);

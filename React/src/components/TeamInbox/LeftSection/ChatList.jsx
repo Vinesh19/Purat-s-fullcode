@@ -7,13 +7,14 @@ import {
     faStar,
 } from "@fortawesome/free-solid-svg-icons";
 
-import Dropdown from "../Dropdown";
-import Modal from "../Modal";
+import Dropdown from "../../Dropdown";
+import Modal from "../../Modal";
 import AdvanceFilter from "./AdvanceFilter";
-import ContactTemplate from "./ContactTemplate";
+import ContactTemplate from "../LeftSection/ContactTemplate";
 
-import { CHATS_TYPE } from "../../services/constant";
-import "./TeamInbox.css";
+import { favoriteChats } from "../../../services/api";
+import { CHATS_TYPE } from "../../../services/constant";
+import "../TeamInbox.css";
 
 const ChatList = ({
     templates,
@@ -24,6 +25,7 @@ const ChatList = ({
     setAction,
     user,
     contacts,
+    onSelectChat,
 }) => {
     const [selectedChat, setSelectedChat] = useState(action);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,9 +56,17 @@ const ChatList = ({
     const toggleContactTemplate = () => {
         setShowContactTemplate(!showContactTemplate);
         if (!showContactTemplate) {
-            setAction("contacts"); 
+            setAction("contacts");
         }
     };
+
+    const filteredChats = chats.filter(
+        (chat) =>
+            chat?.replySourceMessage
+                ?.toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+            chat?.text?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const formatTime = (dateString) => {
         const date = new Date(dateString);
@@ -86,19 +96,31 @@ const ChatList = ({
         }
     };
 
-    const handleStarToggle = useCallback((chatId) => {
-        setStarredChats((prevStarredChats) => {
-            const isStarred = !!prevStarredChats[chatId];
-            // Simulate API call
-            console.log(
-                `Simulating API call to update star status for chat ${chatId}: ${!isStarred}`
-            );
-            return {
-                ...prevStarredChats,
-                [chatId]: !isStarred,
+    const handleStarToggle = useCallback(
+        async (chat) => {
+            const chatId = chat.chat_room.id;
+            const isStarred = !!starredChats[chatId];
+            const newValue = isStarred ? 0 : 1;
+
+            const payload = {
+                action: "is_starred",
+                receiver_id: chat.receiver_id,
+                username: user.username,
+                value: newValue,
             };
-        });
-    }, []);
+
+            try {
+                await favoriteChats(payload);
+                setStarredChats((prevStarredChats) => ({
+                    ...prevStarredChats,
+                    [chatId]: !isStarred,
+                }));
+            } catch (error) {
+                console.error("Failed to update star status", error);
+            }
+        },
+        [starredChats]
+    );
 
     useEffect(() => {
         const initialChatType = CHATS_TYPE.find(
@@ -153,7 +175,7 @@ const ChatList = ({
                     </div>
                 </div>
 
-                <div className="flex justify-between items-center mt-2  border-b pb-4">
+                <div className="flex justify-between items-center mt-2 mb-4 border-b pb-4">
                     <div className="flex flex-col">
                         <Dropdown
                             options={CHATS_TYPE}
@@ -190,8 +212,8 @@ const ChatList = ({
                         setShowContactTemplate={setShowContactTemplate}
                         contacts={contacts}
                     />
-                ) : chats?.length > 0 ? (
-                    chats?.map((chat) => (
+                ) : filteredChats?.length > 0 ? (
+                    filteredChats?.map((chat) => (
                         <div
                             key={chat?.chat_room?.id}
                             className="border-b py-4 hover:bg-[#fdfdfd] cursor-pointer px-2 my-1"
@@ -206,9 +228,7 @@ const ChatList = ({
                                 </h3>
                                 <FontAwesomeIcon
                                     icon={faStar}
-                                    onClick={() =>
-                                        handleStarToggle(chat.chat_room.id)
-                                    }
+                                    onClick={() => handleStarToggle(chat)}
                                     className={
                                         starredChats[chat.chat_room.id]
                                             ? "text-amber-300 cursor-pointer"
