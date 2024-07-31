@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import Button from "../../Button";
 
-const FileUploadModal = () => {
+const FileUploadModal = ({ setSelectedMedia, closeModal }) => {
     const [selectedOption, setSelectedOption] = useState(null);
     const fileInputRef = useRef(null);
 
@@ -53,6 +53,14 @@ const FileUploadModal = () => {
         }
     };
 
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setSelectedMedia(file);
+            closeModal(); 
+        }
+    };
+
     return (
         <div className="flex gap-6 my-8">
             <div className="w-1/4 bg-white">
@@ -90,6 +98,7 @@ const FileUploadModal = () => {
                         type="file"
                         accept={getAcceptType()}
                         ref={fileInputRef}
+                        onChange={handleFileChange}
                         className="hidden"
                     />
                     <Button variant="primary" onClick={handleBrowseClick}>

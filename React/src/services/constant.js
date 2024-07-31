@@ -97,6 +97,8 @@ export const FILTER_OPTIONS = [
 
 export const SUBMIT_STATUS = [
     { id: 1, name: "Open", color: "blue" },
-    { id: 2, name: "Pending", color: "orange" },
-    { id: 3, name: "Solved", color: "green" },
+    { id: 2, name: "Expired", color: "red" },
+    { id: 3, name: "Pending", color: "orange" },
+    { id: 4, name: "Solved", color: "green" },
+    { id: 5, name: "Spam", color: "gray" },
 ];

@@ -8,10 +8,16 @@ use App\Models\AssignUser;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
 use App\Models\ChatMessageRoom;
+use App\Models\QuickReply;
+use App\Models\ChatInboxNote;
 // use Illuminate\Auth\Events\Login;
 // use Illuminate\Auth\Events\Logout;
 // use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Validator;
+// use App\Support\Facades\Storage;
+// use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Storage; // Correct import statement
+
 
 class ChatMessageController extends Controller
 {
@@ -152,13 +158,50 @@ class ChatMessageController extends Controller
         ]);
     }
 
+    //********************chat messages starts here ******************************
+
     public function fetchMessages(Request $request)
+    {
+        // Define validation rules
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string|max:20|exists:ci_admin,username',
+            'action' => 'required|string'
+        ]);
+
+        // Check if validation fails
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        try {
+            // Extract values from the input fields
+            $username = $request->input('username');
+            $action = $request->input('action');
+            $sender_id = User::where('username', $username)->pluck('mobile_no')->first();
+
+            // Perform action based on the 'action' parameter
+            switch ($action) {
+                case 'read':
+                    return $this->read($request, $sender_id);
+                case 'create':
+                    return $this->create($request, $sender_id, $username);
+                case 'update':
+                    return $this->updateChatMessage($request, $sender_id);
+                case 'delete':
+                    return $this->deleteChatMessage($request, $sender_id);
+                default:
+                    return response()->json(['error' => 'Invalid action provided'], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Something went wrong', 'details' => $e->getMessage()], 500);
+        }
+    }
+
+    private function read($request, $sender_id)
     {
         // Validate the input
         $validator = Validator::make($request->all(), [
             'receiver_id' => 'required|string|max:20',
-            // 'sender_id' => 'required|string|max:20',
-            'username' => 'required|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -168,15 +211,12 @@ class ChatMessageController extends Controller
         try {
             // Get the input values
             $receiver_id = $request->input('receiver_id');
-            $username = $request->input('username');
-            $sender_id = User::where('username', $username)->pluck('mobile_no');
-            // return $sender_id;
 
             // Fetch the chat messages
             $messages = ChatMessage::where('receiver_id', $receiver_id)
                 ->where('sender_id', $sender_id)
                 ->orderBy('created_at', 'asc') // Sorting from old to new
-                ->select('text', 'type', 'agent', 'created_at', 'updated_at', 'eventDescription', 'sender_id', 'receiver_id')
+                ->select('text', 'media', 'type', 'agent', 'created_at', 'updated_at', 'eventDescription', 'eventtype', 'sender_id', 'receiver_id')
                 ->get();
 
             return response()->json([
@@ -187,6 +227,71 @@ class ChatMessageController extends Controller
             return response()->json(['error' => 'Something went wrong', 'details' => $e->getMessage()], 500);
         }
     }
+
+    private function create($request, $sender_id, $username)
+    {
+        // Validate the input
+        $validator = Validator::make($request->all(), [
+            'receiver_id' => 'required|string|max:20',
+            'text' => 'nullable|string',
+            'type' => 'string',
+            'agent' => 'required|string',
+            'eventDescription' => 'string',
+            'media' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,mp3|max:10240',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        try {
+
+            // Handle file upload if present
+            if ($request->hasFile('media')) {
+                $file = $request->file('media');
+                $filePath = $file->store('media', 'public');
+                $media = $filePath;
+            }
+
+            // Find the last row with the given receiver_id and sender_id
+            $lastMessage = ChatMessage::where('receiver_id', $request->input('receiver_id'))
+                ->where('sender_id', $sender_id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            // If a last message exists, fetch the required fields
+            $whts_ref_id = $lastMessage ? $lastMessage->whts_ref_id : 'default_whts_ref_id';
+            $previous_agent = $lastMessage ? $lastMessage->previous_agent : 'default_previous_agent';
+            $agent = $lastMessage ? $lastMessage->agent : $request->input('agent');
+            $replySourceMessage = $lastMessage ? $lastMessage->replySourceMessage : 'default_replySourceMessage';
+
+            // Create new chat message
+            $chatMessage = new ChatMessage();
+            $chatMessage->username = $username;
+            $chatMessage->sender_id = $sender_id;
+            $chatMessage->receiver_id = $request->input('receiver_id');
+            $chatMessage->text = $request->input('text');
+            $chatMessage->media = $media;
+            $chatMessage->type = $request->input('type');
+            $chatMessage->agent = $agent;
+            $chatMessage->eventDescription = $request->input('eventDescription');
+            $chatMessage->eventtype = 'broadcastMessage';
+            $chatMessage->replySourceMessage = $replySourceMessage;
+            $chatMessage->status = '1234';
+            $chatMessage->previous_agent = $previous_agent;
+            $chatMessage->whts_ref_id = $whts_ref_id;
+            $chatMessage->save();
+
+            return response()->json([
+                'message' => 'Message created successfully',
+                'data' => $chatMessage
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Something went wrong', 'details' => $e->getMessage()], 500);
+        }
+    }
+    //**********************************************************************************
+
 
     public function updateColumn(Request $request)
     {
@@ -493,4 +598,256 @@ class ChatMessageController extends Controller
             'finalResults' => $result
         ]);
     }
+
+    
+    //********************quick reply starts here ******************************
+    public function handleQuickReplies(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'action' => 'required|string',
+            'username' => 'required|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 0, 'error' => $validator->errors()], 400);
+        }
+
+        $action = $request->input('action');
+        $username = $request->input('username');
+
+        try {
+            switch ($action) {
+                case 'create':
+                    return $this->createQuickReplies($request, $username);
+                case 'read':
+                    return $this->readQuickReplies($request, $username);
+                case 'update':
+                    return $this->updateQuickReplies($request, $username);
+                case 'delete':
+                    return $this->deleteQuickReplies($request, $username);
+                default:
+                    return response()->json(['status' => 0, 'error' => 'Invalid action provided'], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['status' => 0, 'error' => 'Something went wrong', 'details' => $e->getMessage()], 500);
+        }
+    }
+
+    private function createQuickReplies($request, $username)
+    {
+        $validator = Validator::make($request->all(), [
+            'heading' => 'required|string|max:255',
+            'description' => 'required|string|max:2000',
+            'media' => 'nullable|file|max:25600', // 25MB in KB
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 0, 'error' => $validator->errors()], 400);
+        }
+
+        $existsUser = QuickReply::where('heading', $request->input('heading'))->first();
+
+        if ($existsUser) {
+            return response()->json(['error' => 'You already have a quick_reply with this name'], 400);
+        }
+
+        $media = $request->file('media');
+        $media_file_Path = $media ? $media->store('media', 'public') : null;
+
+        // Get the full URL of the stored media file
+        $media_file_Url = $media_file_Path ? Storage::url($media_file_Path) : null;
+
+        $quickReply = QuickReply::create([
+            'username' => $username,
+            'heading' => $request->input('heading'),
+            'description' => $request->input('description'),
+            'media' => $media_file_Path,
+        ]);
+
+        return response()->json(
+            [
+                'status' => 1,
+                'message' => 'Quick reply created successfully',
+                'data' => $quickReply,
+                // 'path' => $media_file_Url
+            ],
+            201
+        );
+    }
+
+    private function readQuickReplies($request, $username)
+    {
+        $quickReplies = QuickReply::where('username', $username)->get();
+        return response()->json(['status' => 1, 'message' => 'Data retrieved successfully', 'data' => $quickReplies], 200);
+    }
+
+    private function updateQuickReplies($request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:quick_replies,id',
+            'heading' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'media' => 'nullable|file|max:25600', // 25MB in KB
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 0, 'error' => $validator->errors()], 400);
+        }
+
+        $quickReply = QuickReply::find($request->input('id'));
+
+        // Handle media replacement
+        if ($request->hasFile('media')) {
+            // Delete the old media file
+            if ($quickReply->media) {
+                Storage::disk('public')->delete($quickReply->media);
+            }
+
+            // Store the new media file
+            $media = $request->file('media');
+            $media_file_Path = $media->store('media', 'public');
+
+            // Get the full URL of the stored media file
+            $media_file_Url = Storage::url($media_file_Path);
+
+            // Update the media path in the quickReply model
+            $quickReply->media = $media_file_Path;
+        }
+
+        // Update the other fields
+        $quickReply->update($request->only(['heading', 'description']));
+
+        return response()->json(['status' => 1, 'message' => 'Quick reply updated successfully', 'data' => $quickReply], 200);
+    }
+
+    private function deleteQuickReplies($request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:quick_replies,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 0, 'error' => $validator->errors()], 400);
+        }
+
+        $quickReply = QuickReply::find($request->input('id'));
+
+        if($quickReply->media){
+            Storage::disk('public')->delete($quickReply->media);
+        }
+        $quickReply->delete();
+
+        return response()->json(['status' => 1, 'message' => 'Quick reply deleted successfully'], 200);
+    }
+    //**************************************************
+
+     //********************note API starts here ******************************
+
+    public function handleNote(Request $request)
+    {
+        // Use Validator for more control over validation
+        $validator = Validator::make($request->all(), [
+            'username' => 'required_if:action,create,read|string|max:255',
+            'receiver_id' => 'required_if:action,create,read|string|max:255',
+            'note' => 'required_if:action,create,update|string|max:400',
+            'action' => 'required|string|in:create,read,update,delete|max:255',
+            'id' => 'required_if:action,update,delete',
+            'assign_user' => 'required_if:action,create,update|max:255|exists:assign_users,assign_user'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 0, 'error' => $validator->errors()], 400);
+        }
+
+        $action = $request->input('action');
+        $username = $request->input('username');
+        $id = $request->input('id');
+
+        try {
+            switch ($action) {
+                case 'create':
+                    return $this->createNote($request, $username);
+                case 'read':
+                    return $this->readNote($request,  $username);
+                case 'update':
+                    return $this->updateNote($request,  $id);
+                case 'delete':
+                    return $this->deleteNote($id);
+                default:
+                    return response()->json(['status' => 0, 'error' => 'Invalid action provided'], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['status' => 0, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function createNote(Request $request, $username)
+    {
+
+        $receiverId = $request->input('receiver_id');
+        $note = $request->input('note');
+        $assign_user = $request->input('assign_user');
+
+        // Create a new record in ChatInboxNote
+        $chatInboxNote = new ChatInboxNote();
+        $chatInboxNote->username = $username;  // Assuming 'username' is the sender's ID
+        $chatInboxNote->receiver_id = $receiverId;
+        $chatInboxNote->note = $note;
+        $chatInboxNote->assign_user = $assign_user;
+        $chatInboxNote->save();
+
+        return response()->json(['status' => 1, 'message' => 'Note inserted successfully']);
+    }
+
+    private function readNote(Request $request, $username)
+    {
+        $receiverId = $request->input('receiver_id');
+
+        $notes = ChatInboxNote::where('receiver_id', $receiverId)
+            ->where('username', $username)
+            ->select('id', 'note', 'assign_user', 'created_at', 'updated_at')->get();
+
+        if (!$notes) {
+            return response()->json(['status' => 0, 'error' => 'record not found Chat message room'], 404);
+        }
+
+        return response()->json(['status' => 1, 'data' => $notes]);
+    }
+
+    private function updateNote(Request $request, $id)
+    {
+        $inputNote = $request->input('note');
+        $inputAssignUser = $request->input('assign_user');
+
+        $note = ChatInboxNote::where('id', $id)
+            ->first();
+
+        if (!$note) {
+            return response()->json(['status' => 0, 'error' => 'note not found'], 404);
+        }
+
+        $note->assign_user = $inputAssignUser;
+        $note->note = $inputNote;
+        $note->save();
+
+        return response()->json(['status' => 1, 'message' => 'Note updated successfully']);
+    }
+
+    private function deleteNote($id)
+    {
+
+        $note = ChatInboxNote::where('id', $id)
+            ->first();
+
+        if (!$note) {
+            return response()->json(['status' => 0, 'error' => 'note not found'], 404);
+        }
+
+        $note->note = null;
+        $note->delete();
+
+        return response()->json(['status' => 1, 'message' => 'note deleted successfully']);
+    }
+    //**************************************************
+
 }

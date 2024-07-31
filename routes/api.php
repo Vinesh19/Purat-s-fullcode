@@ -11,6 +11,7 @@ use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\MobileOTPController;
 use App\Http\Controllers\ChatMessageController;
+use App\Http\Controllers\AgentController;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -52,13 +53,17 @@ Route::middleware('auth:api')->group(function () {
     //chat inbox
     Route::post('advance-filtered-data', [ChatMessageController::class, 'getAdvanceFilteredData']); //fetching data with advance filter (status, attribute, assignee)
     Route::post('filtered-data', [ChatMessageController::class, 'getFilteredData']); //fetching data with filter (open,expired,active.broadcast etc)
-    Route::get('chat-messages', [ChatMessageController::class, 'fetchMessages']);
+    Route::post('chat-messages', [ChatMessageController::class, 'fetchMessages']); //updated_at(25-07-2024)
     Route::post('chat-message-room/update', [ChatMessageController::class, 'updateColumn']);
+    //created_at(25-07-2024)
+    Route::post('/quick-replies', [ChatMessageController::class, 'handleQuickReplies']);
+    //created_at(26-07-2024)
+    Route::post('/chat-inbox/note', [ChatMessageController::class, 'handleNote']);
 
     //graph mobile number count api //created at 28-6-2024
     Route::post('/mobile-numbers/count', [GraphController::class, 'getCountByTimeFrame']);
 
-    Route::post('/assign-users', [AgentController::class, 'store']);
+    Route::post('/assign-users', [AgentController::class, 'handleAssignUsers']);
     Route::post('/teams', [TeamController::class, 'store']);
 
 });

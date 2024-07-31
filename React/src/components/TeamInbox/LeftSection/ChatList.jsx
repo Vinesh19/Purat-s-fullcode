@@ -25,14 +25,15 @@ const ChatList = ({
     setAction,
     user,
     contacts,
-    onSelectChat,
+    setSelectedChat,
+    starredChats,
+    updateStarredChats,
 }) => {
-    const [selectedChat, setSelectedChat] = useState(action);
+    const [selectedChatType, setSelectedChatType] = useState(action);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [showContactTemplate, setShowContactTemplate] = useState(false);
     const [hoveredChat, setHoveredChat] = useState(null);
-    const [starredChats, setStarredChats] = useState({});
 
     const handleChatSelection = (e) => {
         const selectedValue = e.target.value;
@@ -40,7 +41,7 @@ const ChatList = ({
             (type) => type.name === selectedValue
         );
 
-        setSelectedChat(selectedChatType.name);
+        setSelectedChatType(selectedChatType.name);
         setAction(selectedChatType.action);
         setShowContactTemplate(false);
     };
@@ -111,35 +112,22 @@ const ChatList = ({
 
             try {
                 await favoriteChats(payload);
-                setStarredChats((prevStarredChats) => ({
-                    ...prevStarredChats,
-                    [chatId]: !isStarred,
-                }));
+                updateStarredChats(chatId, !isStarred);
             } catch (error) {
                 console.error("Failed to update star status", error);
             }
         },
-        [starredChats]
+        [starredChats, updateStarredChats]
     );
 
     useEffect(() => {
         const initialChatType = CHATS_TYPE.find(
             (type) => type.action === action
         );
-        setSelectedChat(
+        setSelectedChatType(
             initialChatType ? initialChatType.name : CHATS_TYPE[0].name
         );
     }, [action]);
-
-    useEffect(() => {
-        const initialStarredChats = chats.reduce((acc, chat) => {
-            if (chat?.chat_room?.is_starred === "favorite") {
-                acc[chat.chat_room.id] = true;
-            }
-            return acc;
-        }, {});
-        setStarredChats(initialStarredChats);
-    }, [chats]);
 
     return (
         <div className="p-6">
@@ -179,7 +167,7 @@ const ChatList = ({
                     <div className="flex flex-col">
                         <Dropdown
                             options={CHATS_TYPE}
-                            value={selectedChat}
+                            value={selectedChatType}
                             onChange={handleChatSelection}
                             placeholder="All Chats"
                             className="border-none font-medium text-xl pl-0"
@@ -221,6 +209,7 @@ const ChatList = ({
                                 setHoveredChat(chat.chat_room.id)
                             }
                             onMouseLeave={() => setHoveredChat(null)}
+                            onClick={() => setSelectedChat(chat)}
                         >
                             <div className="flex justify-between items-center">
                                 <h3 className="font-bold">
@@ -228,7 +217,10 @@ const ChatList = ({
                                 </h3>
                                 <FontAwesomeIcon
                                     icon={faStar}
-                                    onClick={() => handleStarToggle(chat)}
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent triggering chat selection
+                                        handleStarToggle(chat);
+                                    }}
                                     className={
                                         starredChats[chat.chat_room.id]
                                             ? "text-amber-300 cursor-pointer"

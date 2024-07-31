@@ -6,3 +6,59 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.chat-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-date {
+    font-size: 0.75rem;
+    color: #999;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.message-bubble {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    position: relative;
+    max-width: 60%; /* maximum width for large messages */
+    min-width: 50px; /* minimum width for very short messages */
+    word-wrap: break-word;
+}
+
+.message-sent {
+    background-color: #dcf8c6;
+    align-self: flex-end;
+    margin-left: auto;
+    border-bottom-right-radius: 0;
+}
+
+.message-received {
+    background-color: #fff;
+    align-self: flex-start;
+    margin-right: auto;
+    border-bottom-left-radius: 0;
+}
+
+.message-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.message-text {
+    margin-bottom: 4px;
+    white-space: pre-wrap;
+}
+
+.message-time {
+    font-size: 0.6rem;
+    color: #999;
+    align-self: flex-end;
+}
+

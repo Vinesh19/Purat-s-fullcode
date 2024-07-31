@@ -2,17 +2,37 @@ import ChatContent from "./ChatContent";
 import ChatFooter from "./ChatFooter";
 import ChatNavbar from "./ChatNavbar";
 
-const ChatContainer = ({ templates }) => {
+const ChatContainer = ({
+    user,
+    templates,
+    selectedChat,
+    selectedChatMessages,
+    setSelectedChat,
+    updateStarredChats,
+    updateChatStatus,
+    updateChatMessages,
+}) => {
     return (
-        <div className="bg-slate-50 h-full flex flex-col">
+        <div className="bg-[#ede9e2] h-full flex flex-col">
             <div>
-                <ChatNavbar />
+                <ChatNavbar
+                    user={user}
+                    selectedChat={selectedChat}
+                    setSelectedChat={setSelectedChat}
+                    updateStarredChats={updateStarredChats}
+                    updateChatStatus={updateChatStatus}
+                />
             </div>
             <div className="flex-1">
-                <ChatContent />
+                <ChatContent messages={selectedChatMessages} />
             </div>
             <div>
-                <ChatFooter templates={templates} />
+                <ChatFooter
+                    templates={templates}
+                    user={user?.username}
+                    selectedChat={selectedChat}
+                    updateChatMessages={updateChatMessages} 
+                />
             </div>
         </div>
     );

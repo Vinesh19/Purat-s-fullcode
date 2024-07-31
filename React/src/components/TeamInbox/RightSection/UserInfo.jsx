@@ -1,17 +1,131 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    faPlus,
+    faCheck,
+    faTimes,
+    faTrashCan,
+    faPen,
+} from "@fortawesome/free-solid-svg-icons";
 import Input from "../../Input";
 import Modal from "../../Modal";
 import CustomParameter from "./CustomParameter";
+import { showUserNotes } from "../../../services/api";
 
-const UserInfo = () => {
-    // State to manage the modal
+const formatDateTime = (dateTimeString) => {
+    const options = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+    };
+    return new Date(dateTimeString).toLocaleString(undefined, options);
+};
+
+const UserInfo = ({ Contact, Name, user }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    // State to manage custom parameters
     const [customParameters, setCustomParameters] = useState([
         { key: "Language", value: "en" },
         { key: "Name", value: "Yash Sharma" },
     ]);
+    const [notes, setNotes] = useState([]);
+    const [newNote, setNewNote] = useState("");
+    const [isAddingNote, setIsAddingNote] = useState(false);
+    const [isEditingNote, setIsEditingNote] = useState(false);
+    const [editNoteIndex, setEditNoteIndex] = useState(null);
+    const [initialLetter, setInitialLetter] = useState("B"); // Default initial letter
+
+    const fetchNotes = async () => {
+        try {
+            const payload = {
+                action: "read",
+                username: user,
+                receiver_id: Contact,
+            };
+            const response = await showUserNotes(payload);
+            console.log("notes", response);
+            if (response.data.status === 1) {
+                setNotes(response?.data?.data);
+            }
+        } catch (error) {
+            console.error("Error fetching notes:", error);
+        }
+    };
+
+    const handleSaveNote = async () => {
+        if (newNote.trim()) {
+            try {
+                if (isEditingNote && editNoteIndex !== null) {
+                    const noteToUpdate = notes[editNoteIndex];
+                    const payload = {
+                        action: "update",
+                        id: noteToUpdate.id,
+                        note: newNote,
+                        assign_user: noteToUpdate.assign_user,
+                    };
+                    const response = await showUserNotes(payload);
+                    if (response.data.status === 1) {
+                        const updatedNotes = notes.map((note, index) =>
+                            index === editNoteIndex
+                                ? { ...note, note: newNote }
+                                : note
+                        );
+                        setNotes(updatedNotes);
+                        setIsEditingNote(false);
+                        setEditNoteIndex(null);
+                    }
+                } else {
+                    const payload = {
+                        action: "create",
+                        username: user,
+                        receiver_id: Contact,
+                        note: newNote,
+                        assign_user: "vinesh",
+                    };
+                    const response = await showUserNotes(payload);
+                    if (response.data.status === 1) {
+                        fetchNotes();
+                    }
+                }
+                setNewNote("");
+                setIsAddingNote(false);
+            } catch (error) {
+                console.error("Error saving note:", error);
+            }
+        }
+    };
+
+    const handleDeleteNote = async (index) => {
+        try {
+            const noteToDelete = notes[index];
+            const payload = {
+                action: "delete",
+                id: noteToDelete.id,
+            };
+            const response = await showUserNotes(payload);
+            if (response.data.status === 1) {
+                const updatedNotes = notes.filter((_, i) => i !== index);
+                setNotes(updatedNotes);
+            }
+        } catch (error) {
+            console.error("Error deleting note:", error);
+        }
+    };
+
+    const handleEditNote = (index) => {
+        setNewNote(notes[index].note);
+        setIsAddingNote(true);
+        setIsEditingNote(true);
+        setEditNoteIndex(index);
+    };
+
+    const handleCancelNote = () => {
+        setNewNote("");
+        setIsAddingNote(false);
+        setIsEditingNote(false);
+        setEditNoteIndex(null);
+    };
 
     const handleModal = () => {
         setIsModalOpen(!isModalOpen);
@@ -22,18 +136,39 @@ const UserInfo = () => {
     };
 
     const handleSaveAttributes = (attributes) => {
-        // Update the custom parameters state with the new attributes
         setCustomParameters(attributes);
         closeModal();
     };
 
+    const handleAddNoteClick = () => {
+        setIsAddingNote(true);
+    };
+
+    const handleNoteChange = (e) => {
+        setNewNote(e.target.value);
+    };
+
+    useEffect(() => {
+        if (Contact) {
+            fetchNotes();
+        }
+    }, [Contact]);
+
+    useEffect(() => {
+        if (Name) {
+            setInitialLetter(Name.charAt(0).toUpperCase());
+        } else {
+            setInitialLetter("B");
+        }
+    }, [Name]);
+
     return (
-        <div className="w-[22vw] px-4 py-4">
+        <div className="px-4 py-4">
             <div className="flex justify-between items-center border-b pb-5">
                 <div className="flex gap-4 items-center">
                     <div className="relative -z-10 z">
                         <span className="text-green-600 text-2xl font-bold bg-slate-100 px-5 py-3 rounded-full">
-                            V
+                            {initialLetter} {/* Display the initial letter */}
                         </span>
                         <span className="absolute right-1 bottom-8 text-8xl leading-3 w-3 h-3 text-green-500">
                             .
@@ -41,7 +176,7 @@ const UserInfo = () => {
                     </div>
 
                     <div className="flex flex-col">
-                        <span className="font-bold text-xl">Bot</span>
+                        <span className="font-bold text-xl">{Name}</span>
                         <span>Available</span>
                     </div>
                 </div>
@@ -64,7 +199,7 @@ const UserInfo = () => {
                 <div className="my-6">
                     <h3 className="font-semibold text-lg">Basic Information</h3>
                     <p className="flex items-center gap-2">
-                        Phone number : 918878695196{" "}
+                        Phone number : {Contact}
                         <span>
                             <img
                                 src="/assets/images/svg/Indian-flag.svg"
@@ -126,17 +261,93 @@ const UserInfo = () => {
                     </div>
                 </div>
 
-                <div className="my-4">
+                <div className="my-4 h-[50vh] flex flex-col">
                     <div className="flex justify-between items-center my-4">
                         <h4 className="font-bold">Notes</h4>
-                        <h4 className="bg-green-600 w-8 h-8 text-2xl text-white font-semibold flex justify-center items-center rounded-md">
-                            +
+                        <h4
+                            className="bg-green-600 p-2 text-lg text-white font-semibold flex justify-center items-center rounded-md cursor-pointer"
+                            onClick={handleAddNoteClick}
+                        >
+                            <FontAwesomeIcon icon={faPlus} />
                         </h4>
                     </div>
-                    <p>
-                        Notes help you to keep track of your conversation with
-                        your team
-                    </p>
+
+                    <div className="overflow-auto flex-1 scrollbar-hide">
+                        {isAddingNote && (
+                            <div className="my-4 border p-4 rounded-md">
+                                <textarea
+                                    className="w-full p-2 border rounded-md"
+                                    rows="3"
+                                    value={newNote}
+                                    onChange={handleNoteChange}
+                                    placeholder="Add your note here..."
+                                ></textarea>
+
+                                <div className="flex justify-end gap-2 mt-2">
+                                    <button
+                                        className="text-red-600 border border-red-600 text-lg py-1 px-2 rounded-md"
+                                        onClick={handleCancelNote}
+                                    >
+                                        <FontAwesomeIcon icon={faTimes} />
+                                    </button>
+
+                                    <button
+                                        className="text-green-600 border border-green-600 text-lg py-1 px-2 rounded-md"
+                                        onClick={handleSaveNote}
+                                    >
+                                        <FontAwesomeIcon icon={faCheck} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="my-4">
+                            {notes.map((note, index) => (
+                                <div
+                                    key={index}
+                                    className="p-4 mb-2 bg-slate-50 rounded-lg"
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <img
+                                                src="/assets/images/svg/user-profile.svg"
+                                                alt="user"
+                                                className="w-10 h-10"
+                                            />
+                                            <div>
+                                                <h3 className="font-bold">
+                                                    {note.assign_user}
+                                                </h3>
+
+                                                <span className="text-gray-600 text-sm">
+                                                    {formatDateTime(
+                                                        note?.updated_at
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex">
+                                            <FontAwesomeIcon
+                                                icon={faPen}
+                                                className="text-blue-600 p-2 rounded-lg cursor-pointer"
+                                                onClick={() =>
+                                                    handleEditNote(index)
+                                                }
+                                            />
+                                            <FontAwesomeIcon
+                                                icon={faTrashCan}
+                                                className="text-red-600 p-2 rounded-lg cursor-pointer"
+                                                onClick={() =>
+                                                    handleDeleteNote(index)
+                                                }
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="mt-2">{note.note}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
 

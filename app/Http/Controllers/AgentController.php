@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class AgentController extends Controller
 {
-    public function store(Request $request)
+    public function handleAssignUsers(Request $request)
     {
         // Define validation rules
         $validator = Validator::make($request->all(), [
@@ -151,6 +151,18 @@ class AgentController extends Controller
             $agent_id = $request->input('agent_id');
 
             try {
+
+                // // decreasing team size 
+                // $team_id = AssignUser::where('id', $agent_id)->pluck('team');
+                // return $team_id;
+                // $team = Team::where('id', $team_id)->first();
+                // if ($team) {
+                //     // Increment the size column by +1
+                //     $team->size -= 1;
+                //     $team->save();
+                // } else {
+                //     return response()->json(['error' => 'Team not found'], 404);
+                // }
                 // Fetch team IDs as a comma-separated string
                 $team_ids_string = AssignUser::where('id', $agent_id)->pluck('team')->first();
 
@@ -188,6 +200,99 @@ class AgentController extends Controller
                     'message' => 'An error occurred while deleting the team',
                     'error' => $e->getMessage(),
                 ], 500); // 500 Internal Server Error
+            }
+        } elseif ($action === 'update') {
+
+            // Define validation rules
+            $validator = Validator::make($request->all(), [
+                'agent_id' => 'required',
+                'username' => 'required|string|max:255|exists:ci_admin,username',
+                'assign_user' => 'required|string|max:255',
+                'agent_email' => 'nullable|string|email|max:255',
+                'agent_mobile' => 'nullable|string|max:255',
+                'roll' => 'nullable|integer',
+                'online_status' => 'nullable|integer',
+                'is_mobile_verified' => 'nullable|boolean',
+                'is_email_verified' => 'nullable|boolean',
+                'team' => 'required|array', // Validate that team is an array
+                'team.*' => 'required|integer|max:255|exists:teams,id',
+                'last_login_at' => 'nullable|date|date_format:Y-m-d H:i:s',
+                'last_login_IP' => 'nullable|string|max:255',
+            ]);
+
+            // Check if validation fails
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 400);
+            }
+
+            $agent_id = $request->input('agent_id');
+
+            try {
+                $assignUser = AssignUser::findOrFail($agent_id);
+
+                // Check for no changes
+                $requestData = [
+                    'username' => $request->input('username'),
+                    'assign_user' => $request->input('assign_user'),
+                    'agent_email' => $request->input('agent_email'),
+                    'agent_mobile' => $request->input('agent_mobile'),
+                    'roll' => $request->input('roll', 0),
+                    'online_status' => $request->input('online_status', 0),
+                    'is_mobile_verified' => $request->input('is_mobile_verified', 0),
+                    'is_email_verified' => $request->input('is_email_verified', 0),
+                    'team' => implode(',', $request->input('team')),
+                    'last_login_at' => $request->input('last_login_at'),
+                    'last_login_IP' => $request->input('last_login_IP'),
+                ];
+
+                $existingData = $assignUser->only(array_keys($requestData));
+
+                if ($requestData == $existingData) {
+                    return response()->json(['error' => 'No changes were made'], 400);
+                }
+
+                // Decrement the size for the old teams
+                $old_team_ids_string = $assignUser->team;
+                $old_team_ids = explode(',', $old_team_ids_string);
+                foreach ($old_team_ids as $old_team_id) {
+                    $team = Team::where('id', $old_team_id)->first();
+                    if ($team) {
+                        $team->size -= 1;
+                        $team->save();
+                    }
+                }
+
+                // Increment the size for the new teams
+                $new_team_ids = $request->input('team');
+                foreach ($new_team_ids as $new_team_id) {
+                    $team = Team::where('id', $new_team_id)->first();
+                    if ($team) {
+                        $team->size += 1;
+                        $team->save();
+                    }
+                }
+
+                // Convert the array of new team IDs to a comma-separated string
+                $new_team_string = implode(',', $new_team_ids);
+
+                // Update the assign user
+                $assignUser->update([
+                    'username' => $request->input('username'),
+                    'assign_user' => $request->input('assign_user'),
+                    'agent_email' => $request->input('agent_email'),
+                    'agent_mobile' => $request->input('agent_mobile'),
+                    'roll' => $request->input('roll', 0),
+                    'online_status' => $request->input('online_status', 0),
+                    'is_mobile_verified' => $request->input('is_mobile_verified', 0),
+                    'is_email_verified' => $request->input('is_email_verified', 0),
+                    'team' => $new_team_string,
+                    'last_login_at' => $request->input('last_login_at'),
+                    'last_login_IP' => $request->input('last_login_IP'),
+                ]);
+
+                return response()->json(['success' => 'Data updated successfully', 'data' => $assignUser], 200);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Failed to update data', 'message' => $e->getMessage()], 500);
             }
         }
     }

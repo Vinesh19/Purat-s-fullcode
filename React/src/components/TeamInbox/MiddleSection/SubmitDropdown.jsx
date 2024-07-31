@@ -47,8 +47,7 @@ const SubmitDropdown = ({
                 onClick={handleButtonClick}
             >
                 {value ? value.name : placeholder}
-                <span className="float-right">&#x25BC;</span>{" "}
-                {/* Down arrow */}
+                <span className="float-right">&#x25BC;</span> {/* Down arrow */}
             </button>
             {isOpen && (
                 <div className="absolute mt-1 w-full border rounded-md bg-white shadow-lg z-10">

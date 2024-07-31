@@ -17,9 +17,13 @@ export const LOGOUT = `${API_BASE_URL}/logout`;
 export const TEMPLATE_DATA = `${API_BASE_URL}/template`;
 export const NEW_DASHBOARD_TEMPLATE_GROUP = `${API_BASE_URL}/fetching-group-names`;
 export const SUBMIT_BROADCAST_DATA = `${API_BASE_URL}/insert-broadcast-data`;
-export const CHATS_DATA = `${API_BASE_URL}/filtered-data`;
+export const CHATS_LIST = `${API_BASE_URL}/filtered-data`;
 export const FAVORITE_CHAT = `${API_BASE_URL}/chat-message-room/update`;
 export const ADVANCE_FILTER_CHAT_DATA = `${API_BASE_URL}/advance-filtered-data`;
+export const CHAT_DATA = `${API_BASE_URL}/chat-messages`;
+export const AGENTS_LIST = `${API_BASE_URL}/assign-users`;
+export const QUICK_REPLIES = `${API_BASE_URL}/quick-replies`;
+export const USER_NOTES = `${API_BASE_URL}/chat-inbox/note`;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -94,16 +98,43 @@ export const submitBroadcastData = (data) => {
 };
 
 export const fetchAllChats = (action) => {
-    return api.post(CHATS_DATA, action);
+    return api.post(CHATS_LIST, action);
 };
 
-export const advanceFilterChatData = (data) => {
-    return api.post(ADVANCE_FILTER_CHAT_DATA, data);
+export const fetchSelectedChatData = (payload) => {
+    return api.post(CHAT_DATA, payload, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
 };
 
 export const favoriteChats = (payload) => {
     return api.post(FAVORITE_CHAT, payload);
 };
 
-export default api;
+export const advanceFilterChatData = (data) => {
+    return api.post(ADVANCE_FILTER_CHAT_DATA, data);
+};
 
+export const fetchAgentsName = (payload) => {
+    return api.post(AGENTS_LIST, payload);
+};
+
+export const handleQuickReplies = (payload) => {
+    return api.post(QUICK_REPLIES, payload);
+};
+
+export const handleQuickRepliesFormData = (formData) => {
+    return api.post(QUICK_REPLIES, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+};
+
+export const showUserNotes = (payload) => {
+    return api.post(USER_NOTES, payload);
+};
+
+export default api;
