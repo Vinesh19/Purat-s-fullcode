@@ -117,7 +117,7 @@ class ChatMessageController extends Controller
                 $query->where('sender_id', $sender_id);
             })
             ->with('chatRoom')
-            ->select('receiver_id', 'sender_id', 'replySourceMessage', 'text', 'created_at', 'updated_at')
+            ->select('receiver_id', 'sender_id', 'replySourceMessage', 'text', 'created_at', 'updated_at', 'agent', 'media')
             ->get();
 
         // Transforming the messages
@@ -129,6 +129,10 @@ class ChatMessageController extends Controller
                     2 => 'pending',
                     3 => 'solved',
                     4 => 'spam',
+                    5 => 'new',
+                    6 => 'qualified',
+                    7 => 'proposition',
+                    8 => 'won',
                     default => 'unknown',
                 };
 
@@ -216,7 +220,7 @@ class ChatMessageController extends Controller
             $messages = ChatMessage::where('receiver_id', $receiver_id)
                 ->where('sender_id', $sender_id)
                 ->orderBy('created_at', 'asc') // Sorting from old to new
-                ->select('text', 'media', 'type', 'agent', 'created_at', 'updated_at', 'eventDescription', 'eventtype', 'sender_id', 'receiver_id')
+                ->select('text', 'media', 'type', 'agent', 'created_at', 'updated_at', 'eventDescription', 'eventtype', 'sender_id', 'receiver_id', 'media')
                 ->get();
 
             return response()->json([
@@ -354,7 +358,7 @@ class ChatMessageController extends Controller
             }
 
             // Update the column based on the action
-            if ($action === 'status' && in_array($value, [0, 1, 2, 3, 4])) {
+            if ($action === 'status' && in_array($value, [0, 1, 2, 3, 4, 5, 6, 7, 8])) {
                 $chatMessageRoom->status = $value;
             } elseif ($action === 'is_read' && in_array($value, [0, 1])) {
                 $chatMessageRoom->is_read = $value;

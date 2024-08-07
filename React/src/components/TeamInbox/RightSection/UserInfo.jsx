@@ -44,7 +44,6 @@ const UserInfo = ({ Contact, Name, user }) => {
                 receiver_id: Contact,
             };
             const response = await showUserNotes(payload);
-            console.log("notes", response);
             if (response.data.status === 1) {
                 setNotes(response?.data?.data);
             }
@@ -176,7 +175,7 @@ const UserInfo = ({ Contact, Name, user }) => {
                     </div>
 
                     <div className="flex flex-col">
-                        <span className="font-bold text-xl">{Name}</span>
+                        <span className="font-bold text-xl w-[90%] truncate">{Name}</span>
                         <span>Available</span>
                     </div>
                 </div>

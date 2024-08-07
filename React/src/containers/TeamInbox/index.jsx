@@ -96,6 +96,7 @@ const TeamInbox = ({ user }) => {
     };
 
     const updateChatStatus = (chatId, status) => {
+        console.log("status", chatId);
         setChats((prevChats) =>
             prevChats.map((chat) =>
                 chat.chat_room.id === chatId

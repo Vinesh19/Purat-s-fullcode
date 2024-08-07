@@ -5,15 +5,17 @@ import {
     faFilter,
     faPlus,
     faStar,
+    faFile,
 } from "@fortawesome/free-solid-svg-icons";
-
 import Dropdown from "../../Dropdown";
 import Modal from "../../Modal";
+import Button from "../../Button";
 import AdvanceFilter from "./AdvanceFilter";
 import ContactTemplate from "../LeftSection/ContactTemplate";
 
-import { favoriteChats } from "../../../services/api";
+import { updateChatStatus } from "../../../services/api";
 import { CHATS_TYPE } from "../../../services/constant";
+
 import "../TeamInbox.css";
 
 const ChatList = ({
@@ -34,6 +36,7 @@ const ChatList = ({
     const [searchTerm, setSearchTerm] = useState("");
     const [showContactTemplate, setShowContactTemplate] = useState(false);
     const [hoveredChat, setHoveredChat] = useState(null);
+    const [showAssigned, setShowAssigned] = useState(true);
 
     const handleChatSelection = (e) => {
         const selectedValue = e.target.value;
@@ -61,12 +64,18 @@ const ChatList = ({
         }
     };
 
+    // Filter chats based on search term
     const filteredChats = chats.filter(
         (chat) =>
             chat?.replySourceMessage
                 ?.toLowerCase()
                 .includes(searchTerm.toLowerCase()) ||
             chat?.text?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Filter chats based on assigned/unassigned state
+    const displayedChats = filteredChats.filter((chat) =>
+        showAssigned ? chat.agent : !chat.agent
     );
 
     const formatTime = (dateString) => {
@@ -92,6 +101,14 @@ const ChatList = ({
                 return "bg-blue-100 text-blue-700";
             case "spam":
                 return "bg-gray-100 text-gray-700";
+            case "new":
+                return "bg-purple-100 text-purple-700";
+            case "qualified":
+                return "bg-teal-100 text-teal-700";
+            case "proposition":
+                return "bg-amber-100 text-amber-700";
+            case "Won":
+                return "bg-gold-100 text-gold-700";
             default:
                 return "bg-gray-100 text-gray-700";
         }
@@ -111,7 +128,7 @@ const ChatList = ({
             };
 
             try {
-                await favoriteChats(payload);
+                await updateChatStatus(payload);
                 updateStarredChats(chatId, !isStarred);
             } catch (error) {
                 console.error("Failed to update star status", error);
@@ -129,38 +146,34 @@ const ChatList = ({
         );
     }, [action]);
 
-    return (
-        <div className="p-6">
-            <div>
-                <div className="flex bg-slate-50 text-slate-400 rounded">
-                    <div className="bg-slate-50 flex justify-center items-center gap-2 px-2 py-0.5 border-r rounded-l">
-                        <FontAwesomeIcon
-                            icon={faSearch}
-                            size="xs"
-                            className="text-slate-400 mt-1"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            className="bg-slate-50 outline-none"
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                        />
-                    </div>
+    const renderMediaIcon = () => {
+        return (
+            <div className="flex gap-2 items-center my-1">
+                <FontAwesomeIcon
+                    icon={faFile}
+                    className="text-gray-400 text-lg"
+                />
 
-                    <div className="flex justify-center items-center">
-                        <select
-                            className="bg-slate-50 outline-none"
-                            defaultValue=""
-                        >
-                            <option value="" disabled>
-                                Messages
-                            </option>
-                            <option value="All">All</option>
-                            <option value="Name or Phone">Name or Phone</option>
-                            <option value="Messages">Messages</option>
-                        </select>
-                    </div>
+                <p>Media File</p>
+            </div>
+        );
+    };
+
+    return (
+        <div className="p-4">
+            <div>
+                <div className="bg-slate-50 flex items-center gap-2 px-2 py-1.5 rounded-md">
+                    <FontAwesomeIcon
+                        icon={faSearch}
+                        className="text-slate-400"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Search"
+                        className="bg-slate-50 outline-none"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
                 </div>
 
                 <div className="flex justify-between items-center mt-2 mb-4 border-b pb-4">
@@ -187,21 +200,44 @@ const ChatList = ({
                         <FontAwesomeIcon
                             icon={faPlus}
                             onClick={toggleContactTemplate}
-                            className="border-8 rounded-full bg-slate-200 text-slate-600  h-5 cursor-pointer hover:text-lime-600"
+                            className="border-8 rounded-full bg-slate-200 text-slate-600 h-5 cursor-pointer hover:text-lime-600"
                         />
                     </div>
                 </div>
             </div>
 
-            <div className="h-[calc(100vh-200px)] overflow-y-scroll scrollbar-hide">
+            <div className="flex justify-around mb-3">
+                <Button
+                    className={`bg-slate-50 border-none rounded-md font-medium ${
+                        showAssigned
+                            ? "outline outline-1 outline-slate-300"
+                            : ""
+                    }`}
+                    onClick={() => setShowAssigned(true)}
+                >
+                    Assigned
+                </Button>
+                <Button
+                    className={`bg-slate-50 border-none rounded-md font-medium ${
+                        !showAssigned
+                            ? "outline outline-1 outline-slate-300"
+                            : ""
+                    }`}
+                    onClick={() => setShowAssigned(false)}
+                >
+                    Unassigned
+                </Button>
+            </div>
+
+            <div className="h-[60vh] overflow-y-scroll scrollbar-hide">
                 {showContactTemplate ? (
                     <ContactTemplate
                         templates={templates}
                         setShowContactTemplate={setShowContactTemplate}
                         contacts={contacts}
                     />
-                ) : filteredChats?.length > 0 ? (
-                    filteredChats?.map((chat) => (
+                ) : displayedChats?.length > 0 ? (
+                    displayedChats?.map((chat) => (
                         <div
                             key={chat?.chat_room?.id}
                             className="border-b py-4 hover:bg-[#fdfdfd] cursor-pointer px-2 my-1"
@@ -231,8 +267,8 @@ const ChatList = ({
                                 />
                             </div>
 
-                            <div className="my-1 truncate-multiline">
-                                {chat?.text}
+                            <div className="mb-1 text-sm truncate-multiline">
+                                {chat?.text ? chat?.text : renderMediaIcon()}
                             </div>
 
                             <div className="flex justify-between text-xs">

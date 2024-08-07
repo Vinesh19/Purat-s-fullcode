@@ -5,7 +5,7 @@ import { faStar } from "@fortawesome/free-solid-svg-icons";
 import Dropdown from "../../Dropdown";
 import SubmitDropdown from "./SubmitDropdown";
 
-import { favoriteChats, fetchAgentsName } from "../../../services/api";
+import { updateChatStatus, fetchAgentsName } from "../../../services/api";
 import { SUBMIT_STATUS } from "../../../services/constant";
 
 const ChatNavbar = ({
@@ -61,6 +61,10 @@ const ChatNavbar = ({
                 "pending",
                 "solved",
                 "spam",
+                "new",
+                "qualified",
+                "proposition",
+                "Won",
             ].indexOf(status.name.toLowerCase());
 
             const payload = {
@@ -72,7 +76,7 @@ const ChatNavbar = ({
 
             // Call API to update status
             try {
-                await favoriteChats(payload);
+                await updateChatStatus(payload);
                 // Optionally update the local state to reflect the change
                 setSelectedChat({
                     ...selectedChat,
@@ -102,7 +106,7 @@ const ChatNavbar = ({
             };
 
             try {
-                await favoriteChats(payload);
+                await updateChatStatus(payload);
                 // Update selectedChat with new star status
                 setSelectedChat({
                     ...selectedChat,

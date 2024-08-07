@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import TeamInbox from "./containers/TeamInbox";
 import WhatsappNavbar from "./components/WhatsappNavbar";
+import Contact from "./containers/Contact";
 
 const validateToken = () => {
     const token = localStorage.getItem("token");
@@ -62,9 +63,15 @@ const App = () => {
                         path="/dashboard/whatsapp/broadcast"
                         element={<BroadcastPage user={user} />}
                     />
+
                     <Route
                         path="/dashboard/whatsapp/teamInbox"
                         element={<TeamInbox user={user} />}
+                    />
+
+                    <Route
+                        path="/dashboard/whatsapp/contacts"
+                        element={<Contact user={user?.username} />}
                     />
                 </Route>
             </Routes>

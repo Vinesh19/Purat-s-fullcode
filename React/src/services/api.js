@@ -18,12 +18,14 @@ export const TEMPLATE_DATA = `${API_BASE_URL}/template`;
 export const NEW_DASHBOARD_TEMPLATE_GROUP = `${API_BASE_URL}/fetching-group-names`;
 export const SUBMIT_BROADCAST_DATA = `${API_BASE_URL}/insert-broadcast-data`;
 export const CHATS_LIST = `${API_BASE_URL}/filtered-data`;
-export const FAVORITE_CHAT = `${API_BASE_URL}/chat-message-room/update`;
+export const CHAT_STATUS = `${API_BASE_URL}/chat-message-room/update`;
 export const ADVANCE_FILTER_CHAT_DATA = `${API_BASE_URL}/advance-filtered-data`;
 export const CHAT_DATA = `${API_BASE_URL}/chat-messages`;
 export const AGENTS_LIST = `${API_BASE_URL}/assign-users`;
 export const QUICK_REPLIES = `${API_BASE_URL}/quick-replies`;
 export const USER_NOTES = `${API_BASE_URL}/chat-inbox/note`;
+export const CRM_CHATS = `${API_BASE_URL}/crm/all-chat`;
+export const CRM_CHAT_DETAILS = `${API_BASE_URL}/crm/specific-chat`;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -109,8 +111,8 @@ export const fetchSelectedChatData = (payload) => {
     });
 };
 
-export const favoriteChats = (payload) => {
-    return api.post(FAVORITE_CHAT, payload);
+export const updateChatStatus = (payload) => {
+    return api.post(CHAT_STATUS, payload);
 };
 
 export const advanceFilterChatData = (data) => {
@@ -135,6 +137,14 @@ export const handleQuickRepliesFormData = (formData) => {
 
 export const showUserNotes = (payload) => {
     return api.post(USER_NOTES, payload);
+};
+
+export const fetchCrmChats = (user) => {
+    return api.post(CRM_CHATS, user);
+};
+
+export const fetchCrmSpecificChat = (payload) => {
+    return api.post(CRM_CHAT_DETAILS, payload);
 };
 
 export default api;

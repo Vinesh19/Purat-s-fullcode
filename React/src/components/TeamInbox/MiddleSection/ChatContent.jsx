@@ -83,7 +83,7 @@ const ChatContent = ({ messages }) => {
     return (
         <div
             ref={chatContainerRef}
-            className="chat-container overflow-y-scroll scrollbar-hide h-[70vh]"
+            className="chat-container overflow-y-scroll scrollbar-hide h-[calc(100vh-220px)]"
         >
             {Object.keys(groupedMessages).map((date, dateIndex) => (
                 <React.Fragment key={dateIndex}>

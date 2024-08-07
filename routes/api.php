@@ -13,6 +13,8 @@ use App\Http\Controllers\MobileOTPController;
 use App\Http\Controllers\ChatMessageController;
 use App\Http\Controllers\AgentController;
 use Illuminate\Support\Facades\Broadcast;
+use App\Http\Controllers\CRMController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +68,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/assign-users', [AgentController::class, 'handleAssignUsers']);
     Route::post('/teams', [TeamController::class, 'store']);
 
+    //CRM created_at(02-08-2024)
+    Route::post('/crm/all-chat', [CRMController::class, 'handleAllData']);
+    Route::post('/crm/specific-chat', [CRMController::class, 'handleSpecificData']);
 });
 
 

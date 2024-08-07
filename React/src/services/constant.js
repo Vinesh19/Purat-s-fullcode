@@ -1,3 +1,5 @@
+export const MEDIA_BASE_URL = "http://127.0.0.1:8000/storage/";
+
 export const CHATS_TYPE = [
     {
         id: "1",
@@ -101,4 +103,12 @@ export const SUBMIT_STATUS = [
     { id: 3, name: "Pending", color: "orange" },
     { id: 4, name: "Solved", color: "green" },
     { id: 5, name: "Spam", color: "gray" },
+    { id: 6, name: "New", color: "purple" },
+    { id: 7, name: "Qualified", color: "teal" },
+    { id: 8, name: "Proposition", color: "#FFBF00" },
+    { id: 9, name: "Won", color: "gold" },
 ];
+
+export const ItemTypes = {
+    TICKET: "ticket",
+};

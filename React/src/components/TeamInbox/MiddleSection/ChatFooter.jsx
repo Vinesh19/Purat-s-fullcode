@@ -56,7 +56,6 @@ const ChatFooter = ({ templates, user, selectedChat, updateChatMessages }) => {
     };
 
     const handleQuickReplySelect = (quickReplyMessage, quickReplyMedia) => {
-        console.log(quickReplyMedia);
         setMessage(quickReplyMessage);
 
         if (quickReplyMedia) {
@@ -219,7 +218,7 @@ const ChatFooter = ({ templates, user, selectedChat, updateChatMessages }) => {
     }, [selectedMedia]);
 
     return (
-        <div className="flex justify-between items-center bg-white shadow-2xl mx-1 mb-10 px-8 py-4 rounded-sm relative">
+        <div className="flex justify-between items-center bg-white shadow-2xl mx-1 px-8 py-4 rounded-sm relative">
             {selectedMedia && (
                 <div className="absolute -top-40 left-0 bg-slate-50 bg-opacity-85">
                     <div className="p-4">
@@ -304,7 +303,7 @@ const ChatFooter = ({ templates, user, selectedChat, updateChatMessages }) => {
                     closeModal={handleModalClick}
                     width="50vw"
                     height="50vh"
-                    className="bottom-0 border-4 border-green-100"
+                    className="bottom-0"
                 >
                     <Templates templates={templates} />
                 </Modal>
