@@ -5,8 +5,7 @@ import ChatDetailModal from "./ChatDetailModal";
 import { fetchCrmSpecificChat, updateChatStatus } from "../../services/api"; // Import the new API function
 
 const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "2-digit", day: "2-digit" };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    return new Date(dateString).toLocaleDateString("en-GB");
 };
 
 const statusMapping = {
@@ -196,15 +195,6 @@ const Board = ({ user, data }) => {
             </Modal>
         </>
     );
-};
-
-const determineColumn = (status) => {
-    // Logic to determine the column based on status
-    if (status === 5) return "new";
-    if (status === 6) return "qualified";
-    if (status === 7) return "proposition";
-    if (status === 8) return "won";
-    return "new";
 };
 
 export default Board;

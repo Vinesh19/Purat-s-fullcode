@@ -305,7 +305,11 @@ const ChatFooter = ({ templates, user, selectedChat, updateChatMessages }) => {
                     height="50vh"
                     className="bottom-0"
                 >
-                    <Templates templates={templates} />
+                    <Templates
+                        templates={templates}
+                        handleModal={setIsModalOpen}
+                        setMessage={setMessage}
+                    />
                 </Modal>
             )}
 

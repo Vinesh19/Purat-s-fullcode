@@ -9,12 +9,12 @@ import ViewKanbanOutlinedIcon from "@mui/icons-material/ViewKanbanOutlined";
 import ListAltOutlinedIcon from "@mui/icons-material/ListAltOutlined";
 import Tooltip from "@mui/material/Tooltip";
 
-import Board from "../../components/Contact/Board";
-import TicketList from "../../components/Contact/TicketList";
+import Board from "../../components/Crm/Board";
+import TicketList from "../../components/Crm/TicketList";
 
 import { fetchCrmChats } from "../../services/api";
 
-const Contact = ({ user }) => {
+const Crm = ({ user }) => {
     const [searchValue, setSearchValue] = useState("");
     const [isKanbanView, setIsKanbanView] = useState(true);
     const [tickets, setTickets] = useState([]);
@@ -60,6 +60,7 @@ const Contact = ({ user }) => {
                         placeholder="Search..."
                         size="small"
                     />
+
                     <IconButton type="submit" aria-label="search">
                         <SearchIcon />
                     </IconButton>
@@ -74,6 +75,7 @@ const Contact = ({ user }) => {
                             onClick={() => handleViewChange(true)}
                         />
                     </Tooltip>
+
                     <Tooltip title="List View">
                         <ListAltOutlinedIcon
                             className={`text-slate-400 cursor-pointer ${
@@ -96,4 +98,4 @@ const Contact = ({ user }) => {
     );
 };
 
-export default Contact;
+export default Crm;

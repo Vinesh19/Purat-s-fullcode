@@ -1,9 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 import Input from "../../Input";
 import Button from "../../Button";
 
-const Templates = ({ templates }) => {
+const Templates = ({ templates, handleModal, setMessage }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [customFields, setCustomFields] = useState({});
@@ -44,6 +44,15 @@ const Templates = ({ templates }) => {
 
     const handleBackClick = () => {
         setSelectedTemplate(null);
+    };
+
+    const sendSelectedTemplate = () => {
+        let message = selectedTemplate.template_body;
+        Object.keys(customFields).forEach((field) => {
+            message = message.replace(`{{${field}}}`, customFields[field]);
+        });
+        setMessage(message); // Update the message in ChatFooter
+        handleModal(false);
     };
 
     return (
@@ -119,7 +128,12 @@ const Templates = ({ templates }) => {
                                         Back
                                     </Button>
 
-                                    <Button variant="primary">Send</Button>
+                                    <Button
+                                        variant="primary"
+                                        onClick={sendSelectedTemplate}
+                                    >
+                                        Send
+                                    </Button>
                                 </div>
                             </div>
                         )}

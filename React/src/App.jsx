@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+
 import Home from "./pages/index";
 import DashboardPage from "./pages/dashboard";
 import BroadcastPage from "./pages/broadcast";
@@ -7,7 +10,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import TeamInbox from "./containers/TeamInbox";
 import WhatsappNavbar from "./components/WhatsappNavbar";
-import Contact from "./containers/Contact";
+import Crm from "./containers/Crm";
+import Contacts from "./containers/Contacts";
 
 const validateToken = () => {
     const token = localStorage.getItem("token");
@@ -31,51 +35,69 @@ const App = () => {
         }
     }, []);
 
+    const theme = createTheme({
+        palette: {
+            primary: {
+                main: "#1976d2",
+            },
+            common: {
+                white: "#ffffff",
+            },
+            action: {
+                hover: "#f5f5f5",
+            },
+        },
+        spacing: 8, // This defines the spacing unit
+    });
+
     return (
-        <Router>
-            <Routes>
-                <Route
-                    path="/"
-                    element={
-                        <PublicRoute user={user}>
-                            <Home setUser={setUser} />
-                        </PublicRoute>
-                    }
-                />
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute user={user}>
-                            <DashboardPage user={user} setUser={setUser} />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/dashboard/whatsapp"
-                    element={
-                        <ProtectedRoute user={user}>
-                            <WhatsappNavbar user={user} setUser={setUser} />
-                        </ProtectedRoute>
-                    }
-                >
+        <ThemeProvider theme={theme}>
+            <Router>
+                <Routes>
                     <Route
-                        path="/dashboard/whatsapp/broadcast"
-                        element={<BroadcastPage user={user} />}
+                        path="/"
+                        element={
+                            <PublicRoute user={user}>
+                                <Home setUser={setUser} />
+                            </PublicRoute>
+                        }
                     />
-
                     <Route
-                        path="/dashboard/whatsapp/teamInbox"
-                        element={<TeamInbox user={user} />}
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute user={user}>
+                                <DashboardPage user={user} setUser={setUser} />
+                            </ProtectedRoute>
+                        }
                     />
-
                     <Route
-                        path="/dashboard/whatsapp/contacts"
-                        element={<Contact user={user?.username} />}
-                    />
-                </Route>
-            </Routes>
-        </Router>
+                        path="/dashboard/whatsapp"
+                        element={
+                            <ProtectedRoute user={user}>
+                                <WhatsappNavbar user={user} setUser={setUser} />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route
+                            path="/dashboard/whatsapp/broadcast"
+                            element={<BroadcastPage user={user} />}
+                        />
+                        <Route
+                            path="/dashboard/whatsapp/teamInbox"
+                            element={<TeamInbox user={user} />}
+                        />
+                        <Route
+                            path="/dashboard/whatsapp/crm"
+                            element={<Crm user={user?.username} />}
+                        />
+                        <Route
+                            path="/dashboard/whatsapp/contacts"
+                            element={<Contacts user={user?.username} />}
+                        />
+                    </Route>
+                </Routes>
+            </Router>
+        </ThemeProvider>
     );
 };
 

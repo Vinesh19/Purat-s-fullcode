@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Modal from "../../components/Modal";
+import Modal from "../Modal";
 import ChatDetailModal from "./ChatDetailModal";
 import { fetchCrmSpecificChat } from "../../services/api";
 
@@ -88,9 +88,9 @@ const TicketList = ({ tickets, user }) => {
                                 {ticket.agent}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                                {new Date(
-                                    ticket.created_at
-                                ).toLocaleDateString()}
+                                {new Date(ticket.created_at).toLocaleDateString(
+                                    "en-GB"
+                                )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 {statusMapping[ticket.chat_room.status]}

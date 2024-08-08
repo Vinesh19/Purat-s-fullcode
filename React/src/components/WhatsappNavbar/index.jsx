@@ -49,7 +49,9 @@ const WhatsappNavbar = ({ user, setUser }) => {
                             <button
                                 onClick={() => {
                                     handleMenuItemClick("TeamInbox"),
-                                        navigate("/dashboard/whatsapp/teamInbox");
+                                        navigate(
+                                            "/dashboard/whatsapp/teamInbox"
+                                        );
                                 }}
                                 className={`btn btn-ghost ${
                                     activeMenuItem === "TeamInbox"
@@ -98,16 +100,19 @@ const WhatsappNavbar = ({ user, setUser }) => {
                         <li>
                             <button
                                 onClick={() => {
-                                    handleMenuItemClick("Contacts"),
-                                        navigate("/dashboard/whatsapp/contacts");
+                                    handleMenuItemClick("crm"),
+                                        navigate("/dashboard/whatsapp/crm");
                                 }}
                                 className={`btn btn-ghost ${
-                                    activeMenuItem === "Contacts"
-                                        ? "active"
-                                        : ""
+                                    activeMenuItem === "crm" ? "active" : ""
                                 }`}
                             >
-                                <i className="fas fa-address-book"></i> Contacts
+                                <img
+                                    src="/assets/images/png/crm.png"
+                                    alt="crm"
+                                    width={24}
+                                />{" "}
+                                CRM
                             </button>
                         </li>
                         <li>
@@ -135,6 +140,20 @@ const WhatsappNavbar = ({ user, setUser }) => {
                                 More
                             </button>
                             <ul className="dropdown-content menu shadow-lg bg-white rounded-lg p-2 w-52">
+                                <li>
+                                    <button
+                                        className="btn btn-ghost text-left w-full"
+                                        onClick={() => {
+                                            handleMenuItemClick("Contacts"),
+                                                navigate(
+                                                    "/dashboard/whatsapp/contacts"
+                                                );
+                                        }}
+                                    >
+                                        <i className="fas fa-address-book"></i>{" "}
+                                        Contacts
+                                    </button>
+                                </li>
                                 <li>
                                     <button className="btn btn-ghost text-left w-full">
                                         <i className="fas fa-chart-bar"></i>{" "}
