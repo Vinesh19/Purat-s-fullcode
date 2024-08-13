@@ -10,9 +10,10 @@ const statusMapping = {
     8: "won",
 };
 
-const TicketList = ({ tickets, user }) => {
+const TicketList = ({ tickets, user, setSelectedTickets }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [chatDetails, setChatDetails] = useState(null);
+    const [localSelectedTickets, setLocalSelectedTickets] = useState([]); // State to track selected tickets
 
     const handleTicketClick = async (receiver_id) => {
         const payload = { username: user, receiver_id };
@@ -30,8 +31,30 @@ const TicketList = ({ tickets, user }) => {
         setChatDetails(null);
     };
 
-    const handleCheckboxClick = (event) => {
-        event.stopPropagation();
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            const allTicketIds = filteredTickets.map(
+                (ticket) => ticket.receiver_id
+            );
+            setLocalSelectedTickets(allTicketIds);
+            setSelectedTickets(allTicketIds); // Update parent state
+        } else {
+            setLocalSelectedTickets([]);
+            setSelectedTickets([]); // Update parent state
+        }
+    };
+
+    const handleCheckboxChange = (receiver_id) => {
+        setLocalSelectedTickets((prevSelectedTickets) => {
+            const updatedSelectedTickets = prevSelectedTickets.includes(
+                receiver_id
+            )
+                ? prevSelectedTickets.filter((id) => id !== receiver_id)
+                : [...prevSelectedTickets, receiver_id];
+
+            setSelectedTickets(updatedSelectedTickets); // Update parent state
+            return updatedSelectedTickets;
+        });
     };
 
     const filteredTickets = tickets.filter((ticket) =>
@@ -44,7 +67,14 @@ const TicketList = ({ tickets, user }) => {
                 <thead className="bg-gray-100">
                     <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <input type="checkbox" />
+                            <input
+                                type="checkbox"
+                                onChange={handleSelectAll}
+                                checked={
+                                    localSelectedTickets.length ===
+                                    filteredTickets.length
+                                }
+                            />
                         </th>
                         <th className="px-6 py-3 text-left text-lg font-medium text-gray-500 uppercase tracking-wider">
                             Name
@@ -57,6 +87,9 @@ const TicketList = ({ tickets, user }) => {
                         </th>
                         <th className="px-6 py-3 text-left text-lg font-medium text-gray-500 uppercase tracking-wider">
                             Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-lg font-medium text-gray-500 uppercase tracking-wider">
+                            Time
                         </th>
                         <th className="px-6 py-3 text-left text-lg font-medium text-gray-500 uppercase tracking-wider">
                             Status
@@ -75,7 +108,12 @@ const TicketList = ({ tickets, user }) => {
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <input
                                     type="checkbox"
-                                    onClick={handleCheckboxClick}
+                                    onChange={() =>
+                                        handleCheckboxChange(ticket.receiver_id)
+                                    }
+                                    checked={localSelectedTickets.includes(
+                                        ticket.receiver_id
+                                    )}
                                 />
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -90,6 +128,15 @@ const TicketList = ({ tickets, user }) => {
                             <td className="px-6 py-4 whitespace-nowrap">
                                 {new Date(ticket.created_at).toLocaleDateString(
                                     "en-GB"
+                                )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                {new Date(ticket.created_at).toLocaleTimeString(
+                                    "en-GB",
+                                    {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    }
                                 )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">

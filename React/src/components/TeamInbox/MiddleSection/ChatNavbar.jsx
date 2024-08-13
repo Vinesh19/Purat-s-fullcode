@@ -5,7 +5,7 @@ import { faStar } from "@fortawesome/free-solid-svg-icons";
 import Dropdown from "../../Dropdown";
 import SubmitDropdown from "./SubmitDropdown";
 
-import { updateChatStatus, fetchAgentsName } from "../../../services/api";
+import { fetchAgentsName } from "../../../services/api";
 import { SUBMIT_STATUS } from "../../../services/constant";
 
 const ChatNavbar = ({

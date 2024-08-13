@@ -61,7 +61,7 @@ const UserInfo = ({ Contact, Name, user }) => {
                         action: "update",
                         id: noteToUpdate.id,
                         note: newNote,
-                        assign_user: noteToUpdate.assign_user,
+                        assign_user: 'vinesh',
                     };
                     const response = await showUserNotes(payload);
                     if (response.data.status === 1) {
@@ -175,7 +175,7 @@ const UserInfo = ({ Contact, Name, user }) => {
                     </div>
 
                     <div className="flex flex-col">
-                        <span className="font-bold text-xl w-[90%] truncate">{Name}</span>
+                        <span className="font-bold text-xl w-40 truncate">{Name}</span>
                         <span>Available</span>
                     </div>
                 </div>

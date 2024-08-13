@@ -149,7 +149,7 @@ const Board = ({ user, data }) => {
     };
 
     const handleTicketClick = async (receiver_id) => {
-        const payload = { username: user, receiver_id };
+        const payload = { action: "read", username: user, receiver_id };
         try {
             const response = await fetchCrmSpecificChat(payload);
             setChatDetails(response?.data);
@@ -185,14 +185,16 @@ const Board = ({ user, data }) => {
                 })}
             </div>
 
-            <Modal
-                isModalOpen={isModalOpen}
-                closeModal={closeModal}
-                height="70vh"
-                width="50vw"
-            >
-                <ChatDetailModal data={chatDetails} />
-            </Modal>
+            {isModalOpen && (
+                <Modal
+                    isModalOpen={isModalOpen}
+                    closeModal={closeModal}
+                    height="70vh"
+                    width="50vw"
+                >
+                    <ChatDetailModal data={chatDetails} user={user} />
+                </Modal>
+            )}
         </>
     );
 };

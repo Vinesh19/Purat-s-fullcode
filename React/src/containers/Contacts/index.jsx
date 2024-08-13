@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
     Button,
     Table,
@@ -16,7 +16,6 @@ import {
 import { makeStyles } from "@mui/styles";
 import { Search as SearchIcon } from "@mui/icons-material";
 import { motion, AnimatePresence } from "framer-motion";
-import { templateData } from "../../services/api";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -30,7 +29,6 @@ const useStyles = makeStyles((theme) => ({
         marginBottom: theme.spacing(4),
     },
     title: {
-        color: theme.palette.primary.main,
         fontWeight: 600,
     },
     controls: {
@@ -69,7 +67,6 @@ const Contacts = ({ user }) => {
     const [orderBy, setOrderBy] = useState("updated_at");
     const [order, setOrder] = useState("desc");
 
-
     const handleRequestSort = (property) => {
         const isAsc = orderBy === property && order === "asc";
         setOrder(isAsc ? "desc" : "asc");
@@ -92,20 +89,25 @@ const Contacts = ({ user }) => {
                     </Grid>
                 </Grid>
 
-                <Grid container spacing={2} className={classes.controls}>
-                    <Grid item xs={12} sm={3}>
+                <Grid
+                    container
+                    spacing={2}
+                    className={classes.controls}
+                    alignItems="center"
+                >
+                    <Grid item>
                         <Button variant="contained" color="primary">
                             Broadcast
                         </Button>
                     </Grid>
 
-                    <Grid item xs={12} sm={3}>
+                    <Grid item>
                         <Button variant="contained" color="primary">
                             Send Message
                         </Button>
                     </Grid>
 
-                    <Grid item xs={12} sm={3}>
+                    <Grid item>
                         <Button variant="contained" color="primary">
                             Assign Tag
                         </Button>
@@ -116,7 +118,7 @@ const Contacts = ({ user }) => {
                             className={classes.searchField}
                             variant="outlined"
                             size="small"
-                            placeholder="Search templates"
+                            placeholder="Search"
                             InputProps={{
                                 startAdornment: <SearchIcon />,
                             }}
@@ -126,7 +128,10 @@ const Contacts = ({ user }) => {
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={3}>
+                    {/* Spacer to push the "Import Contacts" button to the right */}
+                    <Grid item xs />
+
+                    <Grid item>
                         <Button variant="contained" color="primary">
                             Import Contacts
                         </Button>
@@ -145,7 +150,7 @@ const Contacts = ({ user }) => {
                                     "Company Name",
                                     "Mobile Number",
                                     "Contact Person",
-                                    "DOB",
+                                    "Birth Date",
                                     "Whatsapp Name",
                                     "Tags",
                                     "Source",
@@ -195,7 +200,7 @@ const Contacts = ({ user }) => {
                                     <TableCell>✅</TableCell>
                                     <TableCell>Purat</TableCell>
                                     <TableCell>9988776546</TableCell>
-                                    <TableCell>Vinesh</TableCell>{" "}
+                                    <TableCell>Vinesh</TableCell>
                                     <TableCell>19/09/2000</TableCell>
                                     <TableCell>one</TableCell>
                                     <TableCell>new</TableCell>

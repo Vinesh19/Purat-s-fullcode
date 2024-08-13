@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\ChatInboxNote;
+use App\Models\ChatInboxTag;
 use App\Models\ChatMessageRoom;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,6 +25,7 @@ class ChatMessage extends Model
         'eventDescription',
         'replySourceMessage',
         'text',
+        'media',
         'type',
         'eventtype',
         'whts_ref_id'
@@ -34,6 +37,22 @@ class ChatMessage extends Model
     public function chatRoom()
     {
         return $this->hasOne(ChatMessageRoom::class, 'receiver_id', 'receiver_id');
+        // ->whereColumn('sender_id', 'sender_id');
+    }
+    public function notes()
+    {
+        return $this->hasMany(ChatInboxNote::class, 'receiver_id', 'receiver_id');
+        // ->whereColumn('sender_id', 'sender_id');
+    }
+    // ChatMessage.php
+    // public function notes()
+    // {
+    //     return $this->hasMany(ChatInboxNote::class, 'receiver_id', 'receiver_id')
+    //         ->where('username', $this->username);
+    // }
+    public function tags()
+    {
+        return $this->hasMany(ChatInboxTag::class, 'receiver_id', 'receiver_id');
         // ->whereColumn('sender_id', 'sender_id');
     }
 }
