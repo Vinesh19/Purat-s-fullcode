@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Column from "./Column";
 import Modal from "../../components/Modal";
 import ChatDetailModal from "./ChatDetailModal";
+import DeleteConfirmation from "./DeleteModal";
 import { fetchCrmSpecificChat, updateChatStatus } from "../../services/api"; // Import the new API function
 
 const formatDate = (dateString) => {
@@ -33,6 +34,8 @@ const Board = ({ user, data }) => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [chatDetails, setChatDetails] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [ticketToDelete, setTicketToDelete] = useState(null);
 
     useEffect(() => {
         const tickets = {};
@@ -51,7 +54,7 @@ const Board = ({ user, data }) => {
             won: { id: "won", title: "Won", ticketIds: [] },
         };
 
-        data.forEach((chat, index) => {
+        data?.forEach((chat, index) => {
             const status = chat.chat_room?.status;
             if (![5, 6, 7, 8].includes(status)) return;
 
@@ -164,6 +167,54 @@ const Board = ({ user, data }) => {
         setChatDetails(null);
     };
 
+    const handleDeleteTicket = async (ticketId) => {
+        const ticket = state.tickets[ticketId];
+        const payload = {
+            action: "delete",
+            username: user,
+            receiver_id: ticket.number,
+        };
+
+        try {
+            await fetchCrmSpecificChat(payload);
+            // Remove the ticket from the state after successful deletion
+            const { [ticketId]: _, ...remainingTickets } = state.tickets;
+            const newColumns = { ...state.columns };
+
+            Object.keys(newColumns).forEach((columnId) => {
+                newColumns[columnId].ticketIds = newColumns[
+                    columnId
+                ].ticketIds.filter((id) => id !== ticketId);
+            });
+
+            setState({
+                ...state,
+                tickets: remainingTickets,
+                columns: newColumns,
+            });
+        } catch (error) {
+            console.error("Failed to delete the ticket", error);
+        }
+    };
+
+    const openDeleteModal = (ticketId) => {
+        setTicketToDelete(ticketId);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (ticketToDelete) {
+            await handleDeleteTicket(ticketToDelete);
+            setIsDeleteModalOpen(false);
+            setTicketToDelete(null);
+        }
+    };
+
+    const cancelDelete = () => {
+        setIsDeleteModalOpen(false);
+        setTicketToDelete(null);
+    };
+
     return (
         <>
             <div className="flex space-x-4 p-4 w-full h-[calc(100vh-120px)]">
@@ -179,7 +230,9 @@ const Board = ({ user, data }) => {
                             column={column}
                             tickets={tickets}
                             moveTicket={moveTicket}
-                            onClick={handleTicketClick} // Pass the onClick handler
+                            onClick={handleTicketClick}
+                            user={user}
+                            onDelete={openDeleteModal}
                         />
                     );
                 })}
@@ -193,6 +246,22 @@ const Board = ({ user, data }) => {
                     width="50vw"
                 >
                     <ChatDetailModal data={chatDetails} user={user} />
+                </Modal>
+            )}
+
+            {isDeleteModalOpen && (
+                <Modal
+                    isModalOpen={isDeleteModalOpen}
+                    closeModal={cancelDelete}
+                    height="40vh"
+                    width="30vw"
+                    className="rounded-lg"
+                >
+                    <DeleteConfirmation
+                        onConfirm={confirmDelete}
+                        onCancel={cancelDelete}
+                        itemType="chat"
+                    />
                 </Modal>
             )}
         </>

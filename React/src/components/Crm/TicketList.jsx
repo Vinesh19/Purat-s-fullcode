@@ -13,10 +13,10 @@ const statusMapping = {
 const TicketList = ({ tickets, user, setSelectedTickets }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [chatDetails, setChatDetails] = useState(null);
-    const [localSelectedTickets, setLocalSelectedTickets] = useState([]); // State to track selected tickets
+    const [localSelectedTickets, setLocalSelectedTickets] = useState([]);
 
     const handleTicketClick = async (receiver_id) => {
-        const payload = { username: user, receiver_id };
+        const payload = { action: "read", username: user, receiver_id };
         try {
             const response = await fetchCrmSpecificChat(payload);
             setChatDetails(response?.data);
@@ -37,14 +37,16 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
                 (ticket) => ticket.receiver_id
             );
             setLocalSelectedTickets(allTicketIds);
-            setSelectedTickets(allTicketIds); // Update parent state
+            setSelectedTickets(allTicketIds);
         } else {
             setLocalSelectedTickets([]);
-            setSelectedTickets([]); // Update parent state
+            setSelectedTickets([]);
         }
     };
 
-    const handleCheckboxChange = (receiver_id) => {
+    const handleCheckboxChange = (e, receiver_id) => {
+        e.stopPropagation(); // Prevent row click when checkbox is clicked
+
         setLocalSelectedTickets((prevSelectedTickets) => {
             const updatedSelectedTickets = prevSelectedTickets.includes(
                 receiver_id
@@ -98,39 +100,61 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                     {filteredTickets.map((ticket, index) => (
-                        <tr
-                            key={index}
-                            onClick={() =>
-                                handleTicketClick(ticket.receiver_id)
-                            }
-                            className="cursor-pointer hover:bg-gray-100"
-                        >
+                        <tr key={index} className="hover:bg-gray-100">
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <input
                                     type="checkbox"
-                                    onChange={() =>
-                                        handleCheckboxChange(ticket.receiver_id)
+                                    onChange={(e) =>
+                                        handleCheckboxChange(
+                                            e,
+                                            ticket.receiver_id
+                                        )
                                     }
                                     checked={localSelectedTickets.includes(
                                         ticket.receiver_id
                                     )}
                                 />
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td
+                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                onClick={() =>
+                                    handleTicketClick(ticket.receiver_id)
+                                }
+                            >
                                 {ticket.replySourceMessage}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td
+                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                onClick={() =>
+                                    handleTicketClick(ticket.receiver_id)
+                                }
+                            >
                                 {ticket.receiver_id}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td
+                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                onClick={() =>
+                                    handleTicketClick(ticket.receiver_id)
+                                }
+                            >
                                 {ticket.agent}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td
+                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                onClick={() =>
+                                    handleTicketClick(ticket.receiver_id)
+                                }
+                            >
                                 {new Date(ticket.created_at).toLocaleDateString(
                                     "en-GB"
                                 )}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td
+                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                onClick={() =>
+                                    handleTicketClick(ticket.receiver_id)
+                                }
+                            >
                                 {new Date(ticket.created_at).toLocaleTimeString(
                                     "en-GB",
                                     {
@@ -139,7 +163,12 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
                                     }
                                 )}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td
+                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                onClick={() =>
+                                    handleTicketClick(ticket.receiver_id)
+                                }
+                            >
                                 {statusMapping[ticket.chat_room.status]}
                             </td>
                         </tr>
@@ -153,7 +182,7 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
                 height="70vh"
                 width="50vw"
             >
-                <ChatDetailModal data={chatDetails} />
+                <ChatDetailModal data={chatDetails} user={user} />
             </Modal>
         </div>
     );

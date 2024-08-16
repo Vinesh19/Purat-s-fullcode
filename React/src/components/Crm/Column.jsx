@@ -2,7 +2,7 @@ import { useDrop } from "react-dnd";
 import Ticket from "./Ticket";
 import { ItemTypes } from "../../services/constant";
 
-const Column = ({ column, tickets, moveTicket, onClick }) => {
+const Column = ({ column, tickets, moveTicket, onClick, user, onDelete }) => {
     const [, drop] = useDrop({
         accept: ItemTypes.TICKET,
         hover: (item, monitor) => {
@@ -35,7 +35,9 @@ const Column = ({ column, tickets, moveTicket, onClick }) => {
                         index={index}
                         columnId={column.id}
                         moveTicket={moveTicket}
-                        onClick={onClick} // Pass the onClick handler
+                        onClick={onClick}
+                        user={user}
+                        onDelete={onDelete}
                     />
                 ))}
             </div>

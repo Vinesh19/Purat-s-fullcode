@@ -10,7 +10,7 @@ import {
 import Input from "../../Input";
 import Modal from "../../Modal";
 import CustomParameter from "./CustomParameter";
-import { showUserNotes } from "../../../services/api";
+import { fetchUserNotes } from "../../../services/api";
 
 const formatDateTime = (dateTimeString) => {
     const options = {
@@ -43,7 +43,7 @@ const UserInfo = ({ Contact, Name, user }) => {
                 username: user,
                 receiver_id: Contact,
             };
-            const response = await showUserNotes(payload);
+            const response = await fetchUserNotes(payload);
             if (response.data.status === 1) {
                 setNotes(response?.data?.data);
             }
@@ -61,9 +61,9 @@ const UserInfo = ({ Contact, Name, user }) => {
                         action: "update",
                         id: noteToUpdate.id,
                         note: newNote,
-                        assign_user: 'vinesh',
+                        assign_user: "vinesh",
                     };
-                    const response = await showUserNotes(payload);
+                    const response = await fetchUserNotes(payload);
                     if (response.data.status === 1) {
                         const updatedNotes = notes.map((note, index) =>
                             index === editNoteIndex
@@ -82,7 +82,7 @@ const UserInfo = ({ Contact, Name, user }) => {
                         note: newNote,
                         assign_user: "vinesh",
                     };
-                    const response = await showUserNotes(payload);
+                    const response = await fetchUserNotes(payload);
                     if (response.data.status === 1) {
                         fetchNotes();
                     }
@@ -102,7 +102,7 @@ const UserInfo = ({ Contact, Name, user }) => {
                 action: "delete",
                 id: noteToDelete.id,
             };
-            const response = await showUserNotes(payload);
+            const response = await fetchUserNotes(payload);
             if (response.data.status === 1) {
                 const updatedNotes = notes.filter((_, i) => i !== index);
                 setNotes(updatedNotes);
@@ -175,7 +175,9 @@ const UserInfo = ({ Contact, Name, user }) => {
                     </div>
 
                     <div className="flex flex-col">
-                        <span className="font-bold text-xl w-40 truncate">{Name}</span>
+                        <span className="font-bold text-xl w-40 truncate">
+                            {Name}
+                        </span>
                         <span>Available</span>
                     </div>
                 </div>

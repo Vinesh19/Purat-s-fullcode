@@ -11,6 +11,7 @@ use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\MobileOTPController;
 use App\Http\Controllers\ChatMessageController;
+use App\Http\Controllers\ChatInboxTagController;
 use App\Http\Controllers\AgentController;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\CRMController;
@@ -38,8 +39,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-
-
 Route::middleware('auth:api')->group(function () {
 
     //template API(action=crud)
@@ -51,7 +50,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/group-names', [GroupController::class, 'groupName']);
     Route::post('/group-data', [GroupController::class, 'groupData']);
 
-
     //chat inbox
     Route::post('advance-filtered-data', [ChatMessageController::class, 'getAdvanceFilteredData']); //fetching data with advance filter (status, attribute, assignee)
     Route::post('filtered-data', [ChatMessageController::class, 'getFilteredData']); //fetching data with filter (open,expired,active.broadcast etc)
@@ -61,6 +59,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/quick-replies', [ChatMessageController::class, 'handleQuickReplies']);
     //created_at(26-07-2024)
     Route::post('/chat-inbox/note', [ChatMessageController::class, 'handleNote']);
+    //tag API created_at(10-08-2024)
+    Route::post('/chat-inbox/tag', [ChatInboxTagController::class, 'handleCrud']);
 
     //graph mobile number count api //created at 28-6-2024
     Route::post('/mobile-numbers/count', [GraphController::class, 'getCountByTimeFrame']);
@@ -72,7 +72,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/crm/all-chat', [CRMController::class, 'handleAllData']);
     Route::post('/crm/specific-chat', [CRMController::class, 'handleSpecificData']);
 });
-
 
 //sending email otp
 Route::post('/send-email-otp', [EmailOTPController::class, 'sendEmailOTP']);

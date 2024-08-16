@@ -44,12 +44,6 @@ class ChatMessage extends Model
         return $this->hasMany(ChatInboxNote::class, 'receiver_id', 'receiver_id');
         // ->whereColumn('sender_id', 'sender_id');
     }
-    // ChatMessage.php
-    // public function notes()
-    // {
-    //     return $this->hasMany(ChatInboxNote::class, 'receiver_id', 'receiver_id')
-    //         ->where('username', $this->username);
-    // }
     public function tags()
     {
         return $this->hasMany(ChatInboxTag::class, 'receiver_id', 'receiver_id');

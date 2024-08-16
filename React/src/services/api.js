@@ -24,6 +24,7 @@ export const CHAT_DATA = `${API_BASE_URL}/chat-messages`;
 export const AGENTS_LIST = `${API_BASE_URL}/assign-users`;
 export const QUICK_REPLIES = `${API_BASE_URL}/quick-replies`;
 export const USER_NOTES = `${API_BASE_URL}/chat-inbox/note`;
+export const USER_TAGS = `${API_BASE_URL}/chat-inbox/tag`;
 export const CRM_CHATS = `${API_BASE_URL}/crm/all-chat`;
 export const CRM_CHAT_DETAILS = `${API_BASE_URL}/crm/specific-chat`;
 
@@ -135,8 +136,12 @@ export const handleQuickRepliesFormData = (formData) => {
     });
 };
 
-export const showUserNotes = (payload) => {
+export const fetchUserNotes = (payload) => {
     return api.post(USER_NOTES, payload);
+};
+
+export const fetchUserTags = (payload) => {
+    return api.post(USER_TAGS, payload);
 };
 
 export const fetchCrmChats = (user) => {

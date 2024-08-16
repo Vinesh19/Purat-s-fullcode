@@ -1,10 +1,9 @@
 import { useDrag } from "react-dnd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
-
 import { ItemTypes } from "../../services/constant";
 
-const Ticket = ({ ticket, index, columnId, onClick }) => {
+const Ticket = ({ ticket, index, columnId, onClick, user, onDelete }) => {
     const [{ isDragging }, drag] = useDrag({
         type: ItemTypes.TICKET,
         item: { id: ticket.id, index, columnId },
@@ -16,6 +15,11 @@ const Ticket = ({ ticket, index, columnId, onClick }) => {
     const getAgentInitial = (agent) => {
         if (!agent) return "";
         return agent.charAt(0).toUpperCase();
+    };
+
+    const handleDeleteClick = (e) => {
+        e.stopPropagation();
+        onDelete(ticket.id); 
     };
 
     return (
@@ -33,6 +37,7 @@ const Ticket = ({ ticket, index, columnId, onClick }) => {
                     <FontAwesomeIcon
                         icon={faTrashCan}
                         className="text-red-600 p-2 rounded-lg cursor-pointer"
+                        onClick={handleDeleteClick} // Call the new function here
                     />
                 </div>
 

@@ -8,8 +8,9 @@ import {
     Button,
     IconButton,
 } from "@mui/material";
-import { fetchAgentsName } from "../../services/api";
 import { Close as CloseIcon } from "@mui/icons-material";
+
+import { fetchAgentsName, fetchCrmSpecificChat } from "../../services/api";
 
 const statusMapping = {
     5: "new",
@@ -18,12 +19,17 @@ const statusMapping = {
     8: "won",
 };
 
-const AddUser = ({ user }) => {
+const AddUser = ({ user, closeModal }) => {
     const [agents, setAgents] = useState([]);
+    const [status, setStatus] = useState("");
+    const [selectedAgent, setSelectedAgent] = useState("");
     const [tags, setTags] = useState([]);
     const [notes, setNotes] = useState([]);
     const [tagInput, setTagInput] = useState("");
     const [noteInput, setNoteInput] = useState("");
+    const [receiverId, setReceiverId] = useState("");
+    const [name, setName] = useState("");
+    const [internalNote, setInternalNote] = useState("");
 
     const fetchAgents = async () => {
         try {
@@ -40,6 +46,14 @@ const AddUser = ({ user }) => {
         } catch (error) {
             console.error("Failed to fetch agents", error);
         }
+    };
+
+    const handleStatusChange = (e) => {
+        setStatus(e.target.value);
+    };
+
+    const handleAgentChange = (e) => {
+        setSelectedAgent(e.target.value);
     };
 
     const handleTagInputChange = (e) => {
@@ -83,6 +97,31 @@ const AddUser = ({ user }) => {
         setNotes(newNotes);
     };
 
+    const handleAddUser = async () => {
+        const payload = {
+            action: "create",
+            receiver_id: receiverId,
+            username: user,
+            name: name,
+            status: status,
+            internal_note: internalNote,
+            assign_user: selectedAgent,
+            notes: notes.map((note) => ({
+                note,
+            })),
+            tags: tags.map((tag) => ({
+                tag,
+            })),
+        };
+
+        try {
+            await fetchCrmSpecificChat(payload);
+            closeModal();
+        } catch (error) {
+            console.error("Error adding user:", error);
+        }
+    };
+
     useEffect(() => {
         fetchAgents();
     }, []);
@@ -93,15 +132,28 @@ const AddUser = ({ user }) => {
                 Enter User's Detail
             </h3>
 
-            <div className="overflow-auto mb-14 scrollbar-hide">
+            <div className="overflow-auto py-2 mb-12 scrollbar-hide">
                 <div className="grid grid-cols-2 gap-4">
-                    <TextField label="Name" name="Name" />
+                    <TextField
+                        label="Name"
+                        name="Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
 
-                    <TextField label="Number" name="Number" />
+                    <TextField
+                        label="Number"
+                        name="Number"
+                        onChange={(e) => setReceiverId(e.target.value)}
+                    />
 
                     <FormControl fullWidth>
                         <InputLabel>Agent</InputLabel>
-                        <Select name="Agent">
+                        <Select
+                            name="Agent"
+                            value={selectedAgent}
+                            onChange={handleAgentChange}
+                        >
                             {agents.map((agent) => (
                                 <MenuItem key={agent.id} value={agent.name}>
                                     {agent.name}
@@ -112,7 +164,11 @@ const AddUser = ({ user }) => {
 
                     <FormControl fullWidth>
                         <InputLabel>Status</InputLabel>
-                        <Select name="Status">
+                        <Select
+                            name="Status"
+                            value={status}
+                            onChange={handleStatusChange}
+                        >
                             {Object.keys(statusMapping).map((key) => (
                                 <MenuItem key={key} value={key}>
                                     {statusMapping[key]}
@@ -197,13 +253,19 @@ const AddUser = ({ user }) => {
                     <textarea
                         className="w-full p-2 border rounded"
                         name="internalNotes"
+                        value={internalNote}
+                        onChange={(e) => setInternalNote(e.target.value)}
                         rows={5}
                     />
                 </div>
             </div>
 
             <div className="absolute bottom-4 right-4">
-                <Button variant="contained" size="large">
+                <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleAddUser}
+                >
                     Add User
                 </Button>
             </div>

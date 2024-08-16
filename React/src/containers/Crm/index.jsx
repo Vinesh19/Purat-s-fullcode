@@ -14,6 +14,7 @@ import Board from "../../components/Crm/Board";
 import TicketList from "../../components/Crm/TicketList";
 import Modal from "../../components/Modal";
 import AddUser from "../../components/Crm/AddUserModal";
+import ChooseChannel from "../../components/Crm/ChannelsModal";
 
 import { fetchCrmChats } from "../../services/api";
 
@@ -22,13 +23,15 @@ const Crm = ({ user }) => {
     const [isKanbanView, setIsKanbanView] = useState(true);
     const [tickets, setTickets] = useState([]);
     const [filteredTickets, setFilteredTickets] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+    const [isChooseChannelModalOpen, setIsChooseChannelModalOpen] =
+        useState(false);
     const [selectedTickets, setSelectedTickets] = useState([]);
 
     const fetchData = async () => {
         const response = await fetchCrmChats({ username: user });
-        setTickets(response?.data);
-        setFilteredTickets(response?.data);
+        setTickets(response?.data?.data);
+        setFilteredTickets(response?.data?.data);
     };
 
     const handleSearch = (e) => {
@@ -40,6 +43,9 @@ const Crm = ({ user }) => {
                     .includes(e.target.value.toLowerCase()) ||
                 ticket.receiver_id
                     .toLowerCase()
+                    .includes(e.target.value.toLowerCase()) ||
+                ticket.agent
+                    .toLowerCase()
                     .includes(e.target.value.toLowerCase())
         );
         setFilteredTickets(filtered);
@@ -49,8 +55,16 @@ const Crm = ({ user }) => {
         setIsKanbanView(view);
     };
 
-    const handleModal = () => {
-        setIsModalOpen(!isModalOpen);
+    const toggleAddUserModal = () => {
+        setIsAddUserModalOpen(!isAddUserModalOpen);
+    };
+
+    const openChooseChannelModal = () => {
+        setIsChooseChannelModalOpen(true);
+    };
+
+    const closeChooseChannelModal = () => {
+        setIsChooseChannelModalOpen(false);
     };
 
     useEffect(() => {
@@ -104,6 +118,7 @@ const Crm = ({ user }) => {
                     variant="contained"
                     color="primary"
                     disabled={selectedTickets.length === 0}
+                    onClick={openChooseChannelModal}
                 >
                     Send Message
                 </Button>
@@ -111,7 +126,7 @@ const Crm = ({ user }) => {
                 <Button
                     variant="contained"
                     color="primary"
-                    onClick={handleModal}
+                    onClick={toggleAddUserModal}
                 >
                     Add User
                 </Button>
@@ -129,14 +144,28 @@ const Crm = ({ user }) => {
                 />
             )}
 
-            {isModalOpen && (
+            {/* AddUser Modal */}
+            {isAddUserModalOpen && (
                 <Modal
-                    isModalOpen={isModalOpen}
-                    closeModal={handleModal}
+                    isModalOpen={isAddUserModalOpen}
+                    closeModal={toggleAddUserModal}
                     height="70vh"
                     width="50vw"
                 >
-                    <AddUser user={user} />
+                    <AddUser user={user} closeModal={toggleAddUserModal} />
+                </Modal>
+            )}
+
+            {/* ChooseChannel Modal */}
+            {isChooseChannelModalOpen && (
+                <Modal
+                    isModalOpen={isChooseChannelModalOpen}
+                    closeModal={closeChooseChannelModal}
+                    height="60vh"
+                    width="50vw"
+                    className="rounded-lg"
+                >
+                    <ChooseChannel user={user} />
                 </Modal>
             )}
         </div>

@@ -18,7 +18,8 @@ class ChatMessageRoom extends Model
         'is_starred',
         'is_read',
         'internal_note',
-        'name'
+        'name',
+        'assign_to',
         // 'username'
     ];
 

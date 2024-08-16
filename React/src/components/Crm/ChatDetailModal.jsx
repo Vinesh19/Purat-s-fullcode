@@ -11,11 +11,18 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
 
 import Modal from "../Modal";
-import DeleteNode from "./DeleteNoteModal";
+import DeleteConfirmation from "./DeleteModal";
 
-import { fetchAgentsName, showUserNotes } from "../../services/api";
+import {
+    fetchAgentsName,
+    fetchUserNotes,
+    fetchUserTags,
+    fetchCrmSpecificChat,
+} from "../../services/api";
 
 const statusMapping = {
     5: "new",
@@ -27,12 +34,16 @@ const statusMapping = {
 const ChatDetailModal = ({ data, user }) => {
     const [agents, setAgents] = useState([]);
     const [notes, setNotes] = useState(data?.data?.notes || []);
-    const [editingIndex, setEditingIndex] = useState(null); // Track which note is being edited
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Manage the delete modal state
-    const [noteToDeleteIndex, setNoteToDeleteIndex] = useState(null); // Track which note to delete
-
-    const textFieldRef = useRef(null); // Reference to the current TextField
-
+    const [tags, setTags] = useState(data?.data?.tags || []); // Separate state for tags
+    const [isAddingTag, setIsAddingTag] = useState(false);
+    const [isAddingNote, setIsAddingNote] = useState(false);
+    const [newTag, setNewTag] = useState("");
+    const [newNote, setNewNote] = useState("");
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [editingTagIndex, setEditingTagIndex] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteItemType, setDeleteItemType] = useState(null); // Determine if deleting note or tag
+    const [itemToDeleteIndex, setItemToDeleteIndex] = useState(null); // Track which item to delete
     const [editData, setEditData] = useState({
         Name: data?.data?.replySourceMessage,
         Number: data?.data?.receiver_id,
@@ -42,10 +53,10 @@ const ChatDetailModal = ({ data, user }) => {
             hour: "2-digit",
             minute: "2-digit",
         }),
-        Notes: data?.data?.notes || [],
-        Tags: data?.data?.tags || [],
         Status: data?.data?.chat_room?.status,
     });
+
+    const tagFieldRef = useRef(null);
 
     const fetchAgents = async () => {
         try {
@@ -55,8 +66,8 @@ const ChatDetailModal = ({ data, user }) => {
             };
             const response = await fetchAgentsName(payload);
             const transformedAgents = response?.data?.data.map((agent) => ({
-                id: agent.id,
-                name: agent.assign_user,
+                id: agent?.id,
+                name: agent?.assign_user,
             }));
             setAgents(transformedAgents);
         } catch (error) {
@@ -72,29 +83,24 @@ const ChatDetailModal = ({ data, user }) => {
         });
     };
 
-    const handleDeleteNote = async () => {
-        if (noteToDeleteIndex === null) return;
-
+    const handleCreateNote = async () => {
         try {
-            const noteToDelete = notes[noteToDeleteIndex];
             const payload = {
-                action: "delete",
-                id: noteToDelete.id,
+                action: "create",
+                username: user,
+                receiver_id: editData?.Number,
+                note: newNote,
+                assign_user: "vinesh",
             };
-            const response = await showUserNotes(payload);
-            if (response.data.status === 1) {
-                const updatedNotes = notes.filter(
-                    (_, i) => i !== noteToDeleteIndex
-                );
-                setNotes(updatedNotes);
-                setEditData({
-                    ...editData,
-                    Notes: updatedNotes,
-                });
+            const response = await fetchUserNotes(payload);
+            console.log(response);
+            if (response?.data?.status === 1) {
+                setNotes([...notes, response?.data?.data]); // Assuming API returns the created note
+                setNewNote(""); // Clear the input field
+                setIsAddingNote(false); // Hide the input field
             }
-            setIsDeleteModalOpen(false); // Close the modal
         } catch (error) {
-            console.error("Error deleting note:", error);
+            console.error("Error creating note:", error);
         }
     };
 
@@ -107,19 +113,38 @@ const ChatDetailModal = ({ data, user }) => {
                 action: "update",
                 id: noteToUpdate.id,
                 note: noteToUpdate.note,
-                assign_user: "vinesh",
+                assign_user: user,
             };
-            const response = await showUserNotes(payload);
+            const response = await fetchUserNotes(payload);
             if (response.data.status === 1) {
                 setNotes(updatedNotes);
-                setEditData({
-                    ...editData,
-                    Notes: updatedNotes,
-                });
-                setEditingIndex(null); // Exit edit mode
+                setEditingIndex(null);
             }
         } catch (error) {
             console.error("Error updating note:", error);
+        }
+    };
+
+    const handleDeleteNote = async () => {
+        if (itemToDeleteIndex === null) return;
+
+        try {
+            const noteToDelete = notes[itemToDeleteIndex];
+            const payload = {
+                action: "delete",
+                id: noteToDelete.id,
+            };
+            const response = await fetchUserNotes(payload);
+            if (response?.data?.status === 1) {
+                const updatedNotes = notes.filter(
+                    (_, i) => i !== itemToDeleteIndex
+                );
+                setNotes(updatedNotes);
+            }
+            setIsDeleteModalOpen(false);
+            setItemToDeleteIndex(null);
+        } catch (error) {
+            console.error("Error deleting note:", error);
         }
     };
 
@@ -127,42 +152,120 @@ const ChatDetailModal = ({ data, user }) => {
         const updatedNotes = [...notes];
         updatedNotes[index].note = value;
         setNotes(updatedNotes);
-        setEditData({
-            ...editData,
-            Notes: updatedNotes,
-        });
-    };
-
-    const handleDeleteTag = (index) => {
-        const updatedTags = editData.Tags.filter((_, i) => i !== index);
-        setEditData({
-            ...editData,
-            Tags: updatedTags,
-        });
-    };
-
-    const handleEditTag = (index, value) => {
-        const updatedTags = [...editData.Tags];
-        updatedTags[index] = value;
-        setEditData({
-            ...editData,
-            Tags: updatedTags,
-        });
     };
 
     const handleEditNote = (index) => {
         setEditingIndex(index);
+    };
 
-        // Delay setting cursor position until after the component updates
+    const handleCreateTag = async () => {
+        try {
+            const payload = {
+                action: "create",
+                username: user,
+                receiver_id: editData?.Number,
+                tag: newTag,
+                assign_user: "vinesh",
+            };
+            const response = await fetchUserTags(payload);
+            if (response?.data?.status === 1) {
+                setTags([...tags, response?.data?.data]); // Assuming API returns the created tag
+                setNewTag(""); // Clear the input field
+                setIsAddingTag(false); // Hide the input field
+            }
+        } catch (error) {
+            console.error("Error creating tag:", error);
+        }
+    };
+
+    const handleSaveTag = async (index) => {
+        const updatedTags = [...tags]; // Use the tags state directly
+        const tagToUpdate = updatedTags[index];
+
+        try {
+            const payload = {
+                action: "update",
+                id: tagToUpdate.id,
+                tag: tagToUpdate.tag,
+                assign_user: user,
+            };
+            const response = await fetchUserTags(payload);
+            if (response?.data?.status) {
+                setTags(updatedTags);
+                setEditingTagIndex(null); // Exit edit mode and revert to button
+            }
+        } catch (error) {
+            console.error("Error updating tag:", error);
+        }
+    };
+
+    const handleDeleteTag = async () => {
+        if (itemToDeleteIndex === null) return;
+
+        try {
+            const tagToDelete = tags[itemToDeleteIndex];
+            const payload = {
+                action: "delete",
+                id: tagToDelete.id,
+            };
+            const response = await fetchUserTags(payload);
+            if (response.data.status === 1) {
+                const updatedTags = tags.filter(
+                    (_, i) => i !== itemToDeleteIndex
+                );
+                setTags(updatedTags);
+            }
+            setIsDeleteModalOpen(false);
+            setItemToDeleteIndex(null);
+        } catch (error) {
+            console.error("Error deleting tag:", error);
+        }
+    };
+
+    const handleTagChange = (index, value) => {
+        const updatedTags = [...tags];
+        updatedTags[index].tag = value;
+        setTags(updatedTags);
+    };
+
+    const handleEditTag = (index) => {
+        setEditingTagIndex(index);
+
         setTimeout(() => {
-            if (textFieldRef.current) {
-                textFieldRef.current.focus();
-                textFieldRef.current.selectionStart =
-                    textFieldRef.current.value.length;
-                textFieldRef.current.selectionEnd =
-                    textFieldRef.current.value.length;
+            if (tagFieldRef.current) {
+                tagFieldRef.current.focus();
+                const length = tagFieldRef.current.value.length;
+                tagFieldRef.current.setSelectionRange(length, length);
             }
         }, 0);
+    };
+
+    const handleDelete = (type, index) => {
+        setDeleteItemType(type);
+        setItemToDeleteIndex(index);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleSaveChanges = async () => {
+        try {
+            const payload = {
+                action: "update",
+                receiver_id: editData.Number,
+                username: user,
+                status: editData.Status,
+                name: editData.Name,
+                assign_user: editData.Agent,
+                internal_note: editData.internalNotes,
+            };
+
+            const response = await fetchCrmSpecificChat(payload);
+            if (response?.data?.status === 1) {
+                console.log("CRM specific chat updated successfully.");
+                // You might want to update the state or trigger any other action here
+            }
+        } catch (error) {
+            console.error("Error updating CRM specific chat:", error);
+        }
     };
 
     useEffect(() => {
@@ -175,7 +278,7 @@ const ChatDetailModal = ({ data, user }) => {
                 User's Information
             </h3>
 
-            <div className="overflow-auto py-2 scrollbar-hide">
+            <div className="overflow-auto py-2 mb-12 scrollbar-hide">
                 <div className="grid grid-cols-2 gap-4">
                     <TextField
                         label="Name"
@@ -247,17 +350,48 @@ const ChatDetailModal = ({ data, user }) => {
 
                     {/* Container for Notes */}
                     <div className="h-44 overflow-y-scroll border border-gray-300 p-2 scrollbar-hide">
-                        <h4 className="font-medium">Notes</h4>
-                        {notes.length > 0 ? (
-                            notes.map((note, index) => (
+                        <h4 className="font-medium flex items-center justify-between">
+                            Notes{" "}
+                            <IconButton
+                                onClick={() => setIsAddingNote(true)}
+                                className="ml-2"
+                            >
+                                <AddIcon />
+                            </IconButton>
+                        </h4>
+                        {isAddingNote && (
+                            <div className="p-2 mb-2 bg-slate-50 rounded-lg flex items-center">
+                                <TextField
+                                    fullWidth
+                                    variant="outlined"
+                                    value={newNote}
+                                    onChange={(e) => setNewNote(e.target.value)}
+                                    placeholder="Enter new note"
+                                />
+                                <IconButton
+                                    onClick={handleCreateNote}
+                                    className="ml-2"
+                                >
+                                    <CheckIcon className="text-green-600" />
+                                </IconButton>
+                                <IconButton
+                                    onClick={() => setIsAddingNote(false)}
+                                    className="ml-2"
+                                >
+                                    <CloseIcon className="text-red-600" />
+                                </IconButton>
+                            </div>
+                        )}
+                        {notes?.length > 0 ? (
+                            notes?.map((note, index) => (
                                 <div
                                     key={index}
-                                    className="p-2 mb-2 bg-slate-50 rounded-lg"
+                                    className="pl-2 mb-2 bg-slate-50 rounded-lg"
                                 >
                                     <div className="flex justify-between items-center">
                                         {editingIndex === index ? (
                                             <TextField
-                                                inputRef={textFieldRef} // Attach ref to TextField
+                                                inputRef={tagFieldRef}
                                                 fullWidth
                                                 variant="outlined"
                                                 value={note?.note}
@@ -290,10 +424,9 @@ const ChatDetailModal = ({ data, user }) => {
                                                 </IconButton>
                                             )}
                                             <IconButton
-                                                onClick={() => {
-                                                    setNoteToDeleteIndex(index);
-                                                    setIsDeleteModalOpen(true);
-                                                }}
+                                                onClick={() =>
+                                                    handleDelete("note", index)
+                                                }
                                             >
                                                 <DeleteIcon className="text-red-600" />
                                             </IconButton>
@@ -308,36 +441,108 @@ const ChatDetailModal = ({ data, user }) => {
 
                     {/* Container for Tags */}
                     <div className="h-44 overflow-y-scroll border border-gray-300 p-2 scrollbar-hide">
-                        <h4 className="font-medium">Tags</h4>
+                        <h4 className="font-medium flex items-center justify-between">
+                            Tags{" "}
+                            <IconButton
+                                onClick={() => setIsAddingTag(true)}
+                                className="ml-2"
+                            >
+                                <AddIcon />
+                            </IconButton>
+                        </h4>
                         <div className="flex flex-wrap gap-2">
-                            {editData.Tags.length > 0 ? (
-                                editData.Tags.map((tag, index) => (
+                            {isAddingTag && (
+                                <div className="flex items-center w-full">
+                                    <TextField
+                                        fullWidth
+                                        variant="outlined"
+                                        value={newTag}
+                                        onChange={(e) =>
+                                            setNewTag(e.target.value)
+                                        }
+                                        placeholder="Enter new tag"
+                                    />
+                                    <IconButton
+                                        onClick={handleCreateTag}
+                                        className="ml-2"
+                                    >
+                                        <CheckIcon className="text-green-600" />
+                                    </IconButton>
+                                    <IconButton
+                                        onClick={() => setIsAddingTag(false)}
+                                        className="ml-2"
+                                    >
+                                        <CloseIcon className="text-red-600" />
+                                    </IconButton>
+                                </div>
+                            )}
+                            {tags?.length > 0 ? (
+                                tags?.map((tag, index) => (
                                     <div
                                         key={index}
-                                        className="flex items-center"
+                                        className="flex items-center w-full"
                                     >
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            className="mr-2"
-                                            onClick={() =>
-                                                handleEditTag(
-                                                    index,
-                                                    prompt("Edit Tag:", tag) ||
-                                                        tag
-                                                )
-                                            }
-                                        >
-                                            {tag?.tag}
-                                        </Button>
-                                        <IconButton
-                                            size="small"
-                                            onClick={() =>
-                                                handleDeleteTag(index)
-                                            }
-                                        >
-                                            <DeleteIcon />
-                                        </IconButton>
+                                        {editingTagIndex === index ? (
+                                            <>
+                                                <TextField
+                                                    inputRef={tagFieldRef} // Use ref to control cursor
+                                                    fullWidth
+                                                    variant="outlined"
+                                                    value={tag?.tag}
+                                                    onChange={(e) =>
+                                                        handleTagChange(
+                                                            index,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    style={{
+                                                        marginRight: "8px",
+                                                    }}
+                                                />
+                                                <IconButton
+                                                    onClick={() =>
+                                                        handleSaveTag(index)
+                                                    }
+                                                >
+                                                    <CheckIcon className="text-green-600" />
+                                                </IconButton>
+                                            </>
+                                        ) : (
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                style={{
+                                                    marginRight: "8px",
+                                                    flex: "1",
+                                                    display: "flex",
+                                                    justifyContent:
+                                                        "space-between",
+                                                }}
+                                            >
+                                                {tag?.tag}
+                                                <div className="flex">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() =>
+                                                            handleEditTag(index)
+                                                        }
+                                                    >
+                                                        <EditIcon className="text-blue-600" />
+                                                    </IconButton>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                "tag",
+                                                                index
+                                                            )
+                                                        }
+                                                    >
+                                                        <DeleteIcon className="text-red-600" />
+                                                    </IconButton>
+                                                </div>
+                                            </Button>
+                                        )}
                                     </div>
                                 ))
                             ) : (
@@ -359,8 +564,12 @@ const ChatDetailModal = ({ data, user }) => {
                 </div>
             </div>
 
-            <div className="mt-4 flex-none">
-                <Button variant="contained" size="large">
+            <div className="flex-none absolute bottom-4 right-4">
+                <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleSaveChanges}
+                >
                     Save Changes
                 </Button>
             </div>
@@ -373,9 +582,14 @@ const ChatDetailModal = ({ data, user }) => {
                 height="40vh"
                 className="rounded-lg"
             >
-                <DeleteNode
-                    onConfirm={handleDeleteNote}
+                <DeleteConfirmation
+                    onConfirm={
+                        deleteItemType === "note"
+                            ? handleDeleteNote
+                            : handleDeleteTag
+                    }
                     onCancel={() => setIsDeleteModalOpen(false)}
+                    itemType={deleteItemType} // Pass the type to the modal
                 />
             </Modal>
         </div>
