@@ -16,7 +16,7 @@ const statusMapping = {
     8: "won",
 };
 
-const Board = ({ user, data }) => {
+const Board = ({ user, data, setTickets, setFilteredTickets }) => {
     const [state, setState] = useState({
         columns: {
             new: { id: "new", title: "New", ticketIds: [] },
@@ -36,48 +36,6 @@ const Board = ({ user, data }) => {
     const [chatDetails, setChatDetails] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [ticketToDelete, setTicketToDelete] = useState(null);
-
-    useEffect(() => {
-        const tickets = {};
-        const columns = {
-            new: { id: "new", title: "New", ticketIds: [] },
-            qualified: {
-                id: "qualified",
-                title: "Qualified",
-                ticketIds: [],
-            },
-            proposition: {
-                id: "proposition",
-                title: "Proposition",
-                ticketIds: [],
-            },
-            won: { id: "won", title: "Won", ticketIds: [] },
-        };
-
-        data?.forEach((chat, index) => {
-            const status = chat.chat_room?.status;
-            if (![5, 6, 7, 8].includes(status)) return;
-
-            const ticketId = `ticket-${index + 1}`;
-            tickets[ticketId] = {
-                id: ticketId,
-                name: chat?.replySourceMessage,
-                number: chat?.receiver_id,
-                agent: chat?.agent,
-                date: formatDate(chat.created_at),
-                status: statusMapping[status], // Convert status to label
-            };
-
-            const columnId = statusMapping[status];
-            columns[columnId].ticketIds.push(ticketId);
-        });
-
-        setState({
-            columns,
-            tickets,
-            columnOrder: ["new", "qualified", "proposition", "won"],
-        });
-    }, [data]);
 
     const moveTicket = async (
         ticketId,
@@ -126,6 +84,21 @@ const Board = ({ user, data }) => {
 
         try {
             await updateChatStatus(payload);
+
+            const updatedTickets = data.map((ticket) =>
+                ticket.receiver_id === state.tickets[ticketId].number
+                    ? {
+                          ...ticket,
+                          chat_room: {
+                              ...ticket.chat_room,
+                              status: parseInt(statusValue),
+                          },
+                      }
+                    : ticket
+            );
+
+            setTickets(updatedTickets);
+            setFilteredTickets(updatedTickets); 
         } catch (error) {
             console.error("Failed to update status", error);
             // Optionally revert state in case of error
@@ -214,6 +187,48 @@ const Board = ({ user, data }) => {
         setIsDeleteModalOpen(false);
         setTicketToDelete(null);
     };
+
+    useEffect(() => {
+        const tickets = {};
+        const columns = {
+            new: { id: "new", title: "New", ticketIds: [] },
+            qualified: {
+                id: "qualified",
+                title: "Qualified",
+                ticketIds: [],
+            },
+            proposition: {
+                id: "proposition",
+                title: "Proposition",
+                ticketIds: [],
+            },
+            won: { id: "won", title: "Won", ticketIds: [] },
+        };
+
+        data?.forEach((chat, index) => {
+            const status = chat.chat_room?.status;
+            if (![5, 6, 7, 8].includes(status)) return;
+
+            const ticketId = `ticket-${index + 1}`;
+            tickets[ticketId] = {
+                id: ticketId,
+                name: chat?.replySourceMessage,
+                number: chat?.receiver_id,
+                agent: chat?.agent,
+                date: formatDate(chat.created_at),
+                status: statusMapping[status], // Convert status to label
+            };
+
+            const columnId = statusMapping[status];
+            columns[columnId].ticketIds.push(ticketId);
+        });
+
+        setState({
+            columns,
+            tickets,
+            columnOrder: ["new", "qualified", "proposition", "won"],
+        });
+    }, [data]);
 
     return (
         <>

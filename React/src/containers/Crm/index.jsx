@@ -72,7 +72,7 @@ const Crm = ({ user }) => {
     }, []);
 
     return (
-        <div className=" flex-auto">
+        <div className="flex-auto overflow-auto max-h-[92vh] scrollbar-hide">
             <div className="mt-4 flex justify-evenly items-center">
                 <div>
                     <TextField
@@ -134,13 +134,20 @@ const Crm = ({ user }) => {
 
             {isKanbanView ? (
                 <DndProvider backend={HTML5Backend}>
-                    <Board user={user} data={filteredTickets} />
+                    <Board
+                        user={user}
+                        data={filteredTickets}
+                        setTickets={setTickets}
+                        setFilteredTickets={setFilteredTickets}
+                    />
                 </DndProvider>
             ) : (
                 <TicketList
                     tickets={filteredTickets}
                     user={user}
                     setSelectedTickets={setSelectedTickets}
+                    setTickets={setTickets}
+                    setFilteredTickets={setFilteredTickets}
                 />
             )}
 

@@ -7,10 +7,11 @@ import {
     faTrashCan,
     faPen,
 } from "@fortawesome/free-solid-svg-icons";
-import Input from "../../Input";
+
 import Modal from "../../Modal";
 import CustomParameter from "./CustomParameter";
-import { fetchUserNotes } from "../../../services/api";
+
+import { fetchUserNotes, fetchUserTags } from "../../../services/api";
 
 const formatDateTime = (dateTimeString) => {
     const options = {
@@ -34,6 +35,12 @@ const UserInfo = ({ Contact, Name, user }) => {
     const [isAddingNote, setIsAddingNote] = useState(false);
     const [isEditingNote, setIsEditingNote] = useState(false);
     const [editNoteIndex, setEditNoteIndex] = useState(null);
+
+    const [tags, setTags] = useState([]);
+    const [newTag, setNewTag] = useState("");
+    const [isAddingTag, setIsAddingTag] = useState(false);
+    const [isEditingTag, setIsEditingTag] = useState(false);
+    const [editTagIndex, setEditTagIndex] = useState(null);
     const [initialLetter, setInitialLetter] = useState("B"); // Default initial letter
 
     const fetchNotes = async () => {
@@ -46,6 +53,23 @@ const UserInfo = ({ Contact, Name, user }) => {
             const response = await fetchUserNotes(payload);
             if (response.data.status === 1) {
                 setNotes(response?.data?.data);
+            }
+        } catch (error) {
+            console.error("Error fetching notes:", error);
+        }
+    };
+
+    const fetchTags = async () => {
+        try {
+            const payload = {
+                action: "read",
+                username: user,
+                receiver_id: Contact,
+            };
+            const response = await fetchUserTags(payload);
+            console.log("tg", response);
+            if (response?.data?.status === 1) {
+                setTags(response?.data?.data);
             }
         } catch (error) {
             console.error("Error fetching notes:", error);
@@ -147,9 +171,92 @@ const UserInfo = ({ Contact, Name, user }) => {
         setNewNote(e.target.value);
     };
 
+    const handleSaveTag = async () => {
+        if (newTag.trim()) {
+            try {
+                if (isEditingTag && editTagIndex !== null) {
+                    const tagToUpdate = tags[editTagIndex];
+                    const payload = {
+                        action: "update",
+                        id: tagToUpdate.id,
+                        tag: newTag,
+                        assign_user: "vinesh",
+                    };
+                    const response = await fetchUserTags(payload);
+                    if (response?.data?.status === 1) {
+                        const updatedTags = tags.map((tag, index) =>
+                            index === editTagIndex
+                                ? { ...tag, tag: newTag }
+                                : tag
+                        );
+                        setTags(updatedTags);
+                        setIsEditingTag(false);
+                        setEditTagIndex(null);
+                    }
+                } else {
+                    const payload = {
+                        action: "create",
+                        username: user,
+                        receiver_id: Contact,
+                        tag: newTag,
+                        assign_user: "vinesh",
+                    };
+                    const response = await fetchUserTags(payload);
+                    if (response?.data?.status === 1) {
+                        fetchTags();
+                    }
+                }
+                setNewTag("");
+                setIsAddingTag(false);
+            } catch (error) {
+                console.error("Error saving tag:", error);
+            }
+        }
+    };
+
+    const handleDeleteTag = async (index) => {
+        try {
+            const tagToDelete = tags[index];
+            const payload = {
+                action: "delete",
+                id: tagToDelete.id,
+            };
+            const response = await fetchUserTags(payload);
+            if (response?.data?.status === 1) {
+                const updatedTags = tags.filter((_, i) => i !== index);
+                setNotes(updatedTags);
+            }
+        } catch (error) {
+            console.error("Error deleting tag:", error);
+        }
+    };
+
+    const handleEditTag = (index) => {
+        setNewTag(tags[index].tag);
+        setIsAddingTag(true);
+        setIsEditingTag(true);
+        setEditTagIndex(index);
+    };
+
+    const handleCancelTag = () => {
+        setNewTag("");
+        setIsAddingTag(false);
+        setIsEditingTag(false);
+        setEditTagIndex(null);
+    };
+
+    const handleAddTagClick = () => {
+        setIsAddingTag(true);
+    };
+
+    const handleTagChange = (e) => {
+        setNewTag(e.target.value);
+    };
+
     useEffect(() => {
         if (Contact) {
             fetchNotes();
+            fetchTags();
         }
     }, [Contact]);
 
@@ -197,7 +304,7 @@ const UserInfo = ({ Contact, Name, user }) => {
             </div>
 
             <div className="scrollbar-hide h-[80vh] overflow-y-auto">
-                <div className="my-6">
+                <div className="py-4">
                     <h3 className="font-semibold text-lg">Basic Information</h3>
                     <p className="flex items-center gap-2">
                         Phone number : {Contact}
@@ -211,7 +318,7 @@ const UserInfo = ({ Contact, Name, user }) => {
                     </p>
                 </div>
 
-                <div className="border-y py-4 my-4">
+                <div className="border-y py-2">
                     <div className="flex justify-between items-center">
                         <h4 className="font-bold">Contact custom parameters</h4>
                         <img
@@ -250,20 +357,94 @@ const UserInfo = ({ Contact, Name, user }) => {
                     </div>
                 </div>
 
-                <div className="border-b pb-8">
-                    <h4 className="font-bold">Tags</h4>
-                    <div className="relative mt-2">
-                        <img
-                            src="/assets/images/svg/tag.svg"
-                            alt="tag"
-                            className="absolute left-2 top-4"
-                        />
-                        <Input className="w-full" />
+                <div
+                    className={`flex flex-col ${
+                        tags.length === 0 ? "min-h-[20vh]" : "h-[40vh]"
+                    }`}
+                >
+                    <div className="flex justify-between items-center py-2">
+                        <h4 className="font-bold">Tags</h4>
+                        <h4
+                            className="bg-green-600 p-2 text-lg text-white font-semibold flex justify-center items-center rounded-md cursor-pointer"
+                            onClick={handleAddTagClick}
+                        >
+                            <FontAwesomeIcon icon={faPlus} />
+                        </h4>
+                    </div>
+
+                    <div className="overflow-auto flex-1 scrollbar-hide">
+                        {isAddingTag && (
+                            <div className="border p-4 rounded-md">
+                                <textarea
+                                    className="w-full p-2 border rounded-md"
+                                    rows="3"
+                                    value={newTag}
+                                    onChange={handleTagChange}
+                                    placeholder="Add your tag here..."
+                                ></textarea>
+
+                                <div className="flex justify-end gap-2 mt-2">
+                                    <button
+                                        className="text-red-600 border border-red-600 text-lg py-1 px-2 rounded-md"
+                                        onClick={handleCancelTag}
+                                    >
+                                        <FontAwesomeIcon icon={faTimes} />
+                                    </button>
+
+                                    <button
+                                        className="text-green-600 border border-green-600 text-lg py-1 px-2 rounded-md"
+                                        onClick={handleSaveTag}
+                                    >
+                                        <FontAwesomeIcon icon={faCheck} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="py-2">
+                            {tags.length === 0 ? (
+                                <p className="text-gray-500 text-center mt-4">
+                                    No tags available
+                                </p>
+                            ) : (
+                                tags.map((tag, index) => (
+                                    <div
+                                        key={index}
+                                        className="p-2 mb-2 border border-blue-100 rounded-lg"
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <p>{tag.tag}</p>
+
+                                            <div className="flex">
+                                                <FontAwesomeIcon
+                                                    icon={faPen}
+                                                    className="text-blue-600 p-2 rounded-lg cursor-pointer"
+                                                    onClick={() =>
+                                                        handleEditTag(index)
+                                                    }
+                                                />
+                                                <FontAwesomeIcon
+                                                    icon={faTrashCan}
+                                                    className="text-red-600 p-2 rounded-lg cursor-pointer"
+                                                    onClick={() =>
+                                                        handleDeleteTag(index)
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                <div className="my-4 h-[50vh] flex flex-col">
-                    <div className="flex justify-between items-center my-4">
+                <div
+                    className={`flex flex-col ${
+                        notes.length === 0 ? "min-h-[20vh]" : "h-[50vh]"
+                    }`}
+                >
+                    <div className="flex justify-between items-center py-2">
                         <h4 className="font-bold">Notes</h4>
                         <h4
                             className="bg-green-600 p-2 text-lg text-white font-semibold flex justify-center items-center rounded-md cursor-pointer"
@@ -303,50 +484,56 @@ const UserInfo = ({ Contact, Name, user }) => {
                         )}
 
                         <div className="my-4">
-                            {notes.map((note, index) => (
-                                <div
-                                    key={index}
-                                    className="p-4 mb-2 bg-slate-50 rounded-lg"
-                                >
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <img
-                                                src="/assets/images/svg/user-profile.svg"
-                                                alt="user"
-                                                className="w-10 h-10"
-                                            />
-                                            <div>
-                                                <h3 className="font-bold">
-                                                    {note.assign_user}
-                                                </h3>
+                            {notes.length === 0 ? (
+                                <p className="text-gray-500 text-center mt-4">
+                                    No notes available
+                                </p>
+                            ) : (
+                                notes.map((note, index) => (
+                                    <div
+                                        key={index}
+                                        className="p-4 mb-2 bg-slate-50 rounded-lg"
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center gap-2">
+                                                <img
+                                                    src="/assets/images/svg/user-profile.svg"
+                                                    alt="user"
+                                                    className="w-10 h-10"
+                                                />
+                                                <div>
+                                                    <h3 className="font-bold">
+                                                        {note.assign_user}
+                                                    </h3>
 
-                                                <span className="text-gray-600 text-sm">
-                                                    {formatDateTime(
-                                                        note?.updated_at
-                                                    )}
-                                                </span>
+                                                    <span className="text-gray-600 text-sm">
+                                                        {formatDateTime(
+                                                            note?.updated_at
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex">
+                                                <FontAwesomeIcon
+                                                    icon={faPen}
+                                                    className="text-blue-600 p-2 rounded-lg cursor-pointer"
+                                                    onClick={() =>
+                                                        handleEditNote(index)
+                                                    }
+                                                />
+                                                <FontAwesomeIcon
+                                                    icon={faTrashCan}
+                                                    className="text-red-600 p-2 rounded-lg cursor-pointer"
+                                                    onClick={() =>
+                                                        handleDeleteNote(index)
+                                                    }
+                                                />
                                             </div>
                                         </div>
-                                        <div className="flex">
-                                            <FontAwesomeIcon
-                                                icon={faPen}
-                                                className="text-blue-600 p-2 rounded-lg cursor-pointer"
-                                                onClick={() =>
-                                                    handleEditNote(index)
-                                                }
-                                            />
-                                            <FontAwesomeIcon
-                                                icon={faTrashCan}
-                                                className="text-red-600 p-2 rounded-lg cursor-pointer"
-                                                onClick={() =>
-                                                    handleDeleteNote(index)
-                                                }
-                                            />
-                                        </div>
+                                        <p className="mt-2">{note.note}</p>
                                     </div>
-                                    <p className="mt-2">{note.note}</p>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

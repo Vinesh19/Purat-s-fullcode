@@ -1,6 +1,9 @@
 import { useState } from "react";
+import Pagination from "@mui/material/Pagination";
+
 import Modal from "../Modal";
 import ChatDetailModal from "./ChatDetailModal";
+
 import { fetchCrmSpecificChat } from "../../services/api";
 
 const statusMapping = {
@@ -14,6 +17,9 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [chatDetails, setChatDetails] = useState(null);
     const [localSelectedTickets, setLocalSelectedTickets] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const ticketsPerPage = 10;
 
     const handleTicketClick = async (receiver_id) => {
         const payload = { action: "read", username: user, receiver_id };
@@ -63,6 +69,15 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
         [5, 6, 7, 8].includes(ticket.chat_room?.status)
     );
 
+    const handlePageChange = (event, page) => {
+        setCurrentPage(page);
+    };
+
+    const paginatedTickets = filteredTickets.slice(
+        (currentPage - 1) * ticketsPerPage,
+        currentPage * ticketsPerPage
+    );
+
     return (
         <div className="flex flex-col w-full p-4">
             <table className="min-w-full divide-y divide-gray-200 bg-white shadow rounded-lg">
@@ -99,7 +114,7 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredTickets.map((ticket, index) => (
+                    {paginatedTickets.map((ticket, index) => (
                         <tr key={index} className="hover:bg-gray-100">
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <input
@@ -107,26 +122,26 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
                                     onChange={(e) =>
                                         handleCheckboxChange(
                                             e,
-                                            ticket.receiver_id
+                                            ticket?.receiver_id
                                         )
                                     }
                                     checked={localSelectedTickets.includes(
-                                        ticket.receiver_id
+                                        ticket?.receiver_id
                                     )}
                                 />
                             </td>
                             <td
                                 className="px-6 py-4 whitespace-nowrap cursor-pointer"
                                 onClick={() =>
-                                    handleTicketClick(ticket.receiver_id)
+                                    handleTicketClick(ticket?.receiver_id)
                                 }
                             >
-                                {ticket.replySourceMessage}
+                                {ticket?.replySourceMessage}
                             </td>
                             <td
                                 className="px-6 py-4 whitespace-nowrap cursor-pointer"
                                 onClick={() =>
-                                    handleTicketClick(ticket.receiver_id)
+                                    handleTicketClick(ticket?.receiver_id)
                                 }
                             >
                                 {ticket.receiver_id}
@@ -134,47 +149,54 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
                             <td
                                 className="px-6 py-4 whitespace-nowrap cursor-pointer"
                                 onClick={() =>
-                                    handleTicketClick(ticket.receiver_id)
+                                    handleTicketClick(ticket?.receiver_id)
                                 }
                             >
-                                {ticket.agent}
+                                {ticket?.agent}
                             </td>
                             <td
                                 className="px-6 py-4 whitespace-nowrap cursor-pointer"
                                 onClick={() =>
-                                    handleTicketClick(ticket.receiver_id)
+                                    handleTicketClick(ticket?.receiver_id)
                                 }
                             >
-                                {new Date(ticket.created_at).toLocaleDateString(
-                                    "en-GB"
-                                )}
+                                {new Date(
+                                    ticket?.created_at
+                                ).toLocaleDateString("en-GB")}
                             </td>
                             <td
                                 className="px-6 py-4 whitespace-nowrap cursor-pointer"
                                 onClick={() =>
-                                    handleTicketClick(ticket.receiver_id)
+                                    handleTicketClick(ticket?.receiver_id)
                                 }
                             >
-                                {new Date(ticket.created_at).toLocaleTimeString(
-                                    "en-GB",
-                                    {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    }
-                                )}
+                                {new Date(
+                                    ticket?.created_at
+                                ).toLocaleTimeString("en-GB", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
                             </td>
                             <td
                                 className="px-6 py-4 whitespace-nowrap cursor-pointer"
                                 onClick={() =>
-                                    handleTicketClick(ticket.receiver_id)
+                                    handleTicketClick(ticket?.receiver_id)
                                 }
                             >
-                                {statusMapping[ticket.chat_room.status]}
+                                {statusMapping[ticket?.chat_room?.status]}
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+
+            <Pagination
+                count={Math.ceil(filteredTickets.length / ticketsPerPage)}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+                className="mt-4 self-center"
+            />
 
             <Modal
                 isModalOpen={isModalOpen}

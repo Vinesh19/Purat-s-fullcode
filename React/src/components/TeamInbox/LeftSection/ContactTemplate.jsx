@@ -7,6 +7,7 @@ import Button from "../../Button";
 
 const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
     const [selectedContact, setSelectedContact] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
     const [showTemplates, setShowTemplates] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -18,11 +19,18 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
         setError("");
     };
 
+    const handlePhoneNumberChange = (e) => {
+        setPhoneNumber(e.target.value);
+        setError("");
+    };
+
     const handleNextClick = () => {
-        if (!selectedContact) {
-            setError("Please select a contact.");
+        if (!selectedContact && !phoneNumber) {
+            setError("Please select a contact or enter a phone number.");
             return;
         }
+        setSelectedTemplate(null);
+        setCustomFields({});
         setShowTemplates(true);
     };
 
@@ -71,6 +79,7 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
 
     const handleBackClick = () => {
         setSelectedTemplate(null);
+        setShowTemplates(false);
     };
 
     return (
@@ -83,9 +92,12 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
                             icon={faPhone}
                             className="bg-white p-1.5 rounded"
                         />
+
                         <Input
-                            placeholder="Please Input whatsapp Number"
+                            placeholder="Please Input WhatsApp Number"
                             className="grow"
+                            value={phoneNumber}
+                            onChange={handlePhoneNumberChange}
                         />
                     </div>
 
@@ -138,36 +150,37 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
                             onClick={() => handleTemplateClick(template)}
                         >
                             <h3 className="font-bold">
-                                {template.template_name}
+                                {template?.template_name}
                             </h3>
 
-                            <p>{template.template_body}</p>
+                            <p>{template?.template_body}</p>
 
                             <div className="flex justify-evenly gap-1 mt-4">
-                                {template.quick_reply_btn_text1 && (
+                                {template?.quick_reply_btn_text1 && (
                                     <Button variant="secondary">
-                                        {template.quick_reply_btn_text1}
+                                        {template?.quick_reply_btn_text1}
                                     </Button>
                                 )}
-                                {template.quick_reply_btn_text2 && (
+                                {template?.quick_reply_btn_text2 && (
                                     <Button variant="secondary">
-                                        {template.quick_reply_btn_text2}
+                                        {template?.quick_reply_btn_text2}
                                     </Button>
                                 )}
-                                {template.quick_reply_btn_text3 && (
+                                {template?.quick_reply_btn_text3 && (
                                     <Button variant="secondary">
-                                        {template.quick_reply_btn_text3}
+                                        {template?.quick_reply_btn_text3}
                                     </Button>
                                 )}
                             </div>
 
-                            {selectedTemplate?.id === template.id && (
+                            {selectedTemplate?.id === template?.id && (
                                 <div className="mt-4">
                                     {Object.keys(customFields).map((field) => (
                                         <div key={field} className="my-2">
                                             <label className="block text-sm font-medium text-gray-700">
                                                 Custom Field {`{{${field}}}`}
                                             </label>
+
                                             <Input
                                                 value={customFields[field]}
                                                 onChange={(e) =>
@@ -180,6 +193,7 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
                                             />
                                         </div>
                                     ))}
+
                                     <div className="flex justify-end gap-2 mt-4">
                                         <Button
                                             variant="secondary"
@@ -187,6 +201,7 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
                                         >
                                             Back
                                         </Button>
+
                                         <Button variant="primary">Send</Button>
                                     </div>
                                 </div>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import Input from "../../Input";
 import Button from "../../Button";
 
@@ -43,6 +42,8 @@ const Templates = ({ templates, handleModal, setMessage }) => {
     };
 
     const handleBackClick = () => {
+        setCustomFields({});
+        setSearchTerm("");
         setSelectedTemplate(null);
     };
 
@@ -79,9 +80,9 @@ const Templates = ({ templates, handleModal, setMessage }) => {
                         }`}
                         onClick={() => handleTemplateClick(template)}
                     >
-                        <h3 className="font-bold">{template.template_name}</h3>
+                        <h3 className="font-bold">{template?.template_name}</h3>
 
-                        <p>{template.template_body}</p>
+                        <p>{template?.template_body}</p>
 
                         <div className="flex justify-evenly gap-1 mt-4">
                             {template.quick_reply_btn_text1 && (
@@ -108,6 +109,7 @@ const Templates = ({ templates, handleModal, setMessage }) => {
                                         <label className="block text-sm font-medium text-gray-700">
                                             Custom Field {`{{${field}}}`}
                                         </label>
+                                        
                                         <Input
                                             value={customFields[field]}
                                             onChange={(e) =>
