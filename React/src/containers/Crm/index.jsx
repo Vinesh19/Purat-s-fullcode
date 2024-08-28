@@ -91,8 +91,10 @@ const Crm = ({ user }) => {
                 <div className="flex gap-2">
                     <Tooltip title="Kanban View">
                         <ViewKanbanOutlinedIcon
-                            className={`text-slate-400 cursor-pointer ${
-                                isKanbanView ? "text-blue-500" : ""
+                            className={`cursor-pointer ${
+                                isKanbanView
+                                    ? "text-slate-500"
+                                    : "text-slate-400"
                             }`}
                             onClick={() => handleViewChange(true)}
                         />
@@ -100,8 +102,10 @@ const Crm = ({ user }) => {
 
                     <Tooltip title="List View">
                         <ListAltOutlinedIcon
-                            className={`text-slate-400 cursor-pointer ${
-                                !isKanbanView ? "text-blue-500" : ""
+                            className={`cursor-pointer ${
+                                !isKanbanView
+                                    ? "text-slate-500"
+                                    : "text-slate-400"
                             }`}
                             onClick={() => handleViewChange(false)}
                         />

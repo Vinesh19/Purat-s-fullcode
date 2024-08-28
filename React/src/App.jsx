@@ -12,6 +12,9 @@ import TeamInbox from "./containers/TeamInbox";
 import WhatsappNavbar from "./components/WhatsappNavbar";
 import Crm from "./containers/Crm";
 import Contacts from "./containers/Contacts";
+import Chatbot from "./containers/Chatbot";
+import ChatbotBuilder from "./containers/Chatbot/ChatbotBuilder";
+import CreateChatbot from "./containers/Chatbot/CreateChatbot";
 
 const validateToken = () => {
     const token = localStorage.getItem("token");
@@ -62,6 +65,7 @@ const App = () => {
                             </PublicRoute>
                         }
                     />
+
                     <Route
                         path="/dashboard"
                         element={
@@ -70,6 +74,7 @@ const App = () => {
                             </ProtectedRoute>
                         }
                     />
+
                     <Route
                         path="/dashboard/whatsapp"
                         element={
@@ -82,14 +87,32 @@ const App = () => {
                             path="/dashboard/whatsapp/broadcast"
                             element={<BroadcastPage user={user} />}
                         />
+
                         <Route
                             path="/dashboard/whatsapp/teamInbox"
                             element={<TeamInbox user={user} />}
                         />
+
+                        <Route
+                            path="/dashboard/whatsapp/chatbots"
+                            element={<Chatbot />}
+                        />
+
+                        <Route
+                            path="/dashboard/whatsapp/chatbotBuilder"
+                            element={<ChatbotBuilder />}
+                        />
+
+                        <Route
+                            path="/dashboard/whatsapp/createChatbot"
+                            element={<CreateChatbot />}
+                        />
+
                         <Route
                             path="/dashboard/whatsapp/crm"
                             element={<Crm user={user?.username} />}
                         />
+
                         <Route
                             path="/dashboard/whatsapp/contacts"
                             element={<Contacts user={user?.username} />}
