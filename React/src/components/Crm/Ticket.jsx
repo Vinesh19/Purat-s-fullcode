@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { ItemTypes } from "../../services/constant";
 
-const Ticket = ({ ticket, index, columnId, onClick, user, onDelete }) => {
+const Ticket = ({ ticket, index, columnId, onClick, onDelete }) => {
     const [{ isDragging }, drag] = useDrag({
         type: ItemTypes.TICKET,
         item: { id: ticket.id, index, columnId },

@@ -67,7 +67,6 @@ const UserInfo = ({ Contact, Name, user }) => {
                 receiver_id: Contact,
             };
             const response = await fetchUserTags(payload);
-            console.log("tg", response);
             if (response?.data?.status === 1) {
                 setTags(response?.data?.data);
             }

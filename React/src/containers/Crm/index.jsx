@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { Button } from "@mui/material";
+import { Button, TextField, Tooltip } from "@mui/material";
 
 import SearchIcon from "@mui/icons-material/Search";
-import TextField from "@mui/material/TextField";
 import ViewKanbanOutlinedIcon from "@mui/icons-material/ViewKanbanOutlined";
 import ListAltOutlinedIcon from "@mui/icons-material/ListAltOutlined";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import Tooltip from "@mui/material/Tooltip";
+
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import Board from "../../components/Crm/Board";
 import TicketList from "../../components/Crm/TicketList";
@@ -27,6 +27,7 @@ const Crm = ({ user }) => {
     const [isChooseChannelModalOpen, setIsChooseChannelModalOpen] =
         useState(false);
     const [selectedTickets, setSelectedTickets] = useState([]);
+    const [dateRange, setDateRange] = useState([null, null]);
 
     const fetchData = async () => {
         const response = await fetchCrmChats({ username: user });
@@ -36,19 +37,6 @@ const Crm = ({ user }) => {
 
     const handleSearch = (e) => {
         setSearchValue(e.target.value);
-        const filtered = tickets.filter(
-            (ticket) =>
-                ticket.replySourceMessage
-                    .toLowerCase()
-                    .includes(e.target.value.toLowerCase()) ||
-                ticket.receiver_id
-                    .toLowerCase()
-                    .includes(e.target.value.toLowerCase()) ||
-                ticket.agent
-                    .toLowerCase()
-                    .includes(e.target.value.toLowerCase())
-        );
-        setFilteredTickets(filtered);
     };
 
     const handleViewChange = (view) => {
@@ -67,14 +55,50 @@ const Crm = ({ user }) => {
         setIsChooseChannelModalOpen(false);
     };
 
+    const handleDateRangeChange = (update) => {
+        setDateRange(update);
+    };
+
+    const filteredAndSortedTickets = useMemo(() => {
+        let filtered = [...tickets];
+
+        if (searchValue) {
+            filtered = filtered.filter(
+                (ticket) =>
+                    ticket.replySourceMessage
+                        .toLowerCase()
+                        .includes(searchValue.toLowerCase()) ||
+                    ticket.receiver_id
+                        .toLowerCase()
+                        .includes(searchValue.toLowerCase()) ||
+                    ticket.agent
+                        .toLowerCase()
+                        .includes(searchValue.toLowerCase())
+            );
+        }
+
+        if (dateRange[0] && dateRange[1]) {
+            filtered = filtered.filter((ticket) => {
+                const ticketDate = new Date(ticket.created_at);
+                return ticketDate >= dateRange[0] && ticketDate <= dateRange[1];
+            });
+        }
+
+        return filtered;
+    }, [tickets, searchValue, dateRange]);
+
     useEffect(() => {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        setFilteredTickets(filteredAndSortedTickets);
+    }, [filteredAndSortedTickets]);
+
     return (
         <div className="flex-auto overflow-auto max-h-[92vh] scrollbar-hide">
-            <div className="mt-4 flex justify-evenly items-center">
-                <div>
+            <div className="mt-4 flex justify-between px-4 items-center">
+                <div className="flex gap-4">
                     <TextField
                         variant="outlined"
                         placeholder="Search..."
@@ -83,8 +107,23 @@ const Crm = ({ user }) => {
                             startAdornment: <SearchIcon />,
                         }}
                         value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        onInput={handleSearch}
+                        onChange={handleSearch}
+                    />
+
+                    <DatePicker
+                        selectsRange
+                        startDate={dateRange[0]}
+                        endDate={dateRange[1]}
+                        onChange={handleDateRangeChange}
+                        isClearable
+                        customInput={
+                            <TextField
+                                variant="outlined"
+                                size="small"
+                                placeholder="Filter by Date"
+                            />
+                        }
+                        placeholderText="Filter by Date"
                     />
                 </div>
 
@@ -108,12 +147,6 @@ const Crm = ({ user }) => {
                                     : "text-slate-400"
                             }`}
                             onClick={() => handleViewChange(false)}
-                        />
-                    </Tooltip>
-
-                    <Tooltip title="Filter">
-                        <FilterListIcon
-                            className={`text-slate-400 cursor-pointer`}
                         />
                     </Tooltip>
                 </div>
@@ -149,13 +182,11 @@ const Crm = ({ user }) => {
                 <TicketList
                     tickets={filteredTickets}
                     user={user}
+                    selectedTickets={selectedTickets}
                     setSelectedTickets={setSelectedTickets}
-                    setTickets={setTickets}
-                    setFilteredTickets={setFilteredTickets}
                 />
             )}
 
-            {/* AddUser Modal */}
             {isAddUserModalOpen && (
                 <Modal
                     isModalOpen={isAddUserModalOpen}
@@ -163,11 +194,14 @@ const Crm = ({ user }) => {
                     height="70vh"
                     width="50vw"
                 >
-                    <AddUser user={user} closeModal={toggleAddUserModal} />
+                    <AddUser
+                        user={user}
+                        closeModal={toggleAddUserModal}
+                        fetchData={fetchData}
+                    />
                 </Modal>
             )}
 
-            {/* ChooseChannel Modal */}
             {isChooseChannelModalOpen && (
                 <Modal
                     isModalOpen={isChooseChannelModalOpen}

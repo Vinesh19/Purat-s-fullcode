@@ -27,6 +27,7 @@ export const USER_NOTES = `${API_BASE_URL}/chat-inbox/note`;
 export const USER_TAGS = `${API_BASE_URL}/chat-inbox/tag`;
 export const CRM_CHATS = `${API_BASE_URL}/crm/all-chat`;
 export const CRM_CHAT_DETAILS = `${API_BASE_URL}/crm/specific-chat`;
+export const CRM_BROADCAST = `${API_BASE_URL}/crm_broadcast`;
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -150,6 +151,10 @@ export const fetchCrmChats = (user) => {
 
 export const fetchCrmSpecificChat = (payload) => {
     return api.post(CRM_CHAT_DETAILS, payload);
+};
+
+export const sendCrmBroadcast = (payload) => {
+    return api.post(CRM_BROADCAST, payload);
 };
 
 export default api;

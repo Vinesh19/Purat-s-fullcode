@@ -10,7 +10,11 @@ import {
 } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
 
-import { fetchAgentsName, fetchCrmSpecificChat } from "../../services/api";
+import {
+    fetchAgentsName,
+    fetchCrmSpecificChat,
+    fetchCrmChats,
+} from "../../services/api";
 
 const statusMapping = {
     5: "new",
@@ -19,7 +23,7 @@ const statusMapping = {
     8: "won",
 };
 
-const AddUser = ({ user, closeModal }) => {
+const AddUser = ({ user, closeModal, fetchData }) => {
     const [agents, setAgents] = useState([]);
     const [status, setStatus] = useState("");
     const [selectedAgent, setSelectedAgent] = useState("");
@@ -100,6 +104,7 @@ const AddUser = ({ user, closeModal }) => {
     const handleAddUser = async () => {
         const payload = {
             action: "create",
+            source: "CRM",
             receiver_id: receiverId,
             username: user,
             name: name,
@@ -116,6 +121,7 @@ const AddUser = ({ user, closeModal }) => {
 
         try {
             await fetchCrmSpecificChat(payload);
+            await fetchData();
             closeModal();
         } catch (error) {
             console.error("Error adding user:", error);

@@ -1,11 +1,23 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPhone } from "@fortawesome/free-solid-svg-icons";
+import { toast } from "react-toastify";
+
 import Dropdown from "../../Dropdown";
 import Input from "../../Input";
 import Button from "../../Button";
 
-const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
+import { fetchSelectedChatData } from "../../../services/api";
+
+import "react-toastify/dist/ReactToastify.css";
+
+const ContactTemplate = ({
+    templates,
+    setShowContactTemplate,
+    contacts,
+    user,
+    updateChatMessages,
+}) => {
     const [selectedContact, setSelectedContact] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [showTemplates, setShowTemplates] = useState(false);
@@ -13,6 +25,11 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [customFields, setCustomFields] = useState({});
     const [error, setError] = useState("");
+
+    const extractReceiverId = (contactString) => {
+        const match = contactString.match(/\(([^)]+)\)$/);
+        return match ? match[1] : null;
+    };
 
     const handleContactChange = (e) => {
         setSelectedContact(e.target.value);
@@ -64,22 +81,68 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
             (match) => match[1]
         );
         const fields = matches.reduce((acc, field) => {
-            acc[field] = "";
+            acc[field] = customFields[field] || ""; // Preserve existing values
             return acc;
         }, {});
         setCustomFields(fields);
     };
 
     const handleFieldChange = (field, value) => {
-        setCustomFields({
-            ...customFields,
+        setCustomFields((prevFields) => ({
+            ...prevFields,
             [field]: value,
-        });
+        }));
     };
 
     const handleBackClick = () => {
         setSelectedTemplate(null);
         setShowTemplates(false);
+    };
+
+    const handleSendMessage = async () => {
+        if (!selectedTemplate) return;
+
+        // Construct the message by replacing placeholders with custom field values
+        const message = selectedTemplate.template_body.replace(
+            /{{(.*?)}}/g,
+            (_, field) => customFields[field] || ""
+        );
+
+        // Create the attributes object
+        const attributes = {};
+        Object.keys(customFields).forEach((field, index) => {
+            attributes[`attribute${index + 1}`] = customFields[field];
+        });
+
+        const formData = new FormData();
+        formData.append("action", "create");
+        formData.append("username", user);
+
+        const receiverId = selectedContact
+            ? extractReceiverId(selectedContact)
+            : phoneNumber;
+        formData.append("receiver_id", receiverId);
+
+        formData.append("text", message);
+        formData.append("template_id", selectedTemplate.id);
+        formData.append("type", "text");
+        formData.append("agent", user);
+        formData.append("eventDescription", "Bot Replied");
+        formData.append("attributes", JSON.stringify(attributes)); // Append attributes object as JSON string
+
+        try {
+            const response = await fetchSelectedChatData(formData);
+            if (response?.data?.data) {
+                updateChatMessages(response?.data?.data);
+                setShowContactTemplate(false);
+                toast.success("Message sent successfully!");
+            } else {
+                toast.error("Failed to send message");
+            }
+        } catch (error) {
+            toast.error("Failed to send message");
+            console.error("Failed to send message", error);
+        }
     };
 
     return (
@@ -105,7 +168,7 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
 
                     <div>
                         <Dropdown
-                            options={transformedContacts} // Update with actual ContactList options
+                            options={transformedContacts}
                             value={selectedContact}
                             onChange={handleContactChange}
                             placeholder="Search contacts"
@@ -153,22 +216,22 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
                                 {template?.template_name}
                             </h3>
 
-                            <p>{template?.template_body}</p>
+                            <p className="whitespace-pre-wrap">{template?.template_body}</p>
 
                             <div className="flex justify-evenly gap-1 mt-4">
-                                {template?.quick_reply_btn_text1 && (
+                                {template.quick_reply_btn_text1 && (
                                     <Button variant="secondary">
-                                        {template?.quick_reply_btn_text1}
+                                        {template.quick_reply_btn_text1}
                                     </Button>
                                 )}
-                                {template?.quick_reply_btn_text2 && (
+                                {template.quick_reply_btn_text2 && (
                                     <Button variant="secondary">
-                                        {template?.quick_reply_btn_text2}
+                                        {template.quick_reply_btn_text2}
                                     </Button>
                                 )}
-                                {template?.quick_reply_btn_text3 && (
+                                {template.quick_reply_btn_text3 && (
                                     <Button variant="secondary">
-                                        {template?.quick_reply_btn_text3}
+                                        {template.quick_reply_btn_text3}
                                     </Button>
                                 )}
                             </div>
@@ -202,7 +265,12 @@ const ContactTemplate = ({ templates, setShowContactTemplate, contacts }) => {
                                             Back
                                         </Button>
 
-                                        <Button variant="primary">Send</Button>
+                                        <Button
+                                            variant="primary"
+                                            onClick={handleSendMessage}
+                                        >
+                                            Send
+                                        </Button>
                                     </div>
                                 </div>
                             )}

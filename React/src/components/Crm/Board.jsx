@@ -98,7 +98,7 @@ const Board = ({ user, data, setTickets, setFilteredTickets }) => {
             );
 
             setTickets(updatedTickets);
-            setFilteredTickets(updatedTickets); 
+            setFilteredTickets(updatedTickets);
         } catch (error) {
             console.error("Failed to update status", error);
             // Optionally revert state in case of error
@@ -210,12 +210,20 @@ const Board = ({ user, data, setTickets, setFilteredTickets }) => {
             if (![5, 6, 7, 8].includes(status)) return;
 
             const ticketId = `ticket-${index + 1}`;
+
+            const ticketName =
+                chat?.replySourceMessage || chat?.chat_room?.name;
+            const ticketNumber =
+                chat?.receiver_id || chat?.chat_room?.receiver_id;
+            const ticketAgent = chat?.agent || chat?.chat_room?.assign_to;
+            const ticketDate = chat?.created_at || chat?.chat_room?.created_at;
+
             tickets[ticketId] = {
                 id: ticketId,
-                name: chat?.replySourceMessage,
-                number: chat?.receiver_id,
-                agent: chat?.agent,
-                date: formatDate(chat.created_at),
+                name: ticketName,
+                number: ticketNumber,
+                agent: ticketAgent,
+                date: formatDate(ticketDate),
                 status: statusMapping[status], // Convert status to label
             };
 

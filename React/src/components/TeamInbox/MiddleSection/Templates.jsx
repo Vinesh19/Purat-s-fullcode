@@ -1,8 +1,19 @@
 import { useState } from "react";
+
 import Input from "../../Input";
 import Button from "../../Button";
 
-const Templates = ({ templates, handleModal, setMessage }) => {
+import { toast } from "react-toastify";
+
+import { fetchSelectedChatData } from "../../../services/api";
+
+const Templates = ({
+    templates,
+    handleModal,
+    selectedChat,
+    user,
+    updateChatMessages,
+}) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [customFields, setCustomFields] = useState({});
@@ -28,17 +39,17 @@ const Templates = ({ templates, handleModal, setMessage }) => {
             (match) => match[1]
         );
         const fields = matches.reduce((acc, field) => {
-            acc[field] = "";
+            acc[field] = customFields[field] || ""; // Preserve existing values
             return acc;
         }, {});
         setCustomFields(fields);
     };
 
     const handleFieldChange = (field, value) => {
-        setCustomFields({
-            ...customFields,
+        setCustomFields((prevFields) => ({
+            ...prevFields,
             [field]: value,
-        });
+        }));
     };
 
     const handleBackClick = () => {
@@ -47,13 +58,44 @@ const Templates = ({ templates, handleModal, setMessage }) => {
         setSelectedTemplate(null);
     };
 
-    const sendSelectedTemplate = () => {
-        let message = selectedTemplate.template_body;
+    const sendSelectedTemplate = async () => {
+        if (!selectedTemplate || !selectedChat) return;
+
+        // Construct the message by replacing placeholders with custom field values
+        let message = selectedTemplate?.template_body;
         Object.keys(customFields).forEach((field) => {
             message = message.replace(`{{${field}}}`, customFields[field]);
         });
-        setMessage(message); // Update the message in ChatFooter
-        handleModal(false);
+
+        // Create the attributes object
+        const attributes = {};
+        Object.keys(customFields).forEach((field, index) => {
+            attributes[`attribute${index + 1}`] = customFields[field];
+        });
+
+        const formData = new FormData();
+        formData.append("action", "create");
+        formData.append("username", user);
+        formData.append("receiver_id", selectedChat?.chat_room.receiver_id);
+        formData.append("text", message);
+        formData.append("type", "text");
+        formData.append("agent", user);
+        formData.append("eventDescription", "Bot Replied");
+        formData.append("attributes", JSON.stringify(attributes)); // Append attributes object as JSON string
+
+        try {
+            const response = await fetchSelectedChatData(formData);
+            if (response?.data?.data) {
+                updateChatMessages(response?.data?.data);
+                handleModal(false); // Close the modal after sending
+                toast.success("Message sent successfully!");
+            } else {
+                toast.error("Failed to send message");
+            }
+        } catch (error) {
+            toast.error("Failed to send message");
+            console.error("Failed to send message", error);
+        }
     };
 
     return (
@@ -82,7 +124,9 @@ const Templates = ({ templates, handleModal, setMessage }) => {
                     >
                         <h3 className="font-bold">{template?.template_name}</h3>
 
-                        <p>{template?.template_body}</p>
+                        <p className="whitespace-pre-wrap">
+                            {template?.template_body}
+                        </p>
 
                         <div className="flex justify-evenly gap-1 mt-4">
                             {template.quick_reply_btn_text1 && (
@@ -109,7 +153,7 @@ const Templates = ({ templates, handleModal, setMessage }) => {
                                         <label className="block text-sm font-medium text-gray-700">
                                             Custom Field {`{{${field}}}`}
                                         </label>
-                                        
+
                                         <Input
                                             value={customFields[field]}
                                             onChange={(e) =>

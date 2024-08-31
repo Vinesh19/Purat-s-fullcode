@@ -308,7 +308,9 @@ const ChatFooter = ({ templates, user, selectedChat, updateChatMessages }) => {
                     <Templates
                         templates={templates}
                         handleModal={setIsModalOpen}
-                        setMessage={setMessage}
+                        selectedChat={selectedChat}
+                        user={user}
+                        updateChatMessages={updateChatMessages}
                     />
                 </Modal>
             )}

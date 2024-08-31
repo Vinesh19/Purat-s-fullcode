@@ -13,10 +13,9 @@ const statusMapping = {
     8: "won",
 };
 
-const TicketList = ({ tickets, user, setSelectedTickets }) => {
+const TicketList = ({ tickets, user, selectedTickets, setSelectedTickets }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [chatDetails, setChatDetails] = useState(null);
-    const [localSelectedTickets, setLocalSelectedTickets] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
 
     const ticketsPerPage = 10;
@@ -42,10 +41,8 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
             const allTicketIds = filteredTickets.map(
                 (ticket) => ticket.receiver_id
             );
-            setLocalSelectedTickets(allTicketIds);
             setSelectedTickets(allTicketIds);
         } else {
-            setLocalSelectedTickets([]);
             setSelectedTickets([]);
         }
     };
@@ -53,16 +50,11 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
     const handleCheckboxChange = (e, receiver_id) => {
         e.stopPropagation(); // Prevent row click when checkbox is clicked
 
-        setLocalSelectedTickets((prevSelectedTickets) => {
-            const updatedSelectedTickets = prevSelectedTickets.includes(
-                receiver_id
-            )
-                ? prevSelectedTickets.filter((id) => id !== receiver_id)
-                : [...prevSelectedTickets, receiver_id];
+        const updatedSelectedTickets = selectedTickets.includes(receiver_id)
+            ? selectedTickets.filter((id) => id !== receiver_id)
+            : [...selectedTickets, receiver_id];
 
-            setSelectedTickets(updatedSelectedTickets); // Update parent state
-            return updatedSelectedTickets;
-        });
+        setSelectedTickets(updatedSelectedTickets);
     };
 
     const filteredTickets = tickets.filter((ticket) =>
@@ -88,7 +80,7 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
                                 type="checkbox"
                                 onChange={handleSelectAll}
                                 checked={
-                                    localSelectedTickets.length ===
+                                    selectedTickets.length ===
                                     filteredTickets.length
                                 }
                             />
@@ -114,79 +106,97 @@ const TicketList = ({ tickets, user, setSelectedTickets }) => {
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                    {paginatedTickets.map((ticket, index) => (
-                        <tr key={index} className="hover:bg-gray-100">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <input
-                                    type="checkbox"
-                                    onChange={(e) =>
-                                        handleCheckboxChange(
-                                            e,
+                    {paginatedTickets.map((ticket, index) => {
+                        const ticketName =
+                            ticket?.replySourceMessage ||
+                            ticket?.chat_room?.name ||
+                            "No Name";
+                        const ticketNumber =
+                            ticket?.receiver_id ||
+                            ticket?.chat_room?.receiver_id;
+                        const ticketAgent =
+                            ticket?.agent ||
+                            ticket?.chat_room?.assign_to ||
+                            "Unassigned";
+                        const ticketDate = new Date(
+                            ticket?.created_at
+                        ).toLocaleDateString("en-GB");
+                        const ticketTime = new Date(
+                            ticket?.created_at
+                        ).toLocaleTimeString("en-GB", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        });
+                        const ticketStatus =
+                            statusMapping[ticket?.chat_room?.status];
+
+                        return (
+                            <tr key={index} className="hover:bg-gray-100">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <input
+                                        type="checkbox"
+                                        onChange={(e) =>
+                                            handleCheckboxChange(
+                                                e,
+                                                ticket?.receiver_id
+                                            )
+                                        }
+                                        checked={selectedTickets.includes(
                                             ticket?.receiver_id
-                                        )
+                                        )}
+                                    />
+                                </td>
+                                <td
+                                    className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                    onClick={() =>
+                                        handleTicketClick(ticket?.receiver_id)
                                     }
-                                    checked={localSelectedTickets.includes(
-                                        ticket?.receiver_id
-                                    )}
-                                />
-                            </td>
-                            <td
-                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                                onClick={() =>
-                                    handleTicketClick(ticket?.receiver_id)
-                                }
-                            >
-                                {ticket?.replySourceMessage}
-                            </td>
-                            <td
-                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                                onClick={() =>
-                                    handleTicketClick(ticket?.receiver_id)
-                                }
-                            >
-                                {ticket.receiver_id}
-                            </td>
-                            <td
-                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                                onClick={() =>
-                                    handleTicketClick(ticket?.receiver_id)
-                                }
-                            >
-                                {ticket?.agent}
-                            </td>
-                            <td
-                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                                onClick={() =>
-                                    handleTicketClick(ticket?.receiver_id)
-                                }
-                            >
-                                {new Date(
-                                    ticket?.created_at
-                                ).toLocaleDateString("en-GB")}
-                            </td>
-                            <td
-                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                                onClick={() =>
-                                    handleTicketClick(ticket?.receiver_id)
-                                }
-                            >
-                                {new Date(
-                                    ticket?.created_at
-                                ).toLocaleTimeString("en-GB", {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                })}
-                            </td>
-                            <td
-                                className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                                onClick={() =>
-                                    handleTicketClick(ticket?.receiver_id)
-                                }
-                            >
-                                {statusMapping[ticket?.chat_room?.status]}
-                            </td>
-                        </tr>
-                    ))}
+                                >
+                                    {ticketName}
+                                </td>
+                                <td
+                                    className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                    onClick={() =>
+                                        handleTicketClick(ticket?.receiver_id)
+                                    }
+                                >
+                                    {ticketNumber}
+                                </td>
+                                <td
+                                    className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                    onClick={() =>
+                                        handleTicketClick(ticket?.receiver_id)
+                                    }
+                                >
+                                    {ticketAgent}
+                                </td>
+                                <td
+                                    className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                    onClick={() =>
+                                        handleTicketClick(ticket?.receiver_id)
+                                    }
+                                >
+                                    {ticketDate}
+                                </td>
+                                <td
+                                    className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                    onClick={() =>
+                                        handleTicketClick(ticket?.receiver_id)
+                                    }
+                                >
+                                    {ticketTime}
+                                </td>
+                                <td
+                                    className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                                    onClick={() =>
+                                        handleTicketClick(ticket?.receiver_id)
+                                    }
+                                >
+                                    {ticketStatus}
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
 

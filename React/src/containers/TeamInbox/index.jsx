@@ -149,7 +149,7 @@ const TeamInbox = ({ user }) => {
                     setSelectedChat={handleChatSelection}
                     starredChats={starredChats}
                     updateStarredChats={updateStarredChats}
-                    updateChatStatus={updateChatStatus}
+                    updateChatMessages={updateChatMessages}
                 />
             </div>
 

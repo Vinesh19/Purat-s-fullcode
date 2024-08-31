@@ -30,6 +30,7 @@ const ChatList = ({
     setSelectedChat,
     starredChats,
     updateStarredChats,
+    updateChatMessages,
 }) => {
     const [selectedChatType, setSelectedChatType] = useState(action);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -235,6 +236,8 @@ const ChatList = ({
                         templates={templates}
                         setShowContactTemplate={setShowContactTemplate}
                         contacts={contacts}
+                        user={user?.username}
+                        updateChatMessages={updateChatMessages}
                     />
                 ) : displayedChats?.length > 0 ? (
                     displayedChats?.map((chat) => (
