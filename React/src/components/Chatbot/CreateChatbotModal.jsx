@@ -1,86 +1,56 @@
 import { useState } from "react";
-import { TextField, Box, Typography, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const CreateChatbotModal = () => {
-    const [chatbotName, setChatbotName] = useState("");
-    const navigate = useNavigate();
+  const [chatbotName, setChatbotName] = useState("");
+  const navigate = useNavigate();
 
-    const handleOpen = () => {
-        if (chatbotName.trim()) {
-            navigate("/dashboard/whatsapp/createChatbot", {
-                state: { chatbotName },
-            });
-        } else {
-            alert("Please enter a chatbot name.");
-        }
-    };
+  const handleOpen = () => {
+    if (chatbotName.trim()) {
+      navigate("/dashboard/whatsapp/createChatbot", {
+        state: { chatbotName },
+      });
+    } else {
+      alert("Please enter a chatbot name.");
+    }
+  };
 
-    return (
-        <Box
-            display="flex"
-            flexDirection="column"
-            height="100%" // Full height of the container
-            justifyContent="space-between" // Space between content and button
+  return (
+    <div className="flex flex-col h-full justify-between">
+      {/* Header */}
+      <div>
+        <h2 className="text-lg font-bold pb-2 border-b border-gray-500">
+          Add New Chatbot
+        </h2>
+
+        <p className="text-base font-semibold my-4">Chatbot Name</p>
+
+        {/* Input Field */}
+        <input
+          type="text"
+          placeholder="Enter chatbot name"
+          value={chatbotName}
+          onChange={(e) => setChatbotName(e.target.value)}
+          className="w-full p-2 bg-gray-50 rounded-md outline-none"
+        />
+      </div>
+
+      {/* Button aligned to the bottom-right */}
+      <div className="flex justify-end mt-4">
+        <button
+          onClick={handleOpen}
+          disabled={!chatbotName.trim()}
+          className={`px-4 py-2 rounded-md text-white ${
+            chatbotName.trim()
+              ? "bg-blue-500 hover:bg-blue-600"
+              : "bg-blue-300 cursor-not-allowed"
+          } transition`}
         >
-            <Box>
-                <Typography
-                    variant="h6"
-                    fontWeight="bold"
-                    pb={2}
-                    borderBottom={1}
-                >
-                    Add New Chatbot
-                </Typography>
-
-                <Typography variant="body1" fontWeight="bold" my={2}>
-                    Chatbot Name
-                </Typography>
-
-                <TextField
-                    variant="outlined"
-                    placeholder="Enter chatbot name"
-                    fullWidth
-                    value={chatbotName}
-                    onChange={(e) => setChatbotName(e.target.value)}
-                    InputProps={{
-                        sx: {
-                            backgroundColor: "#F8FAFC",
-                            borderRadius: 1,
-                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                borderColor: "transparent",
-                            },
-                        },
-                    }}
-                    sx={{
-                        "& .MuiOutlinedInput-root": {
-                            "& fieldset": {
-                                borderColor: "transparent",
-                            },
-                            "&:hover fieldset": {
-                                borderColor: "transparent",
-                            },
-                            "&.Mui-focused fieldset": {
-                                borderColor: "transparent",
-                            },
-                        },
-                    }}
-                />
-            </Box>
-
-            {/* Add Button aligned to the bottom-right */}
-            <Box display="flex" justifyContent="flex-end">
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleOpen}
-                    disabled={!chatbotName.trim()}
-                >
-                    Add
-                </Button>
-            </Box>
-        </Box>
-    );
+          Add
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default CreateChatbotModal;
