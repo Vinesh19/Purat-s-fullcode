@@ -14,10 +14,11 @@ import PublicRoute from "./components/PublicRoute";
 import TeamInbox from "./containers/TeamInbox";
 import WhatsappNavbar from "./components/WhatsappNavbar";
 import Crm from "./containers/Crm";
-import Contacts from "./containers/Contacts";
 import Chatbot from "./containers/Chatbot";
 import ChatbotBuilder from "./containers/Chatbot/ChatbotBuilder";
 import CreateChatbot from "./containers/Chatbot/CreateChatbot";
+import GroupList from "./containers/Contacts";
+import ContactTable from "./containers/Contacts/ContactTable";
 
 const validateToken = () => {
   const token = localStorage.getItem("token");
@@ -115,7 +116,12 @@ const App = () => {
 
             <Route
               path="/dashboard/whatsapp/contacts"
-              element={<Contacts user={user?.username} />}
+              element={<GroupList user={user?.username} />}
+            />
+
+            <Route
+              path="/dashboard/whatsapp/contacts/:groupId/:groupName"
+              element={<ContactTable user={user?.username} />}
             />
           </Route>
         </Routes>

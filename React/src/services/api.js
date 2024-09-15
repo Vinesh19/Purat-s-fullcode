@@ -3,7 +3,7 @@ import axios from "axios";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 if (!API_BASE_URL) {
-    throw new Error("Base URL not specified");
+  throw new Error("Base URL not specified");
 }
 
 export const SIGN_UP = `${API_BASE_URL}/registration`;
@@ -28,133 +28,152 @@ export const USER_TAGS = `${API_BASE_URL}/chat-inbox/tag`;
 export const CRM_CHATS = `${API_BASE_URL}/crm/all-chat`;
 export const CRM_CHAT_DETAILS = `${API_BASE_URL}/crm/specific-chat`;
 export const CRM_BROADCAST = `${API_BASE_URL}/crm_broadcast`;
+export const GROUPS_LIST = `${API_BASE_URL}/group-names`;
+export const GROUP_CONTACTS = `${API_BASE_URL}/group-data`;
+export const ASSIGN_TAG = `${API_BASE_URL}/crm_tags`;
 
 const api = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        "Content-Type": "application/json",
-    },
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 // Interceptor to add Authorization header to requests
 api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem("token");
+  (config) => {
+    const token = localStorage.getItem("token");
 
-        if (token && ![SIGN_UP, LOGIN].includes(config.url)) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+    if (token && ![SIGN_UP, LOGIN].includes(config.url)) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
 // Export API functions
 export const signUp = (userData) => {
-    return api.post(SIGN_UP, userData);
+  return api.post(SIGN_UP, userData);
 };
 
 export const login = (userData) => {
-    return api.post(LOGIN, userData);
+  return api.post(LOGIN, userData);
 };
 
 export const requestMobileOtp = (mobile_no) => {
-    return api.post(MOBILE_OTP, { mobile_no });
+  return api.post(MOBILE_OTP, { mobile_no });
 };
 
 export const verifyMobileOtp = (mobile_no, otp) => {
-    return api.post(VERIFY_MOBILE_OTP, { mobile_no, otp });
+  return api.post(VERIFY_MOBILE_OTP, { mobile_no, otp });
 };
 
 export const requestEmailOtp = (email) => {
-    return api.post(SEND_EMAIL_OTP, { email });
+  return api.post(SEND_EMAIL_OTP, { email });
 };
 
 export const verifyEmailOtp = (email, otp) => {
-    return api.post(VERIFY_EMAIL_OTP, { email, otp });
+  return api.post(VERIFY_EMAIL_OTP, { email, otp });
 };
 
 export const changePassword = (email, password, password_confirmation) => {
-    return api.post(CHANGE_PASSWORD, {
-        email,
-        password,
-        password_confirmation,
-    });
+  return api.post(CHANGE_PASSWORD, {
+    email,
+    password,
+    password_confirmation,
+  });
 };
 
 export const logout = () => {
-    return api.post(LOGOUT);
+  return api.post(LOGOUT);
 };
 
 export const templateData = (data) => {
-    return api.post(TEMPLATE_DATA, data);
+  return api.post(TEMPLATE_DATA, data);
 };
 
 export const templateGroups = (user) => {
-    return api.post(NEW_DASHBOARD_TEMPLATE_GROUP, user);
+  return api.post(NEW_DASHBOARD_TEMPLATE_GROUP, user);
 };
 
 export const submitBroadcastData = (data) => {
-    return api.post(SUBMIT_BROADCAST_DATA, data);
+  return api.post(SUBMIT_BROADCAST_DATA, data);
 };
 
 export const fetchAllChats = (action) => {
-    return api.post(CHATS_LIST, action);
+  return api.post(CHATS_LIST, action);
 };
 
 export const fetchSelectedChatData = (payload) => {
-    return api.post(CHAT_DATA, payload, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    });
+  return api.post(CHAT_DATA, payload, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };
 
 export const updateChatStatus = (payload) => {
-    return api.post(CHAT_STATUS, payload);
+  return api.post(CHAT_STATUS, payload);
 };
 
 export const advanceFilterChatData = (data) => {
-    return api.post(ADVANCE_FILTER_CHAT_DATA, data);
+  return api.post(ADVANCE_FILTER_CHAT_DATA, data);
 };
 
 export const fetchAgentsName = (payload) => {
-    return api.post(AGENTS_LIST, payload);
+  return api.post(AGENTS_LIST, payload);
 };
 
 export const handleQuickReplies = (payload) => {
-    return api.post(QUICK_REPLIES, payload);
+  return api.post(QUICK_REPLIES, payload);
 };
 
 export const handleQuickRepliesFormData = (formData) => {
-    return api.post(QUICK_REPLIES, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    });
+  return api.post(QUICK_REPLIES, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };
 
 export const fetchUserNotes = (payload) => {
-    return api.post(USER_NOTES, payload);
+  return api.post(USER_NOTES, payload);
 };
 
 export const fetchUserTags = (payload) => {
-    return api.post(USER_TAGS, payload);
+  return api.post(USER_TAGS, payload);
 };
 
 export const fetchCrmChats = (user) => {
-    return api.post(CRM_CHATS, user);
+  return api.post(CRM_CHATS, user);
 };
 
 export const fetchCrmSpecificChat = (payload) => {
-    return api.post(CRM_CHAT_DETAILS, payload);
+  return api.post(CRM_CHAT_DETAILS, payload);
 };
 
 export const sendCrmBroadcast = (payload) => {
-    return api.post(CRM_BROADCAST, payload);
+  return api.post(CRM_BROADCAST, payload);
+};
+
+export const handleGroupOperations = (payload) => {
+  return api.post(GROUPS_LIST, payload);
+};
+
+export const handleContactOperations = (payload) => {
+  return api.post(GROUP_CONTACTS, payload, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const assignTagContacts = (payload) => {
+  return api.post(ASSIGN_TAG, payload);
 };
 
 export default api;

@@ -5,196 +5,241 @@ import { faStar } from "@fortawesome/free-solid-svg-icons";
 import Dropdown from "../../Dropdown";
 import SubmitDropdown from "./SubmitDropdown";
 
-import { fetchAgentsName } from "../../../services/api";
+import { fetchAgentsName, updateChatStatus } from "../../../services/api";
 import { SUBMIT_STATUS } from "../../../services/constant";
 
 const ChatNavbar = ({
-    user,
-    selectedChat,
-    setSelectedChat,
-    updateStarredChats,
-    updateChatStatus,
+  user,
+  selectedChat,
+  setSelectedChat,
+  updateStarredChats,
+  updateStatus,
 }) => {
-    const [time, setTime] = useState("");
-    const [submitStatus, setSubmitStatus] = useState(null);
-    const [agents, setAgents] = useState([]);
-    const [selectedAgent, setSelectedAgent] = useState(null);
 
-    const getTime = () => {
-        const currentDateTime = new Date();
-        const formattedTime = currentDateTime
-            .toTimeString()
-            .split(" ")[0]
-            .slice(0, 5);
-        setTime(formattedTime);
-    };
+  const [time, setTime] = useState("");
+  const [submitStatus, setSubmitStatus] = useState(null);
+  const [agents, setAgents] = useState([]);
+  const [selectedAgent, setSelectedAgent] = useState(null);
 
-    const fetchAgents = async () => {
-        try {
-            const payload = {
-                action: "read",
-                username: user.username,
-            };
-            const response = await fetchAgentsName(payload);
-            // Transform the agent data to match the expected format
-            const transformedAgents = response?.data?.data.map((agent) => ({
-                id: agent.id,
-                name: agent.assign_user,
-            }));
-            setAgents(transformedAgents);
-        } catch (error) {
-            console.error("Failed to fetch agents", error);
-        }
-    };
+  const getTime = () => {
+    const currentDateTime = new Date();
+    const formattedTime = currentDateTime
+      .toTimeString()
+      .split(" ")[0]
+      .slice(0, 5);
+    setTime(formattedTime);
+  };
 
-    const handleAgentChange = (e) => {
-        const selectedAgentName = e.target.value;
-        setSelectedAgent(selectedAgentName);
-    };
+  const fetchAgents = async () => {
+    try {
+      const payload = {
+        action: "read",
+        username: user.username,
+      };
+      const response = await fetchAgentsName(payload);
+      // Transform the agent data to match the expected format
+      const transformedAgents = response?.data?.data.map((agent) => ({
+        id: agent.id,
+        name: agent.assign_user,
+      }));
+      setAgents(transformedAgents);
+    } catch (error) {
+      console.error("Failed to fetch agents", error);
+    }
+  };
 
-    const handleSubmitStatusChange = async (status) => {
-        setSubmitStatus(status);
-        if (selectedChat) {
-            const statusValue = [
-                "open",
-                "expired",
-                "pending",
-                "solved",
-                "spam",
-                "new",
-                "qualified",
-                "proposition",
-                "Won",
-            ].indexOf(status.name.toLowerCase());
+  const handleAgentChange = async (e) => {
+    const selectedAgentName = e.target.value;
+    setSelectedAgent(selectedAgentName);
 
-            const payload = {
-                action: "status",
-                receiver_id: selectedChat.receiver_id,
-                username: user.username,
-                value: statusValue,
-            };
+    // Find the selected agent object based on the agent name
+    const agent = agents.find((a) => a.name === selectedAgentName);
 
-            // Call API to update status
-            try {
-                await updateChatStatus(payload);
-                // Optionally update the local state to reflect the change
-                setSelectedChat({
-                    ...selectedChat,
-                    chat_room: {
-                        ...selectedChat.chat_room,
-                        status: status.name,
-                    },
-                });
-                updateChatStatus(selectedChat.chat_room.id, status.name); // Update the chat status in TeamInbox
-            } catch (error) {
-                console.error("Failed to update status", error);
-            }
-        }
-    };
+    // Proceed if an agent is selected and a chat is available
+    if (agent && selectedChat) {
+      const payload = {
+        action: "assign_to", // Or any appropriate action, could be 'assign' based on your API design
+        receiver_id: selectedChat.receiver_id,
+        username: user.username,
+        value: agent.id, // Pass the selected agent's ID
+      };
 
-    const handleStarToggle = useCallback(async () => {
-        if (selectedChat) {
-            const chatId = selectedChat.chat_room.id;
-            const isStarred = selectedChat.chat_room.is_starred === "favorite";
-            const newValue = isStarred ? 0 : 1;
+      try {
+        await updateChatStatus(payload);
+        // Optionally update the selected chat to reflect the new agent assignment
+        setSelectedChat({
+          ...selectedChat,
+          chat_room: {
+            ...selectedChat.chat_room,
+            assign_user: {
+              ...selectedChat.chat_room.assign_user,
+              assign_user: agent.name,
+            }, // Reflect the change in the UI
+          },
+        });
+      } catch (error) {
+        console.error("Failed to update agent assignment", error);
+      }
+    }
+  };
 
-            const payload = {
-                action: "is_starred",
-                receiver_id: selectedChat.receiver_id,
-                username: user.username,
-                value: newValue,
-            };
+  const handleSubmitStatusChange = async (status) => {
+    setSubmitStatus(status);
+    if (selectedChat) {
+      const statusValue = [
+        "open",
+        "expired",
+        "pending",
+        "solved",
+        "spam",
+        "new",
+        "qualified",
+        "proposition",
+        "Won",
+      ].indexOf(status.name.toLowerCase());
 
-            try {
-                await updateChatStatus(payload);
-                // Update selectedChat with new star status
-                setSelectedChat({
-                    ...selectedChat,
-                    chat_room: {
-                        ...selectedChat.chat_room,
-                        is_starred: isStarred ? "none" : "favorite",
-                    },
-                });
-                updateStarredChats(chatId, !isStarred);
-            } catch (error) {
-                console.error("Failed to update star status", error);
-            }
-        }
-    }, [selectedChat, updateStarredChats]);
+      const payload = {
+        action: "status",
+        receiver_id: selectedChat.receiver_id,
+        username: user.username,
+        value: statusValue,
+      };
 
-    useEffect(() => {
-        getTime();
-        const interval = setInterval(getTime, 60000);
+      // Call API to update status
+      try {
+        await updateChatStatus(payload);
+        // Optionally update the local state to reflect the change
+        setSelectedChat({
+          ...selectedChat,
+          chat_room: {
+            ...selectedChat.chat_room,
+            status: status.name,
+          },
+        });
+        updateStatus(selectedChat.chat_room.id, status.name); // Update the chat status in TeamInbox
+      } catch (error) {
+        console.error("Failed to update status", error);
+      }
+    }
+  };
 
-        return () => clearInterval(interval);
-    }, []);
+  const handleStarToggle = useCallback(async () => {
+    if (selectedChat) {
+      const chatId = selectedChat.chat_room.id;
+      const isStarred = selectedChat.chat_room.is_starred === "favorite";
+      const newValue = isStarred ? 0 : 1;
 
-    useEffect(() => {
-        fetchAgents();
-    }, [user.username]);
+      const payload = {
+        action: "is_starred",
+        receiver_id: selectedChat.receiver_id,
+        username: user.username,
+        value: newValue,
+      };
 
-    return (
-        <div className="flex items-center justify-between bg-white shadow-lg m-1 px-8 py-4 rounded-sm">
-            <div className="text-green-600 font-semibold border-2 rounded-full inline p-2 bg-slate-50">
-                {time}
-            </div>
+      try {
+        await updateChatStatus(payload);
+        // Update selectedChat with new star status
+        setSelectedChat({
+          ...selectedChat,
+          chat_room: {
+            ...selectedChat.chat_room,
+            is_starred: isStarred ? "none" : "favorite",
+          },
+        });
+        updateStarredChats(chatId, !isStarred);
+      } catch (error) {
+        console.error("Failed to update star status", error);
+      }
+    }
+  }, [selectedChat, updateStarredChats]);
 
-            <div className="flex gap-8">
-                <div className="flex gap-4 items-center">
-                    <div className="relative">
-                        <span className="text-green-600 text-xl font-bold bg-slate-100 px-3.5 py-1.5 rounded-full">
-                            {(selectedAgent
-                                ? selectedAgent.charAt(0)
-                                : "B"
-                            ).toUpperCase()}
-                        </span>
-                        <span className="absolute right-2 bottom-9 text-8xl leading-3 w-2 h-2 text-green-500">
-                            .
-                        </span>
-                    </div>
+  useEffect(() => {
+    getTime();
+    const interval = setInterval(getTime, 60000);
 
-                    <div className="flex flex-col">
-                        <span className="font-bold">
-                            {selectedAgent || "Bot"}
-                        </span>
-                        <span className="text-sm">Available</span>
-                    </div>
-                </div>
+    return () => clearInterval(interval);
+  }, []);
 
-                <div>
-                    <Dropdown
-                        options={agents}
-                        value={selectedAgent || ""}
-                        onChange={handleAgentChange}
-                        placeholder="Select User"
-                        className="font-semibold bg-slate-50 border-none hover:border-green-500 w-60"
-                        valueKey="name" // Explicitly set valueKey to "name"
-                    />
-                </div>
-            </div>
+  useEffect(() => {
+    if (selectedChat?.chat_room?.assign_user) {
+      setSelectedAgent(selectedChat.chat_room.assign_user.assign_user);
+    } else {
+      setSelectedAgent(null);
+    }
+  }, [selectedChat]);
 
-            <span className="py-1 px-2 rounded text-lg text-slate-400 bg-slate-50 cursor-pointer">
-                <FontAwesomeIcon
-                    icon={faStar}
-                    onClick={handleStarToggle}
-                    className={
-                        selectedChat?.chat_room?.is_starred === "favorite"
-                            ? "text-amber-300"
-                            : "text-slate-400"
-                    }
-                />
+  useEffect(() => {
+    fetchAgents();
+  }, [user.username]);
+
+  useEffect(() => {
+    if (selectedChat) {
+      const chatStatus = SUBMIT_STATUS.find(
+        (status) =>
+          status.name.toLowerCase() ===
+          selectedChat.chat_room.status.toLowerCase()
+      );
+      setSubmitStatus(chatStatus || null); // Set status or null if not found
+    }
+  }, [selectedChat]);
+
+  return (
+    <div className="flex items-center justify-between bg-white shadow-lg m-1 px-8 py-4 rounded-sm">
+      <div className="text-green-600 font-semibold border-2 rounded-full inline p-2 bg-slate-50">
+        {time}
+      </div>
+
+      <div className="flex gap-8">
+        <div className="flex gap-4 items-center">
+          <div className="relative">
+            <span className="text-green-600 text-xl font-bold bg-slate-100 px-3.5 py-1.5 rounded-full">
+              {(selectedAgent ? selectedAgent.charAt(0) : "B").toUpperCase()}
             </span>
+            <span className="absolute right-2 bottom-9 text-8xl leading-3 w-2 h-2 text-green-500">
+              .
+            </span>
+          </div>
 
-            <div>
-                <SubmitDropdown
-                    options={SUBMIT_STATUS}
-                    value={submitStatus}
-                    onChange={handleSubmitStatusChange}
-                    placeholder="Submit As"
-                />
-            </div>
+          <div className="flex flex-col">
+            <span className="font-bold">{selectedAgent || "Bot"}</span>
+            <span className="text-sm">Available</span>
+          </div>
         </div>
-    );
+
+        <div>
+          <Dropdown
+            options={agents}
+            value={selectedAgent || ""}
+            onChange={handleAgentChange}
+            placeholder="Select User"
+            className="font-semibold bg-slate-50 border-none hover:border-green-500 w-60"
+            valueKey="name" // Explicitly set valueKey to "name"
+          />
+        </div>
+      </div>
+
+      <span className="py-1 px-2 rounded text-lg text-slate-400 bg-slate-50 cursor-pointer">
+        <FontAwesomeIcon
+          icon={faStar}
+          onClick={handleStarToggle}
+          className={
+            selectedChat?.chat_room?.is_starred === "favorite"
+              ? "text-amber-300"
+              : "text-slate-400"
+          }
+        />
+      </span>
+
+      <div>
+        <SubmitDropdown
+          options={SUBMIT_STATUS}
+          value={submitStatus}
+          onChange={handleSubmitStatusChange}
+          placeholder="Submit As"
+        />
+      </div>
+    </div>
+  );
 };
 
 export default ChatNavbar;

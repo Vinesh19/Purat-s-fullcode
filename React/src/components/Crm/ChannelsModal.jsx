@@ -11,6 +11,7 @@ const ChooseChannel = ({
   closeChooseChannelModal,
   setSelectedTickets,
 }) => {
+  console.log("sc", selectedContacts);
   const [templates, setTemplates] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 

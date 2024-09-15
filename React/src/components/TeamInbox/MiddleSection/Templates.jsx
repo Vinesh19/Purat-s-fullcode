@@ -65,10 +65,20 @@ const Templates = ({
       message = message.replace(`{{${field}}}`, customFields[field]);
     });
 
-    const customFieldAttributes = {};
-    Object.keys(customFields).forEach((field, index) => {
-      customFieldAttributes[`attribute${index + 1}`] = customFields[field];
-    });
+    // Construct the customFieldAttributes array for "attributes" field
+    const customFieldAttributesArray = Object.keys(customFields).map(
+      (field, index) => ({
+        [`attribute${index + 1}`]: customFields[field],
+      })
+    );
+
+    const customFieldAttributesObject = Object.keys(customFields).reduce(
+      (acc, field, index) => ({
+        ...acc,
+        [`attribute${index + 1}`]: customFields[field],
+      }),
+      {}
+    );
 
     if (selectedContacts && selectedContacts.length > 0) {
       // Broadcast to multiple contacts
@@ -79,7 +89,8 @@ const Templates = ({
         template_name: selectedTemplate.template_name,
         template_id: selectedTemplate.id,
         textbox: textbox,
-        ...customFieldAttributes, // Spread custom fields as attributes
+        attributes: customFieldAttributesArray,
+        ...customFieldAttributesObject, // Spread custom fields as attributes
       };
 
       try {
@@ -87,6 +98,7 @@ const Templates = ({
         if (response?.data?.status) {
           handleModal(false);
           closeChooseChannelModal();
+
           setSelectedTickets([]);
           toast.success("Message broadcasted successfully!");
         } else {
@@ -106,6 +118,8 @@ const Templates = ({
       formData.append("type", "text");
       formData.append("agent", user);
       formData.append("eventDescription", "Bot Replied");
+      formData.append("template_id", selectedTemplate.id);
+      formData.append("attributes", JSON.stringify(customFieldAttributes));
 
       try {
         const response = await fetchSelectedChatData(formData);
@@ -118,7 +132,6 @@ const Templates = ({
         }
       } catch (error) {
         toast.error("Failed to send message");
-        console.error("Failed to send message", error);
       }
     }
   };

@@ -219,7 +219,7 @@ const WhatsappNavbar = ({ user, setUser }) => {
                 </div>
             </div>
 
-            <div className="flex flex-grow">
+            <div className="flex flex-grow overflow-auto scrollbar-hide">
                 <Outlet />
             </div>
 

@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPhone } from "@fortawesome/free-solid-svg-icons";
@@ -7,279 +9,270 @@ import Dropdown from "../../Dropdown";
 import Input from "../../Input";
 import Button from "../../Button";
 
-import { fetchSelectedChatData } from "../../../services/api";
+import { CHAT_DATA } from "../../../services/api";
 
 import "react-toastify/dist/ReactToastify.css";
 
 const ContactTemplate = ({
-    templates,
-    setShowContactTemplate,
-    contacts,
-    user,
-    updateChatMessages,
+  templates,
+  setShowContactTemplate,
+  contacts,
+  user,
+  updateChatMessages,
 }) => {
-    const [selectedContact, setSelectedContact] = useState("");
-    const [phoneNumber, setPhoneNumber] = useState("");
-    const [showTemplates, setShowTemplates] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedTemplate, setSelectedTemplate] = useState(null);
-    const [customFields, setCustomFields] = useState({});
-    const [error, setError] = useState("");
+  const [selectedContact, setSelectedContact] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [customFields, setCustomFields] = useState({});
+  const [error, setError] = useState("");
 
-    const extractReceiverId = (contactString) => {
-        const match = contactString.match(/\(([^)]+)\)$/);
-        return match ? match[1] : null;
-    };
+  const extractReceiverId = (contactString) => {
+    const match = contactString.match(/\(([^)]+)\)$/);
+    return match ? match[1] : null;
+  };
 
-    const handleContactChange = (e) => {
-        setSelectedContact(e.target.value);
-        setError("");
-    };
+  const handleContactChange = (e) => {
+    setSelectedContact(e.target.value);
+    setError("");
+  };
 
-    const handlePhoneNumberChange = (e) => {
-        setPhoneNumber(e.target.value);
-        setError("");
-    };
+  const handlePhoneNumberChange = (e) => {
+    setPhoneNumber(e.target.value);
+    setError("");
+  };
 
-    const handleNextClick = () => {
-        if (!selectedContact && !phoneNumber) {
-            setError("Please select a contact or enter a phone number.");
-            return;
-        }
-        setSelectedTemplate(null);
-        setCustomFields({});
-        setShowTemplates(true);
-    };
+  const handleNextClick = () => {
+    if (!selectedContact && !phoneNumber) {
+      setError("Please select a contact or enter a phone number.");
+      return;
+    }
+    setSelectedTemplate(null);
+    setCustomFields({});
+    setShowTemplates(true);
+  };
 
-    const handleClose = () => {
-        setShowContactTemplate(false);
-    };
+  const handleClose = () => {
+    setShowContactTemplate(false);
+  };
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-    };
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
-    const filteredTemplates = templates.filter(
-        (template) =>
-            template.template_name
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()) ||
-            template.template_body
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())
+  const filteredTemplates = templates.filter(
+    (template) =>
+      template.template_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.template_body.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const transformedContacts = contacts.map((contact) => ({
+    id: contact.receiver_id,
+    name: `${contact.replySourceMessage} (${contact.receiver_id})`,
+  }));
+
+  const handleTemplateClick = (template) => {
+    setSelectedTemplate(template);
+    const regex = /{{(.*?)}}/g;
+    const matches = [...template.template_body.matchAll(regex)].map(
+      (match) => match[1]
+    );
+    const fields = matches.reduce((acc, field) => {
+      acc[field] = customFields[field] || ""; // Preserve existing values
+      return acc;
+    }, {});
+    setCustomFields(fields);
+  };
+
+  const handleFieldChange = (field, value) => {
+    setCustomFields((prevFields) => ({
+      ...prevFields,
+      [field]: value,
+    }));
+  };
+
+  const handleBackClick = () => {
+    setSelectedTemplate(null);
+    setShowTemplates(false);
+  };
+
+  const handleSendMessage = async () => {
+    if (!selectedTemplate) return;
+
+    // Construct the message by replacing placeholders with custom field values
+    const message = selectedTemplate.template_body.replace(
+      /{{(.*?)}}/g,
+      (_, field) => customFields[field] || ""
     );
 
-    const transformedContacts = contacts.map((contact) => ({
-        id: contact.receiver_id,
-        name: `${contact.replySourceMessage} (${contact.receiver_id})`,
+    // Create the attributes array of objects in the desired format
+    const attributes = Object.keys(customFields).map((field, index) => ({
+      [`attribute${index + 1}`]: customFields[field], // Object for each custom field
     }));
 
-    const handleTemplateClick = (template) => {
-        setSelectedTemplate(template);
-        const regex = /{{(.*?)}}/g;
-        const matches = [...template.template_body.matchAll(regex)].map(
-            (match) => match[1]
-        );
-        const fields = matches.reduce((acc, field) => {
-            acc[field] = customFields[field] || ""; // Preserve existing values
-            return acc;
-        }, {});
-        setCustomFields(fields);
+    // Construct the JSON payload
+    const payload = {
+      action: "create",
+      username: user, // assuming `user` is the username
+      receiver_id: selectedContact
+        ? extractReceiverId(selectedContact)
+        : phoneNumber,
+      text: message,
+      template_id: selectedTemplate.id,
+      type: "text",
+      agent: user, // assuming `user` is the agent's name
+      eventDescription: "Bot Replied",
+      attributes, // Directly pass the attributes array as a JSON field
     };
 
-    const handleFieldChange = (field, value) => {
-        setCustomFields((prevFields) => ({
-            ...prevFields,
-            [field]: value,
-        }));
-    };
+    const token = localStorage.getItem("token");
 
-    const handleBackClick = () => {
-        setSelectedTemplate(null);
-        setShowTemplates(false);
-    };
-
-    const handleSendMessage = async () => {
-        if (!selectedTemplate) return;
-
-        // Construct the message by replacing placeholders with custom field values
-        const message = selectedTemplate.template_body.replace(
-            /{{(.*?)}}/g,
-            (_, field) => customFields[field] || ""
-        );
-
-        // Create the attributes object
-        const attributes = {};
-        Object.keys(customFields).forEach((field, index) => {
-            attributes[`attribute${index + 1}`] = customFields[field];
-        });
-
-        const formData = new FormData();
-        formData.append("action", "create");
-        formData.append("username", user);
-
-        const receiverId = selectedContact
-            ? extractReceiverId(selectedContact)
-            : phoneNumber;
-        formData.append("receiver_id", receiverId);
-
-        formData.append("text", message);
-        formData.append("template_id", selectedTemplate.id);
-        formData.append("type", "text");
-        formData.append("agent", user);
-        formData.append("eventDescription", "Bot Replied");
-        formData.append("attributes", JSON.stringify(attributes)); // Append attributes object as JSON string
-
-        try {
-            const response = await fetchSelectedChatData(formData);
-            if (response?.data?.data) {
-                updateChatMessages(response?.data?.data);
-                setShowContactTemplate(false);
-                toast.success("Message sent successfully!");
-            } else {
-                toast.error("Failed to send message");
-            }
-        } catch (error) {
-            toast.error("Failed to send message");
-            console.error("Failed to send message", error);
+    try {
+      const response = await axios.post(
+        CHAT_DATA, // Replace with actual endpoint
+        payload, // Send as JSON payload
+        {
+          headers: {
+            "Content-Type": "application/json", // Ensure JSON format
+            Authorization: `Bearer ${token}`, // Manually add the token
+          },
         }
-    };
+      );
 
-    return (
-        <div className="bg-slate-100 rounded-lg p-3 flex flex-col gap-2 text-center">
-            {!showTemplates && (
-                <div>
-                    <h3 className="font-semibold text-lg">Choose contact</h3>
-                    <div className="flex gap-3 items-center">
-                        <FontAwesomeIcon
-                            icon={faPhone}
-                            className="bg-white p-1.5 rounded"
-                        />
+      if (response?.data?.data) {
+        updateChatMessages(response?.data?.data);
+        setShowContactTemplate(false);
+        toast.success("Message sent successfully!");
+      } else {
+        toast.error("Failed to send message");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
+    }
+  };
 
-                        <Input
-                            placeholder="Please Input WhatsApp Number"
-                            className="grow"
-                            value={phoneNumber}
-                            onChange={handlePhoneNumberChange}
-                        />
-                    </div>
+  return (
+    <div className="bg-slate-100 rounded-lg p-3 flex flex-col gap-2 text-center">
+      {!showTemplates && (
+        <div>
+          <h3 className="font-semibold text-lg">Choose contact</h3>
+          <div className="flex gap-3 items-center">
+            <FontAwesomeIcon
+              icon={faPhone}
+              className="bg-white p-1.5 rounded"
+            />
 
-                    <span className="font-medium">Or</span>
+            <Input
+              placeholder="Please Input WhatsApp Number"
+              className="grow"
+              value={phoneNumber}
+              onChange={handlePhoneNumberChange}
+            />
+          </div>
 
-                    <div>
-                        <Dropdown
-                            options={transformedContacts}
-                            value={selectedContact}
-                            onChange={handleContactChange}
-                            placeholder="Search contacts"
-                        />
-                        {error && (
-                            <div className="text-red-500 text-sm mt-2">
-                                {error}
-                            </div>
-                        )}
-                    </div>
+          <span className="font-medium">Or</span>
 
-                    <div className="flex gap-4 mt-5 justify-end">
-                        <Button variant="secondary" onClick={handleClose}>
-                            Close
-                        </Button>
+          <div>
+            <Dropdown
+              options={transformedContacts}
+              value={selectedContact}
+              onChange={handleContactChange}
+              placeholder="Search contacts"
+            />
+            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+          </div>
 
-                        <Button variant="primary" onClick={handleNextClick}>
-                            Next
-                        </Button>
-                    </div>
-                </div>
-            )}
+          <div className="flex gap-4 mt-5 justify-end">
+            <Button variant="secondary" onClick={handleClose}>
+              Close
+            </Button>
 
-            {showTemplates && (
-                <div className="overflow-y-scroll h-[64vh] scrollbar-hide">
-                    <h2 className="text-lg font-medium">Select Template</h2>
-                    <Input
-                        type="search"
-                        placeholder="Search"
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        className="my-4"
-                    />
-                    {filteredTemplates.map((template) => (
-                        <div
-                            key={template.id}
-                            className={`bg-white px-2 py-4 my-3 rounded shadow-md cursor-pointer hover:bg-slate-50 ${
-                                selectedTemplate?.id === template.id
-                                    ? "border-2 border-green-500"
-                                    : ""
-                            }`}
-                            onClick={() => handleTemplateClick(template)}
-                        >
-                            <h3 className="font-bold">
-                                {template?.template_name}
-                            </h3>
-
-                            <p className="whitespace-pre-wrap">{template?.template_body}</p>
-
-                            <div className="flex justify-evenly gap-1 mt-4">
-                                {template.quick_reply_btn_text1 && (
-                                    <Button variant="secondary">
-                                        {template.quick_reply_btn_text1}
-                                    </Button>
-                                )}
-                                {template.quick_reply_btn_text2 && (
-                                    <Button variant="secondary">
-                                        {template.quick_reply_btn_text2}
-                                    </Button>
-                                )}
-                                {template.quick_reply_btn_text3 && (
-                                    <Button variant="secondary">
-                                        {template.quick_reply_btn_text3}
-                                    </Button>
-                                )}
-                            </div>
-
-                            {selectedTemplate?.id === template?.id && (
-                                <div className="mt-4">
-                                    {Object.keys(customFields).map((field) => (
-                                        <div key={field} className="my-2">
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Custom Field {`{{${field}}}`}
-                                            </label>
-
-                                            <Input
-                                                value={customFields[field]}
-                                                onChange={(e) =>
-                                                    handleFieldChange(
-                                                        field,
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className="mt-1 block w-full"
-                                            />
-                                        </div>
-                                    ))}
-
-                                    <div className="flex justify-end gap-2 mt-4">
-                                        <Button
-                                            variant="secondary"
-                                            onClick={handleBackClick}
-                                        >
-                                            Back
-                                        </Button>
-
-                                        <Button
-                                            variant="primary"
-                                            onClick={handleSendMessage}
-                                        >
-                                            Send
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
+            <Button variant="primary" onClick={handleNextClick}>
+              Next
+            </Button>
+          </div>
         </div>
-    );
+      )}
+
+      {showTemplates && (
+        <div className="overflow-y-scroll h-[64vh] scrollbar-hide">
+          <h2 className="text-lg font-medium">Select Template</h2>
+          <Input
+            type="search"
+            placeholder="Search"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="my-4"
+          />
+          {filteredTemplates.map((template) => (
+            <div
+              key={template.id}
+              className={`bg-white px-2 py-4 my-3 rounded shadow-md cursor-pointer hover:bg-slate-50 ${
+                selectedTemplate?.id === template.id
+                  ? "border-2 border-green-500"
+                  : ""
+              }`}
+              onClick={() => handleTemplateClick(template)}
+            >
+              <h3 className="font-bold">{template?.template_name}</h3>
+
+              <p className="whitespace-pre-wrap">{template?.template_body}</p>
+
+              <div className="flex justify-evenly gap-1 mt-4">
+                {template.quick_reply_btn_text1 && (
+                  <Button variant="secondary">
+                    {template.quick_reply_btn_text1}
+                  </Button>
+                )}
+                {template.quick_reply_btn_text2 && (
+                  <Button variant="secondary">
+                    {template.quick_reply_btn_text2}
+                  </Button>
+                )}
+                {template.quick_reply_btn_text3 && (
+                  <Button variant="secondary">
+                    {template.quick_reply_btn_text3}
+                  </Button>
+                )}
+              </div>
+
+              {selectedTemplate?.id === template?.id && (
+                <div className="mt-4">
+                  {Object.keys(customFields).map((field) => (
+                    <div key={field} className="my-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Custom Field {`{{${field}}}`}
+                      </label>
+
+                      <Input
+                        value={customFields[field]}
+                        onChange={(e) =>
+                          handleFieldChange(field, e.target.value)
+                        }
+                        className="mt-1 block w-full"
+                      />
+                    </div>
+                  ))}
+
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button variant="secondary" onClick={handleBackClick}>
+                      Back
+                    </Button>
+
+                    <Button variant="primary" onClick={handleSendMessage}>
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default ContactTemplate;
