@@ -49,21 +49,36 @@ const exportContactsToCSV = (contacts) => {
     "Company Name",
     "Mobile Number",
     "Contact Person",
+    "Email",
     "Birth Date",
     "Tags",
     "Source",
+    "Agent",
     "Address",
   ];
 
-  const rows = contacts.map((contact) => [
-    contact.company_name || "N/A",
-    contact.contact_mobile_number || "N/A",
-    contact.contact_name || "N/A",
-    contact.birthDate || "N/A",
-    contact.tags ? contact.tags.join(", ") : "N/A",
-    contact.source || "N/A",
-    contact.address || "N/A",
-  ]);
+  const rows = contacts.map((contact) => {
+    let parsedTags;
+    try {
+      // Try to parse the tags string into an array
+      parsedTags = JSON.parse(contact.tags);
+    } catch (e) {
+      // If parsing fails, default to "N/A"
+      parsedTags = "N/A";
+    }
+
+    return [
+      contact.company_name || "N/A",
+      contact.contact_mobile_number || "N/A",
+      contact.contact_name || "N/A",
+      contact.Contact_email_address || "N/A",
+      contact.birthDate || "N/A",
+      Array.isArray(parsedTags) ? `"${parsedTags.join(", ")}"` : "N/A", // Join tags if it's an array
+      contact.source || "N/A",
+      contact.agent || "N/A",
+      contact.address || "N/A",
+    ];
+  });
 
   let csvContent =
     "data:text/csv;charset=utf-8," +
@@ -125,6 +140,7 @@ const ContactTable = ({ user }) => {
   const [selectedGroup, setSelectedGroup] = useState(initialGroupName || "");
   const [selectedGroupId, setSelectedGroupId] = useState(initialGroupId || "");
   const [contacts, setContacts] = useState([]);
+  const [filteredContacts, setFilteredContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -165,6 +181,7 @@ const ContactTable = ({ user }) => {
         Contact_group_id: groupId,
       });
       setContacts(response?.data?.data || []);
+      setFilteredContacts(response?.data?.data || []);
     } catch (error) {
       toast.error("Error fetching contacts");
       setContacts([]);
@@ -227,6 +244,36 @@ const ContactTable = ({ user }) => {
     }
   };
 
+  const handleSearch = () => {
+    const filtered = contacts.filter((contact) => {
+      const contactName = contact.contact_name?.toLowerCase() || "";
+      const contactMobile = contact.contact_mobile_number?.toLowerCase() || "";
+
+      let contactTags = "";
+      if (contact.tags) {
+        try {
+          // Try to parse the tags if it's a stringified array
+          const parsedTags = JSON.parse(contact.tags);
+          if (Array.isArray(parsedTags)) {
+            contactTags = parsedTags.join(", ").toLowerCase(); // Join the array of tags into a string
+          }
+        } catch (error) {
+          // If parsing fails, treat it as an empty string
+          contactTags = contact.tags?.toLowerCase() || "";
+        }
+      }
+      
+      const searchValue = searchTerm.toLowerCase();
+
+      return (
+        contactName.includes(searchValue) ||
+        contactMobile.includes(searchValue) ||
+        contactTags.includes(searchValue)
+      );
+    });
+    setFilteredContacts(filtered);
+  };
+
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -276,7 +323,7 @@ const ContactTable = ({ user }) => {
     setPage(0);
   };
 
-  const processedContacts = contacts?.map((contact) => ({
+  const processedContacts = filteredContacts?.map((contact) => ({
     ...contact,
     contact_name: contact.contact_name || "N/A", // Default value if null/undefined
     company_name: contact.company_name || "N/A", // Default value
@@ -285,6 +332,7 @@ const ContactTable = ({ user }) => {
     birthDate: contact.birth_date || "N/A", // Birth date fallback
     tags: contact.tags ? JSON.parse(contact.tags).join(", ") : "N/A", // Handle tags, if present
     source: contact.source || "N/A", // Source fallback
+    agent: contact.agent || "N/A",
     address: contact.address || "N/A", // Address fallback
   }));
 
@@ -330,6 +378,10 @@ const ContactTable = ({ user }) => {
       fetchContacts(initialGroupId);
     }
   }, [initialGroupId, initialGroupName]);
+
+  useEffect(() => {
+    handleSearch(); // Run search filtering whenever searchTerm or contacts change
+  }, [searchTerm, contacts]);
 
   return (
     <motion.div
@@ -503,7 +555,7 @@ const ContactTable = ({ user }) => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
                   onClick={() => handleOpenContactModal(contact)}
-                  className="bg-gray-50 hover:bg-gray-100"
+                  className="bg-slate-50 hover:bg-slate-100 cursor-pointer"
                 >
                   <TableCell>
                     <Checkbox

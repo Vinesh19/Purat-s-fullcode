@@ -28,7 +28,6 @@ const UserInfo = ({ Contact, Name, user }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [customParameters, setCustomParameters] = useState([
         { key: "Language", value: "en" },
-        { key: "Name", value: "Yash Sharma" },
     ]);
     const [notes, setNotes] = useState([]);
     const [newNote, setNewNote] = useState("");

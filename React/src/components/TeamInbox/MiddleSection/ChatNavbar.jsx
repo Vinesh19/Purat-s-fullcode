@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
+import { CircularProgress, Typography, Box } from "@mui/material";
 
 import Dropdown from "../../Dropdown";
 import SubmitDropdown from "./SubmitDropdown";
@@ -14,20 +15,66 @@ const ChatNavbar = ({
   setSelectedChat,
   updateStarredChats,
   updateStatus,
+  updateChatAgent,
+  timer,
 }) => {
-
-  const [time, setTime] = useState("");
+  const [remainingTime, setRemainingTime] = useState("");
+  const [remainingHours, setRemainingHours] = useState(24);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [agents, setAgents] = useState([]);
+  const [name, setName] = useState("User");
   const [selectedAgent, setSelectedAgent] = useState(null);
 
-  const getTime = () => {
-    const currentDateTime = new Date();
-    const formattedTime = currentDateTime
-      .toTimeString()
-      .split(" ")[0]
-      .slice(0, 5);
-    setTime(formattedTime);
+  const getRemainingTime = (timer) => {
+    // Convert the provided time (ISO 8601 format) to a Date object
+    console.log("timer", timer);
+    let lastMessageTime = new Date(timer);
+
+    // Adjust the lastMessageTime by subtracting the time zone offset (GMT+0530 = 330 minutes)
+    const timeZoneOffset = 330; // Offset for GMT+0530 in minutes
+    lastMessageTime = new Date(
+      lastMessageTime.getTime() - timeZoneOffset * 60 * 1000
+    );
+
+    console.log("lastMessageTime", lastMessageTime);
+
+    // Get the current time (in UTC)
+    const currentTime = new Date();
+    console.log("currentTime", currentTime);
+
+    // Calculate the expiration time, which is exactly 24 hours after the lastMessageTime
+    const expirationTime = new Date(
+      lastMessageTime.getTime() + 24 * 60 * 60 * 1000
+    );
+    console.log("expirationTime", expirationTime);
+
+    // Check if the current time is past the expiration time
+    if (currentTime >= expirationTime) {
+      return "00:00";
+    }
+
+    // If chat is not expired, calculate the remaining time until expiration
+    const timeDifferenceMs = expirationTime - currentTime; // Difference in milliseconds
+    const remainingMinutes = Math.floor(timeDifferenceMs / (1000 * 60)) % 60; // Remaining minutes
+    const remainingHours = Math.floor(timeDifferenceMs / (1000 * 60 * 60)); // Remaining hours
+
+    // Format the remaining time as HH:MM
+    const formattedTime = `${remainingHours
+      .toString()
+      .padStart(2, "0")}:${remainingMinutes.toString().padStart(2, "0")}`;
+
+    console.log("formattedTime", formattedTime);
+    return formattedTime;
+  };
+
+  const getProgressColor = () => {
+    if (remainingHours < 3) return "error"; // Red for <3 hours
+    if (remainingHours < 8) return "warning"; // Yellow for <8 hours
+    return "success"; // Green for 8-24 hours
+  };
+
+  const getProgressValue = () => {
+    return (remainingHours / 24) * 100; // 100% for 24 hours and 0% for 0 hours
   };
 
   const fetchAgents = async () => {
@@ -58,15 +105,14 @@ const ChatNavbar = ({
     // Proceed if an agent is selected and a chat is available
     if (agent && selectedChat) {
       const payload = {
-        action: "assign_to", // Or any appropriate action, could be 'assign' based on your API design
+        action: "assign_to",
         receiver_id: selectedChat.receiver_id,
         username: user.username,
-        value: agent.id, // Pass the selected agent's ID
+        value: agent.id,
       };
 
       try {
         await updateChatStatus(payload);
-        // Optionally update the selected chat to reflect the new agent assignment
         setSelectedChat({
           ...selectedChat,
           chat_room: {
@@ -74,9 +120,10 @@ const ChatNavbar = ({
             assign_user: {
               ...selectedChat.chat_room.assign_user,
               assign_user: agent.name,
-            }, // Reflect the change in the UI
+            },
           },
         });
+        updateChatAgent(selectedChat.chat_room.id, agent.name);
       } catch (error) {
         console.error("Failed to update agent assignment", error);
       }
@@ -154,17 +201,26 @@ const ChatNavbar = ({
   }, [selectedChat, updateStarredChats]);
 
   useEffect(() => {
-    getTime();
-    const interval = setInterval(getTime, 60000);
+    const intervalId = setInterval(() => {
+      const { formattedTime, remainingHours } = getRemainingTime(timer);
+      setRemainingTime(formattedTime);
+      setRemainingHours(remainingHours); // Set remaining hours to determine the color
+    }, 1000); // Update every second to keep the progress live
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(intervalId); // Cleanup the interval on unmount
+  }, [timer]);
 
   useEffect(() => {
     if (selectedChat?.chat_room?.assign_user) {
       setSelectedAgent(selectedChat.chat_room.assign_user.assign_user);
     } else {
       setSelectedAgent(null);
+    }
+
+    if (selectedChat) {
+      setName(selectedChat?.replySourceMessage);
+    } else {
+      setName("User");
     }
   }, [selectedChat]);
 
@@ -185,15 +241,44 @@ const ChatNavbar = ({
 
   return (
     <div className="flex items-center justify-between bg-white shadow-lg m-1 px-8 py-4 rounded-sm">
-      <div className="text-green-600 font-semibold border-2 rounded-full inline p-2 bg-slate-50">
-        {time}
-      </div>
+      <Box position="relative" display="inline-flex">
+        <CircularProgress
+          variant="determinate"
+          value={getProgressValue()}
+          color={getProgressColor()} // Dynamically change the color based on remaining hours
+          size={80} // Size of the progress bar
+          thickness={4.5} // Thickness of the progress bar
+        />
+        <Box
+          top={0}
+          left={0}
+          bottom={0}
+          right={0}
+          position="absolute"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Typography
+            variant="caption"
+            component="div"
+            color="textSecondary"
+            fontSize="20px"
+          >
+            {remainingTime}{" "}
+            {/* Show remaining time inside the circular progress */}
+          </Typography>
+        </Box>
+      </Box>
 
       <div className="flex gap-8">
         <div className="flex gap-4 items-center">
           <div className="relative">
             <span className="text-green-600 text-xl font-bold bg-slate-100 px-3.5 py-1.5 rounded-full">
-              {(selectedAgent ? selectedAgent.charAt(0) : "B").toUpperCase()}
+              {(selectedChat
+                ? selectedChat?.replySourceMessage.charAt(0)
+                : "U"
+              ).toUpperCase()}
             </span>
             <span className="absolute right-2 bottom-9 text-8xl leading-3 w-2 h-2 text-green-500">
               .
@@ -201,7 +286,7 @@ const ChatNavbar = ({
           </div>
 
           <div className="flex flex-col">
-            <span className="font-bold">{selectedAgent || "Bot"}</span>
+            <span className="font-bold">{name}</span>
             <span className="text-sm">Available</span>
           </div>
         </div>

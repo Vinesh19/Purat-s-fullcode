@@ -16,10 +16,13 @@ const Templates = ({
   updateChatMessages,
   closeChooseChannelModal,
   setSelectedTickets,
+  agent,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [customFields, setCustomFields] = useState({});
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState(null);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -55,6 +58,16 @@ const Templates = ({
     setCustomFields({});
     setSearchTerm("");
     setSelectedTemplate(null);
+    handleModal(false);
+  };
+
+  const handleMediaUpload = (e) => {
+    const file = e.target.files[0];
+    setMediaFile(file);
+
+    // Create a preview URL for media display
+    const fileURL = URL.createObjectURL(file);
+    setMediaPreview(fileURL);
   };
 
   const sendSelectedTemplate = async () => {
@@ -109,20 +122,26 @@ const Templates = ({
         console.error("Failed to send broadcast message", error);
       }
     } else if (selectedChat) {
-      // Send to a single contact (existing logic)
-      const formData = new FormData();
-      formData.append("action", "create");
-      formData.append("username", user);
-      formData.append("receiver_id", selectedChat?.chat_room.receiver_id);
-      formData.append("text", message);
-      formData.append("type", "text");
-      formData.append("agent", user);
-      formData.append("eventDescription", "Bot Replied");
-      formData.append("template_id", selectedTemplate.id);
-      formData.append("attributes", JSON.stringify(customFieldAttributes));
+      const data = new FormData();
+      data.append("action", "create");
+      data.append("username", user);
+      data.append("template_name", selectedTemplate.template_name);
+      data.append("template_id", selectedTemplate.id);
+      data.append("text", message);
+      data.append("attributes", JSON.stringify(customFieldAttributesArray));
+
+      if (mediaFile) {
+        data.append("template_media", mediaFile); // Append media file
+      }
+
+      data.append("receiver_id", selectedChat?.chat_room.receiver_id); // For single chat
+      data.append("type", mediaFile ? "media" : "text");
+      data.append("agent", agent);
+      data.append("eventDescription", "agent");
 
       try {
-        const response = await fetchSelectedChatData(formData);
+        const response = await fetchSelectedChatData(data);
+
         if (response?.data?.data) {
           updateChatMessages(response?.data?.data);
           handleModal(false); // Close the modal after sending
@@ -197,6 +216,70 @@ const Templates = ({
                     />
                   </div>
                 ))}
+
+                {selectedTemplate?.header_media_type && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Upload {selectedTemplate.header_media_type}
+                    </label>
+                    <input
+                      type="file"
+                      accept={
+                        selectedTemplate.header_media_type === "Image"
+                          ? "image/*"
+                          : selectedTemplate.header_media_type === "Audio"
+                          ? "audio/*"
+                          : selectedTemplate.header_media_type === "Video"
+                          ? "video/*"
+                          : selectedTemplate.header_media_type === "Document"
+                          ? ".pdf,.doc,.docx,.txt" // Adjust accepted file types for documents
+                          : "*"
+                      }
+                      onChange={handleMediaUpload}
+                      className="mt-1 block w-full"
+                    />
+                    {/* Show media preview */}
+                    {mediaPreview &&
+                      selectedTemplate.header_media_type === "Image" && (
+                        <img
+                          src={mediaPreview}
+                          alt="preview"
+                          className="mt-2 h-40"
+                        />
+                      )}
+                    {mediaPreview &&
+                      selectedTemplate.header_media_type === "Audio" && (
+                        <audio controls className="mt-2">
+                          <source src={mediaPreview} />
+                          Your browser does not support the audio tag.
+                        </audio>
+                      )}
+                    {mediaPreview &&
+                      selectedTemplate.header_media_type === "Video" && (
+                        <video controls className="mt-2 h-40">
+                          <source src={mediaPreview} />
+                          Your browser does not support the video tag.
+                        </video>
+                      )}
+                    {mediaPreview &&
+                      selectedTemplate.header_media_type === "Document" && (
+                        <div className="mt-2">
+                          {mediaFile.type === "application/pdf" ? (
+                            <iframe
+                              src={mediaPreview}
+                              className="w-full h-40"
+                              title="PDF Preview"
+                            />
+                          ) : (
+                            <p className="text-gray-700">
+                              {mediaFile.name} (Preview not supported)
+                            </p>
+                          )}
+                        </div>
+                      )}
+                  </div>
+                )}
+
                 <div className="flex justify-end gap-2 mt-4">
                   <Button variant="secondary" onClick={handleBackClick}>
                     Back

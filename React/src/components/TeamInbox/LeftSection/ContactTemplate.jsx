@@ -1,5 +1,3 @@
-import axios from "axios";
-
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPhone } from "@fortawesome/free-solid-svg-icons";
@@ -9,7 +7,7 @@ import Dropdown from "../../Dropdown";
 import Input from "../../Input";
 import Button from "../../Button";
 
-import { CHAT_DATA } from "../../../services/api";
+import { fetchSelectedChatData } from "../../../services/api";
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -27,6 +25,8 @@ const ContactTemplate = ({
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [customFields, setCustomFields] = useState({});
   const [error, setError] = useState("");
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState(null);
 
   const extractReceiverId = (contactString) => {
     const match = contactString.match(/\(([^)]+)\)$/);
@@ -70,6 +70,7 @@ const ContactTemplate = ({
   const transformedContacts = contacts.map((contact) => ({
     id: contact.receiver_id,
     name: `${contact.replySourceMessage} (${contact.receiver_id})`,
+    chat_room: contact.chat_room || {},
   }));
 
   const handleTemplateClick = (template) => {
@@ -97,6 +98,16 @@ const ContactTemplate = ({
     setShowTemplates(false);
   };
 
+  const handleMediaUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setMediaFile(file);
+
+    // Create a preview URL for media display
+    const fileURL = URL.createObjectURL(file);
+    setMediaPreview(fileURL);
+  };
+
   const handleSendMessage = async () => {
     if (!selectedTemplate) return;
 
@@ -111,34 +122,36 @@ const ContactTemplate = ({
       [`attribute${index + 1}`]: customFields[field], // Object for each custom field
     }));
 
-    // Construct the JSON payload
-    const payload = {
-      action: "create",
-      username: user, // assuming `user` is the username
-      receiver_id: selectedContact
-        ? extractReceiverId(selectedContact)
-        : phoneNumber,
-      text: message,
-      template_id: selectedTemplate.id,
-      type: "text",
-      agent: user, // assuming `user` is the agent's name
-      eventDescription: "Bot Replied",
-      attributes, // Directly pass the attributes array as a JSON field
-    };
+    const selectedContactObject = contacts.find(
+      (contact) => contact.receiver_id === extractReceiverId(selectedContact)
+    );
 
-    const token = localStorage.getItem("token");
+    const agent =
+      selectedContactObject?.chat_room?.assign_user?.assign_user ||
+      "default_agent";
+
+    const data = new FormData();
+    data.append("action", "create");
+    data.append("username", user);
+    data.append("template_name", selectedTemplate.template_name);
+    data.append("template_id", selectedTemplate.id);
+    data.append("text", message);
+    data.append("attributes", JSON.stringify(attributes));
+
+    if (mediaFile) {
+      data.append("template_media", mediaFile); // Append media file
+    }
+
+    data.append(
+      "receiver_id",
+      selectedContact ? extractReceiverId(selectedContact) : phoneNumber
+    );
+    data.append("type", mediaFile ? "media" : "text");
+    data.append("agent", agent);
+    data.append("eventDescription", "agent");
 
     try {
-      const response = await axios.post(
-        CHAT_DATA, // Replace with actual endpoint
-        payload, // Send as JSON payload
-        {
-          headers: {
-            "Content-Type": "application/json", // Ensure JSON format
-            Authorization: `Bearer ${token}`, // Manually add the token
-          },
-        }
-      );
+      const response = await fetchSelectedChatData(data);
 
       if (response?.data?.data) {
         updateChatMessages(response?.data?.data);
@@ -148,7 +161,6 @@ const ContactTemplate = ({
         toast.error("Failed to send message");
       }
     } catch (error) {
-      console.error("Error sending message:", error);
       toast.error("Failed to send message");
     }
   };
@@ -255,6 +267,73 @@ const ContactTemplate = ({
                       />
                     </div>
                   ))}
+
+                  {selectedTemplate?.header_media_type && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Upload {selectedTemplate.header_media_type}
+                      </label>
+                      <input
+                        type="file"
+                        accept={
+                          selectedTemplate.header_media_type === "Image"
+                            ? "image/*"
+                            : selectedTemplate.header_media_type === "Audio"
+                            ? "audio/*"
+                            : selectedTemplate.header_media_type === "Video"
+                            ? "video/*"
+                            : selectedTemplate.header_media_type === "Document"
+                            ? ".pdf,.doc,.docx,.txt" // Adjust accepted file types for documents
+                            : "*"
+                        }
+                        onChange={handleMediaUpload}
+                        className="mt-1 block w-full"
+                      />
+                      {/* Show media preview */}
+                      {mediaPreview && (
+                        <div className="mt-4">
+                          {selectedTemplate?.header_media_type === "Image" && (
+                            <img
+                              src={mediaPreview}
+                              alt="preview"
+                              className="mt-2 h-40"
+                            />
+                          )}
+
+                          {selectedTemplate?.header_media_type === "Audio" && (
+                            <audio controls className="mt-2">
+                              <source src={mediaPreview} />
+                              Your browser does not support the audio tag.
+                            </audio>
+                          )}
+
+                          {selectedTemplate?.header_media_type === "Video" && (
+                            <video controls className="mt-2 h-40">
+                              <source src={mediaPreview} />
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+
+                          {selectedTemplate?.header_media_type ===
+                            "Document" && (
+                            <div className="mt-2">
+                              {mediaFile.type === "application/pdf" ? (
+                                <iframe
+                                  src={mediaPreview}
+                                  className="w-full h-40"
+                                  title="PDF Preview"
+                                />
+                              ) : (
+                                <p className="text-gray-700">
+                                  {mediaFile.name} (Preview not supported)
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex justify-end gap-2 mt-4">
                     <Button variant="secondary" onClick={handleBackClick}>

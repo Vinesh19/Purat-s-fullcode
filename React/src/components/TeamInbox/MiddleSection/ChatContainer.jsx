@@ -10,7 +10,9 @@ const ChatContainer = ({
   setSelectedChat,
   updateStarredChats,
   updateStatus,
+  updateChatAgent,
   updateChatMessages,
+  timer,
 }) => {
   return (
     <div className="bg-[#ede9e2] h-full flex flex-col">
@@ -21,6 +23,8 @@ const ChatContainer = ({
           setSelectedChat={setSelectedChat}
           updateStarredChats={updateStarredChats}
           updateStatus={updateStatus}
+          updateChatAgent={updateChatAgent}
+          timer={timer}
         />
       </div>
       <div className="flex-1">

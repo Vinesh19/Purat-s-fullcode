@@ -8,7 +8,6 @@ import "../TeamInbox.css";
 
 const ChatContent = ({ messages }) => {
   const chatContainerRef = useRef(null);
-  const MEDIA_BASE_URL = import.meta.env.VITE_API_MEDIA_URL;
 
   const formatDate = (dateString) => {
     const options = {
@@ -23,6 +22,7 @@ const ChatContent = ({ messages }) => {
     const options = {
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "UTC",
     };
     return new Date(dateString).toLocaleTimeString(undefined, options);
   };
@@ -42,7 +42,7 @@ const ChatContent = ({ messages }) => {
   }, [messages]);
 
   const renderMedia = (media) => {
-    const mediaUrl = `${MEDIA_BASE_URL}${media}`;
+    const mediaUrl = `${media}`;
     const mediaType = media.split(".").pop().toLowerCase();
 
     switch (mediaType) {
@@ -79,38 +79,61 @@ const ChatContent = ({ messages }) => {
       ref={chatContainerRef}
       className="chat-container overflow-y-scroll scrollbar-hide h-[calc(100vh-220px)]"
     >
-      {Object.keys(groupedMessages).map((date, dateIndex) => (
-        <React.Fragment key={dateIndex}>
-          <div className="chat-date">{date}</div>
-          {groupedMessages[date].map((message, index) => {
-            const isSentByUser = message.eventtype === "broadcastMessage";
-            const messageClass = classNames("message-bubble", {
-              "message-sent": isSentByUser,
-              "message-received": !isSentByUser,
-            });
+      {messages.length === 0 ? (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-gray-500 text-lg font-semibold">
+            No user selected
+          </p>
+        </div>
+      ) : (
+        Object.keys(groupedMessages).map((date, dateIndex) => (
+          <React.Fragment key={dateIndex}>
+            <div className="chat-date">{date}</div>
+            {groupedMessages[date].map((message, index) => {
+              const isSentByUser = message.eventtype === "broadcastMessage";
 
-            return (
-              <div key={index} className={messageClass}>
-                <span className="absolute -left-20 bottom-4 text-slate-400 text-xs font-semibold">
-                  {message.eventDescription}
-                </span>
+              const agentName = message?.agent || "Bot Replied";
 
-                <div className="message-content">
-                  {message.media && (
-                    <div className="message-media mb-2">
-                      {renderMedia(message.media)}
+              const messageClass = classNames("message-bubble", {
+                "message-sent": isSentByUser,
+                "message-received": !isSentByUser,
+              });
+
+              const mediaToRender = message.media || message.template_media;
+
+              return (
+                <div key={index} className="message-container">
+                  {/* Align agent name next to message bubble */}
+                  <div
+                    className={classNames("message-row", {
+                      "message-row-sent": isSentByUser,
+                    })}
+                  >
+                    {isSentByUser && (
+                      <span className="agent-name">{agentName}</span>
+                    )}
+
+                    {/* Message bubble */}
+                    <div className={messageClass}>
+                      <div className="message-content">
+                        {(message.media || message.template_media) && (
+                          <div className="message-media mb-2">
+                            {renderMedia(mediaToRender)}
+                          </div>
+                        )}
+                        <div className="message-text">{message.text}</div>
+                        <div className="message-time">
+                          {formatTime(message.created_at)}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div className="message-text">{message.text}</div>
-                  <div className="message-time">
-                    {formatTime(message.created_at)}
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </React.Fragment>
-      ))}
+              );
+            })}
+          </React.Fragment>
+        ))
+      )}
     </div>
   );
 };

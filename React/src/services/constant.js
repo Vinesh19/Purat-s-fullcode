@@ -1,51 +1,56 @@
 export const CHATS_TYPE = [
   {
     id: "1",
+    name: "All chats",
+    action: "allchat",
+  },
+  {
+    id: "2",
     name: "Active chats",
     action: "active",
   },
   {
-    id: "2",
+    id: "3",
     name: "Broadcast",
     action: "broadcast",
   },
   {
-    id: "3",
+    id: "4",
     name: "Unassigned",
     action: "unassigned",
   },
   {
-    id: "4",
+    id: "5",
     name: "Unread",
     action: "unread",
   },
   {
-    id: "5",
+    id: "6",
     name: "Expired",
     action: "expired",
   },
   {
-    id: "6",
+    id: "7",
     name: "Assigned to me",
     action: "assign_to_me",
   },
   {
-    id: "7",
+    id: "8",
     name: "Favorite only",
     action: "favorite",
   },
   {
-    id: "8",
+    id: "9",
     name: "Open",
     action: "open",
   },
   {
-    id: "9",
+    id: "10",
     name: "Pending",
     action: "pending",
   },
   {
-    id: "10",
+    id: "11",
     name: "Solved",
     action: "solved",
   },

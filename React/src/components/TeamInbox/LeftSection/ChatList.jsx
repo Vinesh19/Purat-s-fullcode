@@ -31,13 +31,14 @@ const ChatList = ({
   starredChats,
   updateStarredChats,
   updateChatMessages,
+  onFilterApply,
 }) => {
   const [selectedChatType, setSelectedChatType] = useState(action);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showContactTemplate, setShowContactTemplate] = useState(false);
   const [hoveredChat, setHoveredChat] = useState(null);
-  const [showAssigned, setShowAssigned] = useState(false);
+  const [showAssigned, setShowAssigned] = useState(true);
 
   const handleChatSelection = (e) => {
     const selectedValue = e.target.value;
@@ -55,13 +56,21 @@ const ChatList = ({
   };
 
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    // If there's a search term, switch action to "allchat"
+    if (value.trim().length > 0) {
+      setAction("allchat"); // Change action to "allchat" for search results
+    } else {
+      setAction("active"); // Reset to previous action if search is cleared
+    }
   };
 
   const toggleContactTemplate = () => {
     setShowContactTemplate(!showContactTemplate);
     if (!showContactTemplate) {
-      setAction("contacts");
+      setAction("allchat");
     }
   };
 
@@ -75,7 +84,7 @@ const ChatList = ({
   );
 
   // Filter chats based on assigned/unassigned state
-  const displayedChats = filteredChats.filter((chat) => {
+  const displayedChats = filteredChats.reverse().filter((chat) => {
     const isAssigned =
       chat.chat_room?.assign_user &&
       Object.keys(chat.chat_room.assign_user).length > 0;
@@ -84,8 +93,8 @@ const ChatList = ({
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);
-    let hours = date.getHours();
-    const minutes = date.getMinutes();
+    let hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
     const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12;
     hours = hours ? hours : 12;
@@ -285,7 +294,11 @@ const ChatList = ({
           width="50vw"
           height="60vh"
         >
-          <AdvanceFilter closeModal={handleModal} user={user} />
+          <AdvanceFilter
+            closeModal={handleModal}
+            user={user}
+            onFilterApply={onFilterApply}
+          />
         </Modal>
       )}
     </div>
