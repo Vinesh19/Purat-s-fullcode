@@ -101,6 +101,10 @@ const ChatContent = ({ messages }) => {
 
               const mediaToRender = message.media || message.template_media;
 
+              const messageText = message.template
+                ? message.template.template_body
+                : message.text;
+
               return (
                 <div key={index} className="message-container">
                   {/* Align agent name next to message bubble */}
@@ -121,7 +125,7 @@ const ChatContent = ({ messages }) => {
                             {renderMedia(mediaToRender)}
                           </div>
                         )}
-                        <div className="message-text">{message.text}</div>
+                        <div className="message-text">{messageText}</div>
                         <div className="message-time">
                           {formatTime(message.created_at)}
                         </div>

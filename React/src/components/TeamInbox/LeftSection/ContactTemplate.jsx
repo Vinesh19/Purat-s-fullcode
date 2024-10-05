@@ -131,15 +131,18 @@ const ContactTemplate = ({
       "default_agent";
 
     const data = new FormData();
-    data.append("action", "create");
+    data.append("action", "createTemplate");
     data.append("username", user);
-    data.append("template_name", selectedTemplate.template_name);
-    data.append("template_id", selectedTemplate.id);
+    data.append("template_name", selectedTemplate?.template_name);
+    data.append("template_id", selectedTemplate?.id);
     data.append("text", message);
     data.append("attributes", JSON.stringify(attributes));
 
     if (mediaFile) {
       data.append("template_media", mediaFile); // Append media file
+
+      const mediaType = mediaFile.type.split("/")[0]; // Determine media type (e.g., 'image', 'video')
+      data.append("template_media_type", mediaType);
     }
 
     data.append(
@@ -209,7 +212,7 @@ const ContactTemplate = ({
       )}
 
       {showTemplates && (
-        <div className="overflow-y-scroll h-[64vh] scrollbar-hide">
+        <div className="overflow-y-scroll h-[64vh] overflow-x-hidden scrollbar-hide">
           <h2 className="text-lg font-medium">Select Template</h2>
           <Input
             type="search"

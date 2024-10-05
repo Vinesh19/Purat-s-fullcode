@@ -64,7 +64,6 @@ const ChatbotTemplates = () => {
                     backgroundImage:
                       "url(https://via.placeholder.com/300x200.png?text=Create+Chatbot)",
                   }}
-                  title="Blank Template"
                 />
                 <div className="p-4 flex flex-col flex-grow">
                   <h2 className="text-lg font-semibold mb-2">
@@ -100,15 +99,17 @@ const ChatbotTemplates = () => {
                     backgroundImage:
                       "url(https://via.placeholder.com/300x200.png?text=Prebulid+Chatbots)",
                   }}
-                  title="Browse Template"
                 />
+
                 <div className="p-4 flex flex-col flex-grow">
                   <h2 className="text-lg font-semibold mb-2">
                     Browse chatbot library
                   </h2>
+
                   <p className="flex-grow">
                     Use pre-built chatbots or customize to your needs.
                   </p>
+
                   <button className="mt-4 bg-purple-500 text-white py-2 px-4 rounded-md flex items-center justify-center hover:bg-purple-600 transition">
                     <LibraryBooksIcon className="mr-2" />
                     Browse chatbots
@@ -119,6 +120,7 @@ const ChatbotTemplates = () => {
           </div>
         </div>
       </div>
+
       {isModalOpen && (
         <Modal
           isModalOpen={isModalOpen}

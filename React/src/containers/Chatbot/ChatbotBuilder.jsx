@@ -16,7 +16,7 @@ const ChatbotBuilder = () => {
   };
 
   return (
-    <div className="flex-1 mt-1">
+    <div className="flex-1 my-1">
       {/* Sidebar */}
       <aside className="sidebar w-16 md:w-64 bg-white text-indigo-600 rounded-r-xl p-4 shadow-lg fixed h-full overflow-y-auto transition-all duration-300">
         {/* Adjusted position */}

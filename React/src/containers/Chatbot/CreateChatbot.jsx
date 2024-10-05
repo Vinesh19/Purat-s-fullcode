@@ -10,14 +10,14 @@ import ReactFlow, {
 } from "reactflow";
 
 import Modal from "../../components/Modal";
-import QuestionModal from "../../components/Chatbot/QuestionModal";
+import QuestionModal from "../../components/Chatbot/Modals/QuestionModal";
+import ButtonsModal from "../../components/Chatbot/Modals/ButtonModal";
+import ListModal from "../../components/Chatbot/Modals/ListModal";
 
-import {
-  SendMessageNode,
-  QuestionNode,
-  ButtonsNode,
-  ListNode,
-} from "../../components/Chatbot/CustomNodes";
+import MessageNode from "../../components/Chatbot/CustomNodes/MessageNode";
+import QuestionNode from "../../components/Chatbot/CustomNodes/QuestionNode";
+import ButtonsNode from "../../components/Chatbot/CustomNodes/ButtonsNode";
+import ListNode from "../../components/Chatbot/CustomNodes/ListNode";
 
 import { Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -25,7 +25,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import "reactflow/dist/style.css";
 
 const nodeTypes = {
-  sendMessage: SendMessageNode,
+  sendMessage: MessageNode,
   question: QuestionNode,
   buttons: ButtonsNode,
   list: ListNode,
@@ -48,7 +48,7 @@ const CreateChatbot = () => {
     const newNode = {
       id: `${id}`,
       type: type,
-      data: { label: `${type} Node` },
+      data: {},
       position: {
         x: Math.random() * 250 + 100,
         y: Math.random() * 250 + 100,
@@ -74,11 +74,41 @@ const CreateChatbot = () => {
     setEdges((eds) => applyEdgeChanges(changes, eds));
   const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
 
+  const handleSaveNode = (updatedNode) => {
+    setNodes((nodes) =>
+      nodes.map((node) => (node.id === updatedNode.id ? updatedNode : node))
+    );
+  };
+
   // Handle node double-click event
-  const handleNodeDoubleClick = (event, node) => {
-    if (node.type === "question") {
+  const handleNodeDoubleClick = (_, node) => {
+    if (
+      node.type === "question" ||
+      node.type === "buttons" ||
+      node.type === "list"
+    ) {
       openModal(node);
     }
+  };
+
+  // Copy the selected node
+  const handleCopyNode = (node) => {
+    const newNode = {
+      ...node,
+      id: `${id}`, // Assign new ID
+      position: {
+        ...node.position,
+        x: node.position.x + 50, // Slightly offset position to avoid overlap
+        y: node.position.y + 50,
+      },
+    };
+    setId(id + 1);
+    setNodes((nds) => [...nds, newNode]);
+  };
+
+  // Delete the selected node
+  const handleDeleteNode = (nodeId) => {
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
   };
 
   return (
@@ -148,17 +178,24 @@ const CreateChatbot = () => {
 
         <div className="relative h-[calc(100vh-100px)] w-full">
           <ReactFlow
-            nodes={nodes.map((node) =>
-              node.type === "question"
-                ? {
-                    ...node,
-                    data: {
-                      ...node.data,
-                      openModal: () => openModal(node), // Pass the openModal to the QuestionNode
-                    },
-                  }
-                : node
-            )}
+            nodes={nodes.map((node) => {
+              if (
+                node.type === "question" ||
+                node.type === "buttons" ||
+                node.type === "list"
+              ) {
+                return {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    openModal: () => openModal(node), // For edit functionality
+                  },
+                  onCopyNode: () => handleCopyNode(node), // For copy functionality
+                  onDeleteNode: () => handleDeleteNode(node.id), // For delete functionality
+                };
+              }
+              return node;
+            })}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
@@ -168,6 +205,7 @@ const CreateChatbot = () => {
             className="w-full h-full"
           >
             <Background variant="lines" gap={16} />
+
             <MiniMap
               style={{ width: 200, height: 120 }}
               nodeColor={(node) => {
@@ -185,6 +223,7 @@ const CreateChatbot = () => {
                 }
               }}
             />
+
             <Controls className="flex flex-row gap-2" style={{ bottom: 10 }} />
           </ReactFlow>
         </div>
@@ -197,11 +236,28 @@ const CreateChatbot = () => {
         width="460px"
         className="rounded-lg"
       >
-        <QuestionModal
-          selectedNode={selectedNode}
-          setSelectedNode={setSelectedNode}
-          closeModal={closeModal}
-        />
+        {selectedNode?.type === "question" ? (
+          <QuestionModal
+            selectedNode={selectedNode}
+            setSelectedNode={setSelectedNode}
+            closeModal={closeModal}
+            onSave={handleSaveNode}
+          />
+        ) : selectedNode?.type === "buttons" ? (
+          <ButtonsModal
+            selectedNode={selectedNode}
+            setSelectedNode={setSelectedNode}
+            closeModal={closeModal}
+            onSave={handleSaveNode}
+          />
+        ) : selectedNode?.type === "list" ? (
+          <ListModal
+            selectedNode={selectedNode}
+            setSelectedNode={setSelectedNode}
+            closeModal={closeModal}
+            onSave={handleSaveNode}
+          />
+        ) : null}
       </Modal>
     </div>
   );

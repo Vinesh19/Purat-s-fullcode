@@ -123,15 +123,22 @@ const Templates = ({
       }
     } else if (selectedChat) {
       const data = new FormData();
-      data.append("action", "create");
+      data.append("action", "createTemplate");
       data.append("username", user);
-      data.append("template_name", selectedTemplate.template_name);
-      data.append("template_id", selectedTemplate.id);
+      data.append("template_name", selectedTemplate?.template_name);
+      // data.append("template_name", "welcome_message");
+      data.append("template_id", selectedTemplate?.id);
+      // data.append("template_id", 9);
       data.append("text", message);
       data.append("attributes", JSON.stringify(customFieldAttributesArray));
+      data.append("template_language", selectedTemplate?.language?.short_name);
+      // data.append("template_language", "en");
 
       if (mediaFile) {
         data.append("template_media", mediaFile); // Append media file
+
+        const mediaType = mediaFile.type.split("/")[0]; // Determine media type (e.g., 'image', 'video')
+        data.append("template_media_type", mediaType);
       }
 
       data.append("receiver_id", selectedChat?.chat_room.receiver_id); // For single chat

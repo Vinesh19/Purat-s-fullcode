@@ -242,7 +242,7 @@ const ChatFooter = ({ templates, user, selectedChat, updateChatMessages }) => {
   }, [selectedMedia]);
 
   return (
-    <div className="flex justify-between items-center bg-white shadow-2xl mx-1 px-8 py-4 rounded-sm relative">
+    <div className="flex justify-between items-center bg-white shadow-2xl mx-1 p-4 rounded-sm relative">
       {selectedMedia && (
         <div className="absolute -top-40 left-0 bg-slate-50 bg-opacity-85">
           <div className="p-4">
@@ -261,8 +261,22 @@ const ChatFooter = ({ templates, user, selectedChat, updateChatMessages }) => {
         ref={messageRef}
         value={message}
         onChange={handleInputChange}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault(); // Prevent the default behavior of creating a new line
+            handleSendMessage(); // Call the function to send the message
+          } else if (e.key === "Enter" && e.shiftKey) {
+            e.preventDefault(); // Prevents default behavior which could cause extra spaces
+            setMessage((prev) => prev + "\n");
+          }
+        }}
         rows={1}
-        className="w-[60%] max-h-16 overflow-auto resize-none border-none focus:outline-none scrollbar-hide"
+        style={{
+          lineHeight: "1.5", // Adjust the line height to control vertical spacing
+          resize: "none", // Disable resizing if necessary
+          overflow: "auto", // Ensure proper scrolling
+        }}
+        className="w-[50%] xl:w-[60%] max-h-16 overflow-auto resize-none border-none focus:outline-none scrollbar-hide"
         placeholder="Type a message here."
       />
 
@@ -331,7 +345,7 @@ const ChatFooter = ({ templates, user, selectedChat, updateChatMessages }) => {
           closeModal={handleModalClick}
           width="50vw"
           height="50vh"
-          className="bottom-0"
+          className="bottom-0 rounded-t-lg"
         >
           <Templates
             templates={templates}

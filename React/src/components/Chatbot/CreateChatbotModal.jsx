@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const CreateChatbotModal = () => {
-  const [chatbotName, setChatbotName] = useState("");
   const navigate = useNavigate();
+  const [chatbotName, setChatbotName] = useState("");
 
   const handleOpen = () => {
     if (chatbotName.trim()) {
@@ -12,6 +12,12 @@ const CreateChatbotModal = () => {
       });
     } else {
       alert("Please enter a chatbot name.");
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleOpen();
     }
   };
 
@@ -31,6 +37,7 @@ const CreateChatbotModal = () => {
           placeholder="Enter chatbot name"
           value={chatbotName}
           onChange={(e) => setChatbotName(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="w-full p-2 bg-gray-50 rounded-md outline-none"
         />
       </div>

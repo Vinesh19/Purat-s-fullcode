@@ -193,7 +193,7 @@ const TeamInbox = ({ user }) => {
 
   return (
     <div className="flex grow">
-      <div className="basis-1/4">
+      <div className="basis-1/4 min-w-0">
         <ChatList
           templates={templates}
           chats={chats}
@@ -211,7 +211,7 @@ const TeamInbox = ({ user }) => {
         />
       </div>
 
-      <div className=" basis-1/2">
+      <div className="basis-1/2 min-w-0">
         <ChatContainer
           templates={templates}
           selectedChat={selectedChat}
@@ -226,7 +226,7 @@ const TeamInbox = ({ user }) => {
         />
       </div>
 
-      <div className="basis-1/4">
+      <div className="basis-1/4 min-w-0">
         <UserInfo
           Contact={selectedChat?.chat_room?.receiver_id || ""}
           Name={selectedChat?.replySourceMessage || ""}

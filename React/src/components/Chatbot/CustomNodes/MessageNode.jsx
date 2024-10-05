@@ -1,8 +1,15 @@
-import { useState, useRef } from "react";
-import { Handle } from "reactflow";
-import DeleteIcon from "@mui/icons-material/Delete"; // Import Material-UI Delete Icon
+import { useState, useRef, useCallback } from "react";
+import { Handle, useReactFlow } from "reactflow";
 
-const SendMessageNode = () => {
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
+
+import DeleteIcon from "@mui/icons-material/Delete";
+
+const MessageNode = ({ id, data }) => {
+  const { setNodes, getNode, getNodes } = useReactFlow();
+
+  const [showMenu, setShowMenu] = useState(false);
   const [inputs, setInputs] = useState({
     messages: [],
     images: [],
@@ -10,6 +17,44 @@ const SendMessageNode = () => {
     audios: [],
     documents: [],
   });
+
+  const copyNode = useCallback(() => {
+    const newId = `${Date.now()}`;
+    setNodes((nds) => {
+      const nodeToCopy = getNode(id);
+
+      if (!nodeToCopy) return nds;
+      const highestZIndex = Math.max(
+        ...getNodes().map((node) => node.style?.zIndex || 0)
+      );
+
+      const newNode = {
+        ...nodeToCopy,
+        id: newId,
+        position: {
+          x: nodeToCopy.position.x + 150,
+          y: nodeToCopy.position.y + 150,
+        },
+        data: {
+          ...nodeToCopy.data,
+        },
+        selected: false,
+        style: {
+          ...nodeToCopy.style,
+          zIndex: highestZIndex + 1, // Set z-index higher than all existing nodes
+        },
+      };
+      return nds
+        .map((node) => ({ ...node, selected: false }))
+        .concat({ ...newNode, selected: true });
+    });
+    setShowMenu(false);
+  }, [id, setNodes, getNode]);
+
+  const deleteNode = () => {
+    setNodes((nds) => nds.filter((node) => node.id !== id));
+    setShowMenu(false); // Hide menu after action
+  };
 
   const fileInputRefs = {
     images: useRef(null),
@@ -53,14 +98,44 @@ const SendMessageNode = () => {
   };
 
   return (
-    <div className="w-72 bg-white rounded-lg shadow-md">
-      <div className="flex justify-between items-center bg-red-500 p-2 rounded-t-lg">
-        <div className="text-white text-lg font-semibold flex items-center gap-1">
+    <div className="w-72 bg-white rounded-lg shadow-md cursor-grab">
+      <div className="flex justify-between items-center bg-red-500 p-3 rounded-t-lg">
+        <div className="text-white text-2xl font-semibold flex items-center gap-1">
           <span>💬</span>
-          Send a message
+          <span className="text-xl">Send a message</span>
         </div>
-        <button className="text-white text-xl font-bold">⋮</button>
+
+        <button
+          className="text-white text-2xl font-bold"
+          onClick={() => setShowMenu(!showMenu)} // Toggle menu on click
+        >
+          ⋮
+        </button>
       </div>
+
+      {showMenu && (
+        <div className="absolute right-0 -top-20 bg-white border shadow-md rounded p-2">
+          <ul className="w-36 text-sm font-medium flex flex-col gap-2 text-[#666666]">
+            <li
+              onClick={copyNode}
+              className="flex items-center gap-2.5 hover:bg-gray-50 cursor-pointer"
+            >
+              <img src="/assets/images/svg/copy.svg" alt="copy" />
+              <span>Copy</span>
+            </li>
+
+            <hr />
+
+            <li
+              onClick={deleteNode}
+              className="flex items-center pl-1 gap-3.5 hover:bg-gray-50 cursor-pointer"
+            >
+              <FontAwesomeIcon icon={faTrashCan} className=" text-[#666666]" />
+              <span>Delete</span>
+            </li>
+          </ul>
+        </div>
+      )}
 
       <div className="p-3 flex flex-col gap-4">
         {/* Render multiple message textareas */}
@@ -74,6 +149,7 @@ const SendMessageNode = () => {
                 handleInputChange("messages", index, e.target.value)
               }
             />
+
             <button
               onClick={() => removeField("messages", index)}
               className="text-red-500"
@@ -110,7 +186,7 @@ const SendMessageNode = () => {
         ))}
 
         {/* Render multiple video upload fields */}
-        {inputs.videos.map((video, index) => (
+        {inputs.videos.map((_, index) => (
           <div key={index} className="flex items-center gap-2">
             <span className="text-2xl">🎥</span>
             <button
@@ -136,7 +212,7 @@ const SendMessageNode = () => {
         ))}
 
         {/* Render multiple audio upload fields */}
-        {inputs.audios.map((audio, index) => (
+        {inputs.audios.map((_, index) => (
           <div key={index} className="flex items-center gap-2">
             <span className="text-2xl">🎵</span>
             <button
@@ -162,7 +238,7 @@ const SendMessageNode = () => {
         ))}
 
         {/* Render multiple document upload fields */}
-        {inputs.documents.map((document, index) => (
+        {inputs.documents.map((_, index) => (
           <div key={index} className="flex items-center gap-2">
             <span className="text-2xl">📄</span>
             <button
@@ -191,31 +267,35 @@ const SendMessageNode = () => {
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => addField("messages")}
-            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-100"
+            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-50"
           >
             Message
           </button>
+
           <button
             onClick={() => addField("images")}
-            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-100"
+            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-50"
           >
             Image
           </button>
+
           <button
             onClick={() => addField("videos")}
-            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-100"
+            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-50"
           >
             Video
           </button>
+
           <button
             onClick={() => addField("audios")}
-            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-100"
+            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-50"
           >
             Audio
           </button>
+
           <button
             onClick={() => addField("documents")}
-            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-100 col-span-2"
+            className="text-center text-green-500 border border-green-500 rounded-md py-2 hover:bg-green-50 col-span-2"
           >
             Document
           </button>
@@ -228,55 +308,4 @@ const SendMessageNode = () => {
   );
 };
 
-const QuestionNode = ({ data }) => {
-  return (
-    <div
-      className="w-72 rounded-lg shadow-md border border-gray-300"
-      onDoubleClick={data.openModal} // Trigger the modal from the passed data
-    >
-      <div className="flex justify-between items-center px-3 py-2 bg-orange-400 rounded-t-lg">
-        <div className="text-white text-lg font-semibold flex items-center gap-2">
-          <span className="text-2xl">?</span>
-          Question
-        </div>
-
-        <button className="text-white text-xl font-bold">⋮</button>
-      </div>
-
-      {/* Content Section */}
-      <div className="p-3 bg-white rounded-b-lg">
-        {"Double Tap to ask a question"}
-      </div>
-
-      {/* Handles for connections */}
-      <Handle type="source" position="right" className="bg-gray-600" />
-      <Handle type="target" position="left" className="bg-gray-600" />
-    </div>
-  );
-};
-
-export default QuestionNode;
-
-const ButtonsNode = ({ data }) => {
-  return (
-    <div className="p-3 bg-white border border-green-300 rounded-lg shadow-md">
-      <strong className="block text-lg font-semibold">Buttons Node</strong>
-      <div>{data.content || "Your buttons content here"}</div>
-      <Handle type="source" position="right" className="bg-gray-600" />
-      <Handle type="target" position="left" className="bg-gray-600" />
-    </div>
-  );
-};
-
-const ListNode = ({ data }) => {
-  return (
-    <div className="p-3 bg-white border border-purple-300 rounded-lg shadow-md">
-      <strong className="block text-lg font-semibold">List Node</strong>
-      <div>{data.content || "Your list content here"}</div>
-      <Handle type="source" position="right" className="bg-gray-600" />
-      <Handle type="target" position="left" className="bg-gray-600" />
-    </div>
-  );
-};
-
-export { SendMessageNode, QuestionNode, ButtonsNode, ListNode };
+export default MessageNode;
